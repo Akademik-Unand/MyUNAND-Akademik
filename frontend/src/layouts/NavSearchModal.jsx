@@ -29,22 +29,33 @@ const buildIndex = () => {
 export const NavSearchModal = ({ open, onClose }) => {
   const dialogRef = useRef(null);
   const inputRef = useRef(null);
+  const closedByProp = useRef(false);
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if (open) {
+
+    if (open && !dialog.open) {
       dialog.showModal();
       requestAnimationFrame(() => {
         setQuery('');
         inputRef.current?.focus();
       });
-    } else if (dialog.open) {
+    } else if (!open && dialog.open) {
+      closedByProp.current = true;
       dialog.close();
     }
   }, [open]);
+
+  const handleClose = () => {
+    if (closedByProp.current) {
+      closedByProp.current = false;
+      return;
+    }
+    onClose();
+  };
 
   const index = useMemo(() => buildIndex(), []);
 
@@ -63,14 +74,7 @@ export const NavSearchModal = ({ open, onClose }) => {
   };
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="modal"
-      onClose={onClose}
-      onClick={(e) => {
-        if (e.target === dialogRef.current) onClose();
-      }}
-    >
+    <dialog ref={dialogRef} className="modal" onClose={handleClose}>
       <div className="modal-box max-w-lg p-0 shadow-2xl">
         <div className="flex items-center gap-3 border-b border-base-200 px-5 py-4">
           <Search size={18} className="text-base-content/40 shrink-0" />
@@ -83,7 +87,7 @@ export const NavSearchModal = ({ open, onClose }) => {
               if (e.key === 'Enter' && results.length > 0) handleSelect(results[0].path);
             }}
             placeholder="Cari menu atau halaman..."
-            className="w-full bg-transparent text-sm outline-none placeholder:text-base-content/40"
+            className="w-full bg-transparent text-sm outline-hidden placeholder:text-base-content/40"
           />
           <button className="btn btn-ghost btn-circle btn-xs shrink-0" onClick={onClose} aria-label="Tutup">
             <X size={16} />
@@ -116,7 +120,7 @@ export const NavSearchModal = ({ open, onClose }) => {
       </div>
 
       <form method="dialog" className="modal-backdrop">
-        <button onClick={onClose}>close</button>
+        <button>close</button>
       </form>
     </dialog>
   );

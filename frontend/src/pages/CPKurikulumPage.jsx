@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { IconButton } from '../components/common/IconButton';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -13,9 +14,10 @@ import { DetailList } from '../components/common/DetailList';
 import { ConfirmDeleteModal } from '../components/common/ConfirmDeleteModal';
 import { FormActions } from '../components/common/FormActions';
 import { CPForm, SCPForm } from '../components/kurikulum/CPForms';
-import { useMockQuery } from '../hooks/useMockQuery';
+import { useResourceQuery } from '../hooks/useResourceQuery';
+import { useResourceMutations } from '../hooks/useResourceMutations';
 import { useConfirmDelete } from '../hooks/useConfirmDelete';
-import { KURIKULUM_CP, FILTER_DEPARTEMEN, FILTER_PRODI, FILTER_KURIKULUM } from '../constants/mockData';
+import { FILTER_DEPARTEMEN, FILTER_PRODI, FILTER_KURIKULUM } from '../constants/mockData';
 
 const filterFields = [
   { label: 'Departemen', placeholder: 'Pilih Departemen', options: FILTER_DEPARTEMEN.map((d) => ({ value: d, label: d })) },
@@ -24,24 +26,30 @@ const filterFields = [
 ];
 
 export const CPKurikulumPage = () => {
-  const { data, isLoading, setData } = useMockQuery(KURIKULUM_CP);
+  const query = useResourceQuery('kurikulum-cp');
+  const mutations = useResourceMutations('kurikulum-cp', {
+    create: 'CP berhasil ditambahkan.',
+    update: 'CP berhasil diperbarui.',
+    remove: 'CP berhasil dihapus.',
+  });
   const del = useConfirmDelete();
   const [cpModal, setCpModal] = useState({ open: false, mode: 'create', values: {} });
   const [scpModal, setScpModal] = useState({ open: false, parent: null, values: {} });
   const [detail, setDetail] = useState(null);
+  const data = query.data ?? [];
+
+  const replace = (next) => mutations.replaceAll.mutate(next);
 
   const saveCp = (e) => {
     e.preventDefault();
     if (cpModal.mode === 'create') {
-      setData((prev) => [
+      replace([
         { kode: cpModal.values.kode, deskripsi: cpModal.values.deskripsi, targetAktif: true, scp: [] },
-        ...prev,
+        ...data,
       ]);
       toast.success('CP berhasil ditambahkan');
     } else {
-      setData((prev) =>
-        prev.map((so) => (so.kode === cpModal.values.kode ? { ...so, ...cpModal.values } : so))
-      );
+      replace(data.map((so) => (so.kode === cpModal.values.kode ? { ...so, ...cpModal.values } : so)));
       toast.success('CP berhasil diperbarui');
     }
     setCpModal({ open: false, mode: 'create', values: {} });
@@ -49,18 +57,24 @@ export const CPKurikulumPage = () => {
 
   const saveScp = (e) => {
     e.preventDefault();
-    setData((prev) =>
-      prev.map((so) =>
-        so.kode === scpModal.parent
-          ? { ...so, scp: [...so.scp, { ...scpModal.values }] }
-          : so
-      )
+    const isEdit = scpModal.mode === 'edit';
+    replace(
+      data.map((so) => {
+        if (so.kode !== scpModal.parent) return so;
+        if (isEdit) {
+          return {
+            ...so,
+            scp: so.scp.map((row) => (row.kode === scpModal.values.kode ? { ...row, ...scpModal.values } : row)),
+          };
+        }
+        return { ...so, scp: [...so.scp, { ...scpModal.values }] };
+      })
     );
-    toast.success('SCP berhasil ditambahkan');
+    toast.success(isEdit ? 'SCP berhasil diperbarui' : 'SCP berhasil ditambahkan');
     setScpModal({ open: false, parent: null, values: {} });
   };
 
-  if (isLoading) return <PageSkeleton showFilter cards={3} />;
+  if (query.isPending) return <PageSkeleton showFilter cards={3} />;
 
   return (
     <div className="space-y-6">
@@ -89,12 +103,19 @@ export const CPKurikulumPage = () => {
               </button>
               <div className="flex items-center gap-2 shrink-0">
                 <Badge variant="success" outline>Aktif</Badge>
-                <button className="btn btn-xs btn-ghost text-warning" onClick={() => setCpModal({ open: true, mode: 'edit', values: so })}>
-                  <Pencil size={14} />
-                </button>
-                <button className="btn btn-xs btn-ghost text-error" onClick={() => del.askDelete(so)}>
-                  <Trash2 size={14} />
-                </button>
+                <IconButton
+                  label="Ubah CP"
+                  icon={Pencil}
+                  tone="text-warning"
+                  onClick={() => setCpModal({ open: true, mode: 'edit', values: so })}
+                />
+                <IconButton
+                  label="Hapus CP"
+                  icon={Trash2}
+                  tone="text-error"
+                  tooltipPosition="tooltip-left"
+                  onClick={() => del.askDelete(so)}
+                />
               </div>
             </div>
             <p className="text-xs text-base-content/60 mb-3">
@@ -118,7 +139,31 @@ export const CPKurikulumPage = () => {
                     <td>{row.target}</td>
                     <td>{row.nilaiMinimal}</td>
                     <td>
-                      <span className="badge badge-success badge-outline badge-sm">Aktif</span>
+                      <div className="flex items-center gap-1">
+                        <span className="badge badge-success badge-outline badge-sm">Aktif</span>
+                        <IconButton
+                          label="Ubah SCP"
+                          icon={Pencil}
+                          tone="text-warning"
+                          onClick={() =>
+                            setScpModal({ open: true, parent: so.kode, values: row, mode: 'edit' })
+                          }
+                        />
+                        <IconButton
+                          label="Hapus SCP"
+                          icon={Trash2}
+                          tone="text-error"
+                          onClick={() =>
+                            replace(
+                              data.map((item) =>
+                                item.kode === so.kode
+                                  ? { ...item, scp: item.scp.filter((scp) => scp.kode !== row.kode) }
+                                  : item
+                              )
+                            )
+                          }
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -139,7 +184,7 @@ export const CPKurikulumPage = () => {
         </form>
       </Modal>
 
-      <Modal open={scpModal.open} onClose={() => setScpModal({ open: false, parent: null, values: {} })} title={`Tambah SCP — ${scpModal.parent || ''}`} footer={<FormActions onCancel={() => setScpModal({ open: false, parent: null, values: {} })} onSubmitClick={() => document.getElementById('scp-form')?.requestSubmit()} />}>
+      <Modal open={scpModal.open} onClose={() => setScpModal({ open: false, parent: null, values: {} })} title={`${scpModal.mode === 'edit' ? 'Ubah' : 'Tambah'} SCP — ${scpModal.parent || ''}`} footer={<FormActions onCancel={() => setScpModal({ open: false, parent: null, values: {} })} onSubmitClick={() => document.getElementById('scp-form')?.requestSubmit()} />}>
         <form id="scp-form" onSubmit={saveScp}>
           <SCPForm values={scpModal.values} onChange={(values) => setScpModal((m) => ({ ...m, values }))} />
         </form>
@@ -161,7 +206,7 @@ export const CPKurikulumPage = () => {
       <ConfirmDeleteModal
         open={del.isOpen}
         onClose={del.close}
-        onConfirm={() => del.confirm((item) => setData((prev) => prev.filter((r) => r.kode !== item.kode)))}
+        onConfirm={() => del.confirm((item) => replace(data.filter((r) => r.kode !== item.kode)))}
       />
     </div>
   );

@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Download } from 'lucide-react';
+import { Download, Eye } from 'lucide-react';
+import { IconButton } from '../components/common/IconButton';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { FilterBar } from '../components/common/FilterBar';
 import { DataTable } from '../components/common/DataTable';
-import { PageSkeleton } from '../components/common/PageSkeleton';
 import { Drawer } from '../components/ui/Drawer';
 import { DetailList } from '../components/common/DetailList';
-import { useMockQuery } from '../hooks/useMockQuery';
 import {
-  REKAP_CP_ROWS,
   FILTER_DEPARTEMEN,
   FILTER_PRODI,
   FILTER_KURIKULUM,
@@ -26,25 +24,27 @@ const topFilters = [
 ];
 
 export const RekapCPPage = () => {
-  const { data, isLoading } = useMockQuery(REKAP_CP_ROWS);
   const [detail, setDetail] = useState(null);
-
-  if (isLoading) return <PageSkeleton tableCols={10} />;
 
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'bp', header: 'BP' },
-    { key: 'mahasiswa', header: 'Mahasiswa' },
-    { key: 'angkatan', header: 'Angkatan' },
-    { key: 'mk', header: 'MK' },
-    { key: 'cpmk', header: 'CPMK' },
-    { key: 'cp', header: 'CP' },
-    { key: 'scp', header: 'SCP' },
-    { key: 'targetMin', header: 'Nilai Min' },
-    { key: 'capaianTarget', header: 'Capaian' },
+    { key: 'bp', header: 'BP', sortable: true },
+    { key: 'mahasiswa', header: 'Mahasiswa', sortable: true },
+    { key: 'angkatan', header: 'Angkatan', sortable: true, filter: { type: 'select', options: ['2021', '2022', '2023'] } },
+    { key: 'semester', header: 'Semester', sortable: true },
+    { key: 'mk', header: 'MK', sortable: true },
+    { key: 'kelas', header: 'Kelas', sortable: true },
+    { key: 'cpmk', header: 'CPMK', sortable: true },
+    { key: 'cp', header: 'CP', sortable: true },
+    { key: 'scp', header: 'SCP', sortable: true },
+    { key: 'targetMin', header: 'Target Nilai Minimal', sortable: true },
+    { key: 'targetCapai', header: 'Target Mencapai Nilai Minimal', sortable: true },
+    { key: 'capaianTarget', header: 'Capaian', sortable: true },
     {
       key: 'statusTercapai',
       header: 'Status',
+      sortable: true,
+      filter: { type: 'select', options: ['Tercapai', 'Belum'] },
       render: (row) => (
         <span className={`badge badge-sm ${row.statusTercapai === 'Tercapai' ? 'badge-success' : 'badge-error'}`}>
           {row.statusTercapai}
@@ -55,9 +55,7 @@ export const RekapCPPage = () => {
     {
       header: 'Aksi',
       render: (row) => (
-        <button type="button" className="btn btn-ghost btn-xs" onClick={() => setDetail(row)}>
-          Detail
-        </button>
+        <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
       ),
     },
   ];
@@ -85,44 +83,44 @@ export const RekapCPPage = () => {
 
       <Card title="Filter data">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
-          <label className="form-control">
-            <span className="label-text text-xs">CP</span>
-            <select className="select select-bordered select-sm"><option>-- Semua CP/SCP --</option></select>
-          </label>
-          <label className="form-control">
-            <span className="label-text text-xs">MK</span>
-            <select className="select select-bordered select-sm"><option>-- Semua MK --</option></select>
-          </label>
-          <label className="form-control">
-            <span className="label-text text-xs">Kelas</span>
-            <select className="select select-bordered select-sm">
+          <fieldset className="fieldset gap-1 p-0">
+            <legend className="fieldset-legend text-xs">CP</legend>
+            <select className="select select-sm w-full"><option>-- Semua CP/SCP --</option></select>
+          </fieldset>
+          <fieldset className="fieldset gap-1 p-0">
+            <legend className="fieldset-legend text-xs">MK</legend>
+            <select className="select select-sm w-full"><option>-- Semua MK --</option></select>
+          </fieldset>
+          <fieldset className="fieldset gap-1 p-0">
+            <legend className="fieldset-legend text-xs">Kelas</legend>
+            <select className="select select-sm w-full">
               <option>-- Semua Kelas --</option>
               <option>A</option>
               <option>B</option>
             </select>
-          </label>
-          <label className="form-control">
-            <span className="label-text text-xs">MK Transkrip Saja?</span>
-            <select className="select select-bordered select-sm">
+          </fieldset>
+          <fieldset className="fieldset gap-1 p-0">
+            <legend className="fieldset-legend text-xs">MK Transkrip Saja?</legend>
+            <select className="select select-sm w-full">
               <option>Tidak</option>
               <option>Ya</option>
             </select>
-          </label>
-          <label className="form-control">
-            <span className="label-text text-xs">Pilihan Data</span>
-            <select className="select select-bordered select-sm">
+          </fieldset>
+          <fieldset className="fieldset gap-1 p-0">
+            <legend className="fieldset-legend text-xs">Pilihan Data</legend>
+            <select className="select select-sm w-full">
               <option>Persen Mencapai Target</option>
             </select>
-          </label>
-          <label className="form-control">
-            <span className="label-text text-xs">Angkatan</span>
-            <select className="select select-bordered select-sm">
+          </fieldset>
+          <fieldset className="fieldset gap-1 p-0">
+            <legend className="fieldset-legend text-xs">Angkatan</legend>
+            <select className="select select-sm w-full">
               <option>-- Semua Angkatan --</option>
               <option>2021</option>
               <option>2022</option>
               <option>2023</option>
             </select>
-          </label>
+          </fieldset>
         </div>
         <Button size="sm" onClick={() => toast.info('Filter diterapkan', { description: 'Data mock tidak berubah.' })}>
           Apply Filter
@@ -130,7 +128,12 @@ export const RekapCPPage = () => {
       </Card>
 
       <Card title="Rekap Nilai">
-        <DataTable columns={columns} data={data} rowKey={(r) => r.id} />
+        <DataTable
+          resource="rekap-cp"
+          columns={columns}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Cari mahasiswa, MK, atau CP..."
+        />
       </Card>
 
       <Drawer open={Boolean(detail)} onClose={() => setDetail(null)} title="Detail Rekap CP" subtitle={detail?.mahasiswa} widthClass="w-full max-w-lg">

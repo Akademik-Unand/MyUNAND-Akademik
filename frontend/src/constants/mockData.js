@@ -123,16 +123,16 @@ export const CPMK_KURIKULUM = [
 ];
 
 export const MK_SEMESTER = [
-  { kode: 'TMS 62280', nama: 'Aero dan Hidro Modelling', sks: 2, kelas: 1, peserta: 6, transkrip: 'Tidak', jumlahCpmk: 3 },
-  { kode: 'AND60227', nama: 'Analisis Data Eksperimental/observasi/survey', sks: 2, kelas: 1, peserta: 1, transkrip: 'Tidak', jumlahCpmk: 2 },
-  { kode: 'TMS 62277', nama: 'Analisis Kegagalan dan Perawatan Mesin', sks: 2, kelas: 1, peserta: 3, transkrip: 'Tidak', jumlahCpmk: 6 },
-  { kode: 'AND60228', nama: 'Asistensi Riset', sks: 6, kelas: 1, peserta: 1, transkrip: 'Tidak', jumlahCpmk: 3 },
-  { kode: 'TEK 60101', nama: 'Bahasa Inggris', sks: 2, kelas: 4, peserta: 144, transkrip: 'Tidak', jumlahCpmk: 6 },
-  { kode: 'TMS 62144', nama: 'Desain Sistem Termal', sks: 3, kelas: 6, peserta: 144, transkrip: 'Tidak', jumlahCpmk: 4 },
-  { kode: 'TMS62125', nama: 'Dinamika Partikel', sks: 2, kelas: 5, peserta: 226, transkrip: 'Tidak', jumlahCpmk: 4 },
-  { kode: 'TMS 62289', nama: 'Dinamika Struktur (Metode Numerik dan Instrumentasi)', sks: 2, kelas: 1, peserta: 8, transkrip: 'Tidak', jumlahCpmk: 4 },
-  { kode: 'TEK 60103', nama: 'Ekonomi Teknik', sks: 2, kelas: 5, peserta: 161, transkrip: 'Tidak', jumlahCpmk: 4 },
-  { kode: 'TMS 62143', nama: 'Elemen Mesin 2', sks: 2, kelas: 5, peserta: 127, transkrip: 'Tidak', jumlahCpmk: 3 },
+  { kode: 'TMS 62280', nama: 'Aero dan Hidro Modelling', sks: 2, kelas: 1, peserta: 6, transkrip: 'Tidak', jumlahCpmk: 3, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'TMS 62280 TM', dosen: 'DENDI ADI SAPUTRA' },
+  { kode: 'AND60227', nama: 'Analisis Data Eksperimental/observasi/survey', sks: 2, kelas: 1, peserta: 1, transkrip: 'Tidak', jumlahCpmk: 2, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'AND60227 TM', dosen: 'DEVI CHANDRA' },
+  { kode: 'TMS 62277', nama: 'Analisis Kegagalan dan Perawatan Mesin', sks: 2, kelas: 1, peserta: 3, transkrip: 'Tidak', jumlahCpmk: 6, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'TMS 62277 TM', dosen: 'ILHAMDI' },
+  { kode: 'AND60228', nama: 'Asistensi Riset', sks: 6, kelas: 1, peserta: 1, transkrip: 'Tidak', jumlahCpmk: 3, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'AND60228 TM', dosen: 'DEVI CHANDRA' },
+  { kode: 'TEK 60101', nama: 'Bahasa Inggris', sks: 2, kelas: 4, peserta: 144, transkrip: 'Ya', jumlahCpmk: 6, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'TEK 60101 TM A', dosen: 'TIM BAHASA' },
+  { kode: 'TMS 62144', nama: 'Desain Sistem Termal', sks: 3, kelas: 6, peserta: 144, transkrip: 'Ya', jumlahCpmk: 4, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'TMS 62144 TM A', dosen: 'ILHAMDI' },
+  { kode: 'TMS62125', nama: 'Dinamika Partikel', sks: 2, kelas: 5, peserta: 226, transkrip: 'Tidak', jumlahCpmk: 4, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'TMS62125 TM A', dosen: 'DENDI ADI SAPUTRA' },
+  { kode: 'TMS 62289', nama: 'Dinamika Struktur (Metode Numerik dan Instrumentasi)', sks: 2, kelas: 1, peserta: 8, transkrip: 'Tidak', jumlahCpmk: 4, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'TMS 62289 TM', dosen: 'DEVI CHANDRA' },
+  { kode: 'TEK 60103', nama: 'Ekonomi Teknik', sks: 2, kelas: 5, peserta: 161, transkrip: 'Ya', jumlahCpmk: 4, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'TEK 60103 TM A', dosen: 'TIM EKONOMI' },
+  { kode: 'TMS 62143', nama: 'Elemen Mesin 2', sks: 2, kelas: 5, peserta: 127, transkrip: 'Ya', jumlahCpmk: 3, prodi: 'S1 Teknik Mesin', kurikulum: 'Kurikulum JTM-S1-2021-2026', semester: 'Genap 2024', kelasKode: 'TMS 62143 TM KBI', dosen: 'ILHAMDI' },
 ];
 
 export const KELAS = [
@@ -220,33 +220,39 @@ export const MAPPING_MATRIX = {
     {
       kode: 'TMS 62280',
       nama: 'Aero dan Hidro Modelling',
+      sks: 2,
       cells: { 'SO A|PI 3': ['CPMK 1'], 'SO A|PI 4': ['CPMK 1'], 'SO C|PI 1': ['CPMK 2'] },
     },
     {
       kode: 'TMS 62277',
       nama: 'Analisis Kegagalan dan Perawatan Mesin',
+      sks: 2,
       cells: { 'SO A|PI 3': ['CPMK 2'], 'SO A|PI 4': ['CPMK 1'], 'SO B|PI 2': ['CPMK 3', 'CPMK 4'] },
     },
     {
       kode: 'TMS 62144',
       nama: 'Desain Sistem Termal',
+      sks: 3,
       cells: { 'SO A|PI 1': ['CPMK 2'], 'SO A|PI 5': ['CPMK 1'], 'SO C|PI 2': ['CPMK 3'] },
     },
     {
       kode: 'TMS 62143',
       nama: 'Elemen Mesin 2',
+      sks: 2,
       cells: { 'SO A|PI 2': ['CPMK 1'], 'SO C|PI 1': ['CPMK 2'] },
     },
   ],
 };
 
 export const MK_TRANSKRIP = [
-  { kode: 'MWU60101', nama: 'Agama', sks: 2, semester: 1, wajib: true },
-  { kode: 'MWU60104', nama: 'Bahasa Indonesia', sks: 2, semester: 1, wajib: true },
-  { kode: 'TEK 60101', nama: 'Bahasa Inggris', sks: 2, semester: 2, wajib: true },
-  { kode: 'TEK 60103', nama: 'Ekonomi Teknik', sks: 2, semester: 6, wajib: true },
-  { kode: 'TMS 62144', nama: 'Desain Sistem Termal', sks: 3, semester: 6, wajib: true },
-  { kode: 'TMS 62143', nama: 'Elemen Mesin 2', sks: 2, semester: 4, wajib: true },
+  { kode: 'MWU60101', nama: 'Agama', sks: 2, kelas: 2, peserta: 148, jumlahCpmk: 3, transkrip: 'Ya' },
+  { kode: 'MWU60104', nama: 'Bahasa Indonesia', sks: 2, kelas: 2, peserta: 150, jumlahCpmk: 6, transkrip: 'Ya' },
+  { kode: 'TEK 60101', nama: 'Bahasa Inggris', sks: 2, kelas: 4, peserta: 144, jumlahCpmk: 6, transkrip: 'Ya' },
+  { kode: 'TEK 60103', nama: 'Ekonomi Teknik', sks: 2, kelas: 5, peserta: 161, jumlahCpmk: 4, transkrip: 'Ya' },
+  { kode: 'TMS 62144', nama: 'Desain Sistem Termal', sks: 3, kelas: 6, peserta: 144, jumlahCpmk: 4, transkrip: 'Ya' },
+  { kode: 'TMS 62143', nama: 'Elemen Mesin 2', sks: 2, kelas: 5, peserta: 127, jumlahCpmk: 3, transkrip: 'Ya' },
+  { kode: 'TMS 62280', nama: 'Aero dan Hidro Modelling', sks: 2, kelas: 1, peserta: 6, jumlahCpmk: 3, transkrip: 'Tidak' },
+  { kode: 'TMS 62277', nama: 'Analisis Kegagalan dan Perawatan Mesin', sks: 2, kelas: 1, peserta: 3, jumlahCpmk: 6, transkrip: 'Tidak' },
 ];
 
 export const UPLOAD_HISTORY = [
@@ -281,8 +287,168 @@ export const LAPORAN_MATRIX = [
 ];
 
 export const MK_SEMESTER_DETAIL_CPMK = [
-  { nama: 'CPMK 1', deskripsi: 'Mahasiswa mampu menerapkan konsep termodinamika pada sistem termal.', status: 'Disetujui' },
-  { nama: 'CPMK 2', deskripsi: 'Mahasiswa mampu merancang sistem termal sesuai constraint.', status: 'Disetujui' },
-  { nama: 'CPMK 3', deskripsi: 'Mahasiswa mampu mengevaluasi performa sistem termal.', status: 'Menunggu' },
-  { nama: 'CPMK 4', deskripsi: 'Mahasiswa mampu menyusun laporan desain secara profesional.', status: 'Draft' },
+  {
+    nama: 'CPMK 1',
+    deskripsi: 'Mahasiswa dapat menjelaskan konsep-konsep dasar yang terkait dengan aliran fluida, tekanan, gaya aerodinamika, dan hidrodinamika.',
+    targetCapai: '55%',
+    targetNilai: '60/100',
+    rows: [
+      { cpl: 'SO A PI 3', cplDesc: 'An ability to apply knowledge of engineering materials', sumber: 'Tugas Perancangan Kapal', bobot: 10 },
+      { cpl: 'SO A PI 4', cplDesc: 'An ability to apply knowledge of engineering mechanics', sumber: 'Tugas Perancangan UAV', bobot: 10 },
+    ],
+  },
+  {
+    nama: 'CPMK 2',
+    deskripsi: 'Mahasiswa dapat menginterpretasikan hasil simulasi dan menganalisis karakteristik aliran fluida.',
+    targetCapai: '55%',
+    targetNilai: '60/100',
+    rows: [
+      { cpl: 'SO C PI 3', cplDesc: 'An ability to analyze and interpret data', sumber: 'Laporan Perancangan Kapal', bobot: 15 },
+      { cpl: 'SO E PI 2', cplDesc: 'An ability to apply estimation techniques and engineering heuristics', sumber: 'Laporan Perancangan UAV', bobot: 15 },
+      { cpl: 'SO B PI 1', cplDesc: 'An ability to design component, system and/or process that meet specified needs', sumber: 'Laporan Perancangan Kapal', bobot: 5 },
+      { cpl: 'SO B PI 2', cplDesc: 'An ability to take realistic constraints into design', sumber: 'Laporan Perancangan UAV', bobot: 5 },
+    ],
+  },
+  {
+    nama: 'CPMK 3',
+    deskripsi: 'Mahasiswa dapat mengaplikasikan pemikiran kritis dan keterampilan pemecahan masalah untuk menganalisis masalah terkait aerodinamika dan hidrodinamika.',
+    targetCapai: '55%',
+    targetNilai: '60/100',
+    rows: [
+      { cpl: 'SO E PI 2', cplDesc: 'An ability to use CAD tools to draw mechanical components', sumber: 'Presentasi', bobot: 5 },
+      { cpl: 'SO C PI 3', cplDesc: 'An ability to use general engineering software', sumber: 'Presentasi', bobot: 5 },
+      { cpl: '', cplDesc: '', sumber: 'Presentasi', bobot: 5 },
+    ],
+  },
+];
+
+export const SUMBER_PENILAIAN_OPTIONS = ['Tugas', 'Quiz', 'UTS', 'UAS', 'Laporan', 'Presentasi', 'Lainnya'];
+
+export const ATUR_CPMK_SEMESTER = [
+  {
+    id: 'cpmk1',
+    nama: 'CPMK 1',
+    deskripsi: 'Mahasiswa dapat menjelaskan konsep-konsep dasar yang terkait dengan aliran fluida, tekanan, gaya aerodinamika, dan hidrodinamika.',
+    selected: true,
+    targetCapai: 55,
+    targetNilai: 60,
+    skala: '100',
+    cpl: [
+      {
+        id: 'cpl1',
+        kode: 'SO A PI 3',
+        deskripsi: 'An ability to apply knowledge of engineering materials',
+        selected: true,
+        sumber: [{ id: 's1', nama: 'Tugas', custom: 'Tugas Perancangan Kapal', bobot: 10 }],
+      },
+      {
+        id: 'cpl2',
+        kode: 'SO A PI 4',
+        deskripsi: 'An ability to apply knowledge of engineering mechanics',
+        selected: true,
+        sumber: [{ id: 's2', nama: 'Tugas', custom: 'Tugas Perancangan UAV', bobot: 10 }],
+      },
+    ],
+  },
+  {
+    id: 'cpmk2',
+    nama: 'CPMK 2',
+    deskripsi: 'Mahasiswa dapat menginterpretasikan hasil simulasi dan menganalisis karakteristik aliran fluida.',
+    selected: true,
+    targetCapai: 55,
+    targetNilai: 60,
+    skala: '100',
+    cpl: [
+      {
+        id: 'cpl3',
+        kode: 'SO C PI 3',
+        deskripsi: 'An ability to analyze and interpret data',
+        selected: true,
+        sumber: [{ id: 's3', nama: 'Laporan', custom: 'Laporan Perancangan Kapal', bobot: 15 }],
+      },
+    ],
+  },
+  {
+    id: 'cpmk3',
+    nama: 'CPMK 3',
+    deskripsi: 'Mahasiswa dapat mengaplikasikan pemikiran kritis untuk masalah aerodinamika dan hidrodinamika.',
+    selected: false,
+    targetCapai: 55,
+    targetNilai: 60,
+    skala: '100',
+    cpl: [
+      {
+        id: 'cpl4',
+        kode: 'SO E PI 2',
+        deskripsi: 'An ability to use CAD tools for mechanical components',
+        selected: false,
+        sumber: [{ id: 's4', nama: 'Presentasi', custom: '', bobot: 5 }],
+      },
+    ],
+  },
+];
+
+export const EVALUASI_CPMK = [
+  {
+    id: 'ev1',
+    cpmk: 'CPMK 1',
+    cpl: 'SO A PI 3',
+    targetCapai: '55%',
+    targetNilai: '60/100',
+    nilaiMasuk: 6,
+    rataRata: 78,
+    jumlahLulus: 5,
+    capaianTarget: '83%',
+    evaluasi: 'Tercapai',
+    tindakLanjut: { tt: 'Review rubrik tugas', prodi: '', departemen: '', fakultas: '' },
+    usulan: { tt: 'Perkuat praktikum CFD', prodi: '', departemen: '', fakultas: '' },
+  },
+  {
+    id: 'ev2',
+    cpmk: 'CPMK 2',
+    cpl: 'SO C PI 3',
+    targetCapai: '55%',
+    targetNilai: '60/100',
+    nilaiMasuk: 6,
+    rataRata: 64,
+    jumlahLulus: 4,
+    capaianTarget: '67%',
+    evaluasi: 'Tercapai',
+    tindakLanjut: { tt: '', prodi: '', departemen: '', fakultas: '' },
+    usulan: { tt: '', prodi: '', departemen: '', fakultas: '' },
+  },
+  {
+    id: 'ev3',
+    cpmk: 'CPMK 3',
+    cpl: 'SO E PI 2',
+    targetCapai: '55%',
+    targetNilai: '60/100',
+    nilaiMasuk: 6,
+    rataRata: 52,
+    jumlahLulus: 2,
+    capaianTarget: '33%',
+    evaluasi: 'Belum tercapai',
+    tindakLanjut: { tt: 'Remedial presentasi', prodi: '', departemen: '', fakultas: '' },
+    usulan: { tt: 'Workshop presentasi teknis', prodi: '', departemen: '', fakultas: '' },
+  },
+];
+
+export const EVALUASI_NILAI_PESERTA = [
+  { bp: '2210912030', nama: 'A. FURQAN', cpmk1: 82, cpmk2: 74, cpmk3: 60, akhir: 74, huruf: 'B' },
+  { bp: '2210913006', nama: 'AHMAD FAUZI', cpmk1: 88, cpmk2: 80, cpmk3: 70, akhir: 81, huruf: 'A' },
+  { bp: '2210913012', nama: 'SITI RAHMA', cpmk1: 70, cpmk2: 58, cpmk3: 48, akhir: 61, huruf: 'C' },
+  { bp: '2210913044', nama: 'BUDI SANTOSO', cpmk1: 76, cpmk2: 66, cpmk3: 54, akhir: 68, huruf: 'B' },
+  { bp: '2110912001', nama: 'RINA PUTRI', cpmk1: 90, cpmk2: 84, cpmk3: 72, akhir: 84, huruf: 'A' },
+];
+
+export const DOKUMEN_EVALUASI = [
+  { id: 'doc1', no: 1, nama: 'RPS Aero Hidro', keterangan: 'Rencana pembelajaran semester', berkas: 'rps-tms62280.pdf', uploader: 'Dendi Adi Saputra', waktu: '12 Juli 2025, 10:21' },
+  { id: 'doc2', no: 2, nama: 'Rubrik Penilaian', keterangan: 'Rubrik CPMK 1–3', berkas: 'rubrik-cpmk.xlsx', uploader: 'Ilhamdi', waktu: '12 Juli 2025, 11:04' },
+];
+
+export const JENIS_DOKUMEN_EVALUASI = [
+  { no: 1, nama: 'RPS', tipe: 'PDF', keharusan: 'Wajib', keterangan: 'Rencana pembelajaran semester', status: 'Sudah diunggah' },
+  { no: 2, nama: 'Rubrik Penilaian', tipe: 'XLSX', keharusan: 'Wajib', keterangan: 'Rubrik capaian CPMK', status: 'Sudah diunggah' },
+  { no: 3, nama: 'Soal UAS', tipe: 'PDF', keharusan: 'Opsional', keterangan: 'Naskah soal ujian akhir', status: 'Belum ada' },
+  { no: 4, nama: 'Berita Acara', tipe: 'PDF', keharusan: 'Wajib', keterangan: 'Berita acara evaluasi', status: 'Belum ada' },
 ];

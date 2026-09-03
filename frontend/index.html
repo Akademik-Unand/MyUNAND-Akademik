@@ -8,6 +8,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem('myunand_theme');
+          if (theme === 'dark') theme = 'myunand-dark';
+          if (theme === 'light' || theme === 'corporate') theme = 'myunand';
+          if (theme === 'myunand' || theme === 'myunand-dark') {
+            document.documentElement.setAttribute('data-theme', theme);
+          }
+          var scale = localStorage.getItem('myunand_font_scale');
+          var sizes = { normal: '16px', large: '18px', xlarge: '20px', xxlarge: '24px' };
+          if (sizes[scale]) {
+            document.documentElement.style.setProperty('--app-font-size', sizes[scale]);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body class="bg-base-200 text-base-content font-sans antialiased min-h-screen">
     <div id="root"></div>

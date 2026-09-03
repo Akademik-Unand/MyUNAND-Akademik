@@ -1,43 +1,50 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Power } from 'lucide-react';
+import { Eye, Pencil, Plus, Power, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { IconButton, IconLink } from '../components/common/IconButton';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { DataTable } from '../components/common/DataTable';
-import { PageSkeleton } from '../components/common/PageSkeleton';
 import { ConfirmDeleteModal } from '../components/common/ConfirmDeleteModal';
 import { Drawer } from '../components/ui/Drawer';
 import { DetailList } from '../components/common/DetailList';
-import { useMockQuery } from '../hooks/useMockQuery';
-import { useConfirmDelete } from '../hooks/useConfirmDelete';
-import { SETTING_SEMESTER } from '../constants/mockData';
+import { useResourceMutations } from '../hooks/useResourceMutations';
+import { useResourceQuery } from '../hooks/useResourceQuery';
 
 export const SettingSemesterPage = () => {
-  const { data, isLoading, setData } = useMockQuery(SETTING_SEMESTER);
-  const del = useConfirmDelete();
+  const mutations = useResourceMutations('setting-semester', {
+    remove: 'Setting semester berhasil dihapus.',
+  });
+  const allRows = useResourceQuery('setting-semester');
   const [detail, setDetail] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
+  // Hanya satu semester boleh aktif, jadi seluruh baris ditulis ulang sekaligus.
   const activate = (row) => {
-    setData((prev) =>
-      prev.map((r) => ({
-        ...r,
-        status: r.id === row.id ? 'Aktif' : 'Tidak Aktif',
-      }))
-    );
-    toast.success(`${row.semester} ${row.tahun} diaktifkan`);
+    const rows = (allRows.data ?? []).map((item) => ({
+      ...item,
+      status: item.id === row.id ? 'Aktif' : 'Tidak Aktif',
+    }));
+    mutations.replaceAll.mutate(rows, {
+      onSuccess: () => toast.success(`${row.semester} ${row.tahun} diaktifkan`),
+    });
   };
 
-  if (isLoading) return <PageSkeleton showFilter={false} tableCols={5} />;
-
   const columns = [
-    { header: 'No', render: (_, idx) => idx + 1 },
-    { key: 'tahun', header: 'Tahun Ajaran' },
-    { key: 'semester', header: 'Semester' },
+    { key: 'tahun', header: 'Tahun Ajaran', sortable: true },
+    {
+      key: 'semester',
+      header: 'Semester',
+      sortable: true,
+      filter: { type: 'select', options: ['Ganjil', 'Genap', 'Pendek'] },
+    },
     {
       key: 'status',
       header: 'Status',
+      sortable: true,
+      filter: { type: 'select', options: ['Aktif', 'Tidak Aktif'] },
       render: (row) =>
         row.status === 'Aktif' ? (
           <span className="badge badge-success badge-sm">Aktif</span>
@@ -45,24 +52,36 @@ export const SettingSemesterPage = () => {
           <span className="badge badge-ghost badge-sm">Tidak Aktif</span>
         ),
     },
+    { key: 'periodeMulai', header: 'Mulai', sortable: true },
+    { key: 'periodeSelesai', header: 'Selesai', sortable: true },
     {
       header: 'Aksi',
+      className: 'text-right',
+      cellClassName: 'text-right',
       render: (row) => (
-        <div className="flex items-center gap-1">
-          <button type="button" className="btn btn-xs btn-ghost text-info" onClick={() => setDetail(row)}>
-            Detail
-          </button>
+        <div className="flex items-center justify-end gap-1">
+          <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
           {row.status !== 'Aktif' && (
-            <button type="button" className="btn btn-xs btn-success btn-outline gap-1" onClick={() => activate(row)}>
-              <Power size={13} /> Aktifkan
-            </button>
+            <IconButton
+              label="Aktifkan semester"
+              icon={Power}
+              tone="text-success"
+              onClick={() => activate(row)}
+            />
           )}
-          <Link to={`/master/semester/setting/${row.id}/edit`} className="btn btn-xs btn-ghost text-warning">
-            Ubah
-          </Link>
-          <button type="button" className="btn btn-xs btn-ghost text-error" onClick={() => del.askDelete(row)}>
-            Hapus
-          </button>
+          <IconLink
+            label="Ubah setting"
+            icon={Pencil}
+            tone="text-warning"
+            to={`/master/semester/setting/${row.id}/edit`}
+          />
+          <IconButton
+            label="Hapus setting"
+            icon={Trash2}
+            tone="text-error"
+            tooltipPosition="tooltip-left"
+            onClick={() => setDeleteTarget(row)}
+          />
         </div>
       ),
     },
@@ -84,10 +103,20 @@ export const SettingSemesterPage = () => {
       />
 
       <Card title="Daftar Setting Semester">
-        <DataTable columns={columns} data={data} rowKey={(r) => r.id} />
+        <DataTable
+          resource="setting-semester"
+          columns={columns}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Cari tahun ajaran atau semester..."
+        />
       </Card>
 
-      <Drawer open={Boolean(detail)} onClose={() => setDetail(null)} title="Detail Setting Semester" subtitle={detail ? `${detail.semester} ${detail.tahun}` : ''}>
+      <Drawer
+        open={Boolean(detail)}
+        onClose={() => setDetail(null)}
+        title="Detail Setting Semester"
+        subtitle={detail ? `${detail.semester} ${detail.tahun}` : ''}
+      >
         {detail && (
           <DetailList
             items={[
@@ -104,9 +133,18 @@ export const SettingSemesterPage = () => {
       </Drawer>
 
       <ConfirmDeleteModal
-        open={del.isOpen}
-        onClose={del.close}
-        onConfirm={() => del.confirm((item) => setData((prev) => prev.filter((r) => r.id !== item.id)))}
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        title="Hapus Setting Semester"
+        message={
+          deleteTarget
+            ? `Yakin ingin menghapus setting ${deleteTarget.semester} ${deleteTarget.tahun}?`
+            : ''
+        }
+        onConfirm={() => {
+          mutations.remove.mutate(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
       />
     </div>
   );

@@ -1,31 +1,24 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { IconButton, IconLink } from '../components/common/IconButton';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { FilterBar } from '../components/common/FilterBar';
 import { DataTable } from '../components/common/DataTable';
-import { PageSkeleton } from '../components/common/PageSkeleton';
 import { ConfirmDeleteModal } from '../components/common/ConfirmDeleteModal';
-import { useMockQuery } from '../hooks/useMockQuery';
-import { useConfirmDelete } from '../hooks/useConfirmDelete';
-import { LAPORAN_CP, FILTER_DEPARTEMEN, FILTER_PRODI } from '../constants/mockData';
-
-const filterFields = [
-  { label: 'Departemen', placeholder: 'Pilih Departemen', options: FILTER_DEPARTEMEN.map((d) => ({ value: d, label: d })) },
-  { label: 'Prodi', placeholder: 'Pilih', options: FILTER_PRODI.map((p) => ({ value: p, label: p })) },
-];
+import { useResourceMutations } from '../hooks/useResourceMutations';
 
 export const LaporanCPPage = () => {
-  const { data, isLoading, setData } = useMockQuery(LAPORAN_CP);
-  const del = useConfirmDelete();
-
-  if (isLoading) return <PageSkeleton tableCols={6} />;
+  const mutations = useResourceMutations('laporan-cp', { remove: 'Laporan CP berhasil dihapus.' });
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
     {
+      key: 'nama',
       header: 'Nama Laporan',
+      sortable: true,
       render: (row) => (
         <div>
           <div className="font-medium">{row.nama}</div>
@@ -33,26 +26,33 @@ export const LaporanCPPage = () => {
         </div>
       ),
     },
-    { key: 'keterangan', header: 'Keterangan' },
-    { key: 'dibuatOleh', header: 'Dibuat Oleh' },
+    { key: 'keterangan', header: 'Keterangan', sortable: true },
+    { key: 'dibuatOleh', header: 'Dibuat Oleh', sortable: true },
     {
-      header: 'Lihat',
+      header: 'Aksi',
+      className: 'text-right',
+      cellClassName: 'text-right',
       render: (row) => (
-        <Link to={`/perkuliahan/laporan-cp/${row.id}`} className="btn btn-outline btn-success btn-xs">
-          Lihat
-        </Link>
-      ),
-    },
-    {
-      header: 'Action',
-      render: (row) => (
-        <div className="flex items-center gap-1">
-          <Link to={`/perkuliahan/laporan-cp/${row.id}/edit`} className="btn btn-outline btn-primary btn-xs">
-            Edit
-          </Link>
-          <button type="button" className="btn btn-outline btn-error btn-xs" onClick={() => del.askDelete(row)}>
-            Hapus
-          </button>
+        <div className="flex items-center justify-end gap-1">
+          <IconLink
+            label="Lihat laporan"
+            icon={Eye}
+            tone="text-info"
+            to={`/perkuliahan/laporan-cp/${row.id}`}
+          />
+          <IconLink
+            label="Ubah laporan"
+            icon={Pencil}
+            tone="text-warning"
+            to={`/perkuliahan/laporan-cp/${row.id}/edit`}
+          />
+          <IconButton
+            label="Hapus laporan"
+            icon={Trash2}
+            tone="text-error"
+            tooltipPosition="tooltip-left"
+            onClick={() => setDeleteTarget(row)}
+          />
         </div>
       ),
     },
@@ -72,16 +72,23 @@ export const LaporanCPPage = () => {
           </Link>
         }
       />
-      <Card title="Filter">
-        <FilterBar fields={filterFields} />
-      </Card>
       <Card title="Daftar Laporan">
-        <DataTable columns={columns} data={data} rowKey={(r) => r.id} />
+        <DataTable
+          resource="laporan-cp"
+          columns={columns}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Cari nama laporan atau pembuat..."
+        />
       </Card>
       <ConfirmDeleteModal
-        open={del.isOpen}
-        onClose={del.close}
-        onConfirm={() => del.confirm((item) => setData((prev) => prev.filter((r) => r.id !== item.id)))}
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        title="Hapus Laporan CP"
+        message={`Yakin ingin menghapus laporan ${deleteTarget?.nama || ''}?`}
+        onConfirm={() => {
+          mutations.remove.mutate(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
       />
     </div>
   );

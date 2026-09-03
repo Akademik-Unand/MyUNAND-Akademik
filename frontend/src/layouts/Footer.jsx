@@ -7,7 +7,7 @@ export const Footer = () => {
       <div className="flex items-center gap-4 text-[11px]">
         <a href="#" className="hover:text-primary transition-colors">Bantuan</a>
         <a href="#" className="hover:text-primary transition-colors">Kebijakan Privasi</a>
-        <a href="#" className="hover:text-primary transition-colors">v2.0.0 (OBE Edition)</a>
+        <a href="#" className="hover:text-primary transition-colors">v1.0.0</a>
       </div>
     </footer>
   );

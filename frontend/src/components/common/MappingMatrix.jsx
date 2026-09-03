@@ -6,8 +6,10 @@ export const MappingMatrix = ({ matrix }) => {
       <table className="table table-xs border border-base-300">
         <thead>
           <tr className="text-center">
+            <th rowSpan={2} className="align-middle">#</th>
             <th rowSpan={2} className="align-middle">Kode</th>
             <th rowSpan={2} className="align-middle">Mata Kuliah</th>
+            <th rowSpan={2} className="align-middle">SKS</th>
             {matrix.headers.map((h) => (
               <th key={h.so} colSpan={h.pis.length} className="text-center">
                 {h.so}
@@ -21,10 +23,12 @@ export const MappingMatrix = ({ matrix }) => {
           </tr>
         </thead>
         <tbody>
-          {matrix.rows.map((row) => (
+          {matrix.rows.map((row, idx) => (
             <tr key={row.kode}>
+              <td>{idx + 1}</td>
               <td className="font-semibold whitespace-nowrap">{row.kode}</td>
               <td className="whitespace-nowrap">{row.nama}</td>
+              <td>{row.sks ?? '—'}</td>
               {flatHeaders.map((h) => {
                 const items = row.cells[h.key] || [];
                 return (

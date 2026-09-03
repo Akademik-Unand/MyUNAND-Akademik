@@ -16,6 +16,10 @@ import { CPMKKurikulumPage } from '../pages/CPMKKurikulumPage';
 import { AturCPMKPage } from '../pages/AturCPMKPage';
 import { MKSemesterPage } from '../pages/MKSemesterPage';
 import { MKSemesterKelolaPage } from '../pages/MKSemesterKelolaPage';
+import { MKTranskripAturPage } from '../pages/MKTranskripAturPage';
+import { AturCPMKSemesterPage } from '../pages/AturCPMKSemesterPage';
+import { EvaluasiCPMKPage } from '../pages/EvaluasiCPMKPage';
+import { DokumenEvaluasiPage } from '../pages/DokumenEvaluasiPage';
 import { KelasPage } from '../pages/KelasPage';
 import { KelasKelolaPage } from '../pages/KelasKelolaPage';
 import { UploadNilaiPage } from '../pages/UploadNilaiPage';
@@ -49,6 +53,10 @@ export const router = createBrowserRouter([
       { path: 'kurikulum/cpmk/:kode', element: <AturCPMKPage /> },
       { path: 'kurikulum/cpmk', element: <CPMKKurikulumPage /> },
 
+      { path: 'perkuliahan/mk-semester/transkrip/atur', element: <MKTranskripAturPage /> },
+      { path: 'perkuliahan/mk-semester/:kode/atur', element: <AturCPMKSemesterPage /> },
+      { path: 'perkuliahan/mk-semester/:kode/evaluasi', element: <EvaluasiCPMKPage /> },
+      { path: 'perkuliahan/mk-semester/:kode/dokumen', element: <DokumenEvaluasiPage /> },
       { path: 'perkuliahan/mk-semester/:kode', element: <MKSemesterKelolaPage /> },
       { path: 'perkuliahan/mk-semester', element: <MKSemesterPage /> },
       { path: 'perkuliahan/kelas/:kode', element: <KelasKelolaPage /> },

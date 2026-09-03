@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { IconButton } from '../components/common/IconButton';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -9,34 +10,46 @@ import { Modal } from '../components/ui/Modal';
 import { FormActions } from '../components/common/FormActions';
 import { ConfirmDeleteModal } from '../components/common/ConfirmDeleteModal';
 import { CPMKItemForm } from '../components/kurikulum/CPForms';
-import { useMockQuery } from '../hooks/useMockQuery';
+import { useResourceQuery } from '../hooks/useResourceQuery';
+import { useResourceMutations } from '../hooks/useResourceMutations';
 import { useConfirmDelete } from '../hooks/useConfirmDelete';
-import { CPMK_KURIKULUM, CPMK_DETAIL } from '../constants/mockData';
+import { CPMK_KURIKULUM } from '../constants/mockData';
 import { PageSkeleton } from '../components/common/PageSkeleton';
 
 export const AturCPMKPage = () => {
   const { kode } = useParams();
   const mk = CPMK_KURIKULUM.find((m) => m.kode === decodeURIComponent(kode || '')) || CPMK_KURIKULUM[0];
-  const { data, isLoading, setData } = useMockQuery(CPMK_DETAIL);
+  const query = useResourceQuery('cpmk-detail');
+  const mutations = useResourceMutations('cpmk-detail');
   const del = useConfirmDelete();
-  const [modal, setModal] = useState({ open: false, values: {} });
+  const [modal, setModal] = useState({ open: false, mode: 'create', values: {} });
+  const data = query.data ?? [];
 
   const save = (e) => {
     e.preventDefault();
-    setData((prev) => [
-      ...prev,
-      {
-        nama: modal.values.nama,
-        deskripsi: modal.values.deskripsi,
-        status: 'Draft',
-        mappings: [{ cpl: modal.values.cpl || 'SO A', cplDesc: '—', pi: modal.values.pi || 'PI 1', piDesc: '—' }],
-      },
-    ]);
-    toast.success('CPMK berhasil ditambahkan');
-    setModal({ open: false, values: {} });
+    if (modal.mode === 'edit') {
+      mutations.replaceAll.mutate(
+        data.map((item) =>
+          item.nama === modal.values.nama ? { ...item, deskripsi: modal.values.deskripsi } : item
+        )
+      );
+      toast.success('CPMK berhasil diperbarui');
+    } else {
+      mutations.replaceAll.mutate([
+        ...data,
+        {
+          nama: modal.values.nama,
+          deskripsi: modal.values.deskripsi,
+          status: 'Draft',
+          mappings: [{ cpl: modal.values.cpl || 'SO A', cplDesc: '—', pi: modal.values.pi || 'PI 1', piDesc: '—' }],
+        },
+      ]);
+      toast.success('CPMK berhasil ditambahkan');
+    }
+    setModal({ open: false, mode: 'create', values: {} });
   };
 
-  if (isLoading) return <PageSkeleton showFilter={false} tableCols={6} />;
+  if (query.isPending) return <PageSkeleton showFilter={false} tableCols={6} />;
 
   return (
     <div className="space-y-6">
@@ -49,9 +62,16 @@ export const AturCPMKPage = () => {
           { label: 'Kelola CPMK' },
         ]}
         action={
-          <Button size="sm" className="gap-1.5" onClick={() => setModal({ open: true, values: {} })}>
-            <Plus size={15} /> Tambah CPMK
-          </Button>
+          <div className="flex gap-2">
+            <Link to={`/perkuliahan/mk-semester/${encodeURIComponent(mk.kode)}`}>
+              <Button variant="secondary" size="sm">
+                Lihat CPMK Semester (Genap 2024)
+              </Button>
+            </Link>
+            <Button size="sm" className="gap-1.5" onClick={() => setModal({ open: true, mode: 'create', values: {} })}>
+              <Plus size={15} /> Tambah CPMK
+            </Button>
+          </div>
         }
       />
 
@@ -96,9 +116,21 @@ export const AturCPMKPage = () => {
                           </span>
                         </td>
                         <td rowSpan={item.mappings.length} className="align-top">
-                          <button type="button" className="btn btn-xs btn-error btn-ghost" onClick={() => del.askDelete(item)}>
-                            Hapus
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <IconButton
+                              label="Ubah CPMK"
+                              icon={Pencil}
+                              tone="text-warning"
+                              onClick={() => setModal({ open: true, mode: 'edit', values: item })}
+                            />
+                            <IconButton
+                              label="Hapus CPMK"
+                              icon={Trash2}
+                              tone="text-error"
+                              tooltipPosition="tooltip-left"
+                              onClick={() => del.askDelete(item)}
+                            />
+                          </div>
                         </td>
                       </>
                     )}
@@ -117,11 +149,11 @@ export const AturCPMKPage = () => {
 
       <Modal
         open={modal.open}
-        onClose={() => setModal({ open: false, values: {} })}
-        title="Tambah CPMK"
+        onClose={() => setModal({ open: false, mode: 'create', values: {} })}
+        title={modal.mode === 'edit' ? 'Ubah CPMK' : 'Tambah CPMK'}
         footer={
           <FormActions
-            onCancel={() => setModal({ open: false, values: {} })}
+            onCancel={() => setModal({ open: false, mode: 'create', values: {} })}
             onSubmitClick={() => document.getElementById('cpmk-item-form')?.requestSubmit()}
           />
         }
@@ -134,7 +166,7 @@ export const AturCPMKPage = () => {
       <ConfirmDeleteModal
         open={del.isOpen}
         onClose={del.close}
-        onConfirm={() => del.confirm((item) => setData((prev) => prev.filter((r) => r.nama !== item.nama)))}
+        onConfirm={() => del.confirm((item) => mutations.replaceAll.mutate(data.filter((r) => r.nama !== item.nama)))}
       />
     </div>
   );

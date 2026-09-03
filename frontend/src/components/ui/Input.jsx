@@ -17,31 +17,24 @@ export const Input = ({
     lg: 'input-lg',
   }[size] || 'input-md';
 
+  const controlClass = `input w-full ${sizeClass} ${error ? 'input-error' : ''} ${inputClassName}`;
+
+  const control = Icon ? (
+    <label className={controlClass}>
+      <Icon size={16} className="opacity-50 shrink-0" />
+      <input className="grow" {...props} />
+    </label>
+  ) : (
+    <input className={controlClass} {...props} />
+  );
+
   return (
-    <div className={`form-control w-full ${className}`}>
+    <fieldset className={`fieldset w-full gap-1 p-0 ${className}`}>
       {label && (
-        <label className="label py-1">
-          <span className="label-text font-medium text-xs text-base-content/80">{label}</span>
-        </label>
+        <legend className="fieldset-legend text-xs font-medium text-base-content/80">{label}</legend>
       )}
-      <div className="relative flex items-center">
-        {Icon && (
-          <span className="absolute left-3 text-base-content/40 pointer-events-none">
-            <Icon size={18} />
-          </span>
-        )}
-        <input
-          className={`input input-bordered w-full ${sizeClass} ${Icon ? 'pl-10' : ''} ${
-            error ? 'input-error' : 'focus:input-primary'
-          } ${inputClassName}`}
-          {...props}
-        />
-      </div>
-      {error && (
-        <label className="label py-1">
-          <span className="label-text-alt text-error text-xs">{error}</span>
-        </label>
-      )}
-    </div>
+      {control}
+      {error && <p className="label text-error text-xs">{error}</p>}
+    </fieldset>
   );
 };

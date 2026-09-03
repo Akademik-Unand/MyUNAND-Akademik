@@ -4,25 +4,20 @@ import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { DataTable } from '../components/common/DataTable';
-import { PageSkeleton } from '../components/common/PageSkeleton';
-import { useMockQuery } from '../hooks/useMockQuery';
-import { UPLOAD_NILAI, NILAI_KELAS } from '../constants/mockData';
+import { UPLOAD_NILAI } from '../constants/mockData';
 
 export const UploadNilaiKelolaPage = () => {
   const { kode } = useParams();
   const kelas = UPLOAD_NILAI.find((k) => k.kelas === decodeURIComponent(kode || '')) || UPLOAD_NILAI[0];
-  const { data, isLoading } = useMockQuery(NILAI_KELAS);
-
-  if (isLoading) return <PageSkeleton showFilter={false} tableCols={6} />;
 
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'bp', header: 'BP' },
-    { key: 'nama', header: 'Nama' },
-    { key: 'uts', header: 'UTS' },
-    { key: 'uas', header: 'UAS' },
-    { key: 'tugas', header: 'Tugas' },
-    { key: 'akhir', header: 'Nilai Akhir' },
+    { key: 'bp', header: 'BP', sortable: true },
+    { key: 'nama', header: 'Nama', sortable: true },
+    { key: 'uts', header: 'UTS', sortable: true },
+    { key: 'uas', header: 'UAS', sortable: true },
+    { key: 'tugas', header: 'Tugas', sortable: true },
+    { key: 'akhir', header: 'Nilai Akhir', sortable: true },
   ];
 
   return (
@@ -49,7 +44,12 @@ export const UploadNilaiKelolaPage = () => {
         }
       />
       <Card title="Daftar Nilai Mahasiswa">
-        <DataTable columns={columns} data={data} rowKey={(r) => r.bp} />
+        <DataTable
+          resource="nilai-kelas"
+          columns={columns}
+          rowKey={(r) => r.bp}
+          searchPlaceholder="Cari mahasiswa..."
+        />
         <Link to="/perkuliahan/upload-nilai" className="btn btn-ghost btn-sm mt-4">
           Kembali
         </Link>

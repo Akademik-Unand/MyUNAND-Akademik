@@ -1,49 +1,50 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { IconButton, IconLink } from '../components/common/IconButton';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { DataTable } from '../components/common/DataTable';
-import { PageSkeleton } from '../components/common/PageSkeleton';
 import { ConfirmDeleteModal } from '../components/common/ConfirmDeleteModal';
 import { Drawer } from '../components/ui/Drawer';
 import { DetailList } from '../components/common/DetailList';
-import { useMockQuery } from '../hooks/useMockQuery';
-import { useConfirmDelete } from '../hooks/useConfirmDelete';
-import { KURIKULUM_LIST, PROGRAM_STUDI_OPTIONS } from '../constants/mockData';
+import { useResourceMutations } from '../hooks/useResourceMutations';
+import { PROGRAM_STUDI_OPTIONS } from '../constants/mockData';
 
 export const KurikulumDataPage = () => {
-  const { data, isLoading, setData } = useMockQuery(KURIKULUM_LIST);
-  const del = useConfirmDelete();
+  const mutations = useResourceMutations('kurikulum', { remove: 'Kurikulum berhasil dihapus.' });
   const [prodi, setProdi] = useState('');
   const [opened, setOpened] = useState('');
   const [detail, setDetail] = useState(null);
-
-  const matched = opened ? data.filter((k) => k.prodi === opened) : [];
-  const visible = opened ? (matched.length ? matched : data) : [];
-
-  if (isLoading) return <PageSkeleton showFilter={false} tableCols={5} />;
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const columns = [
     { header: 'No.', render: (_, idx) => idx + 1 },
-    { key: 'nama', header: 'Kurikulum' },
-    { key: 'tahun', header: 'Tahun' },
-    { key: 'masaIdeal', header: 'Masa Studi Ideal' },
-    { key: 'masaMaks', header: 'Masa Studi Maks.' },
+    { key: 'nama', header: 'Kurikulum', sortable: true },
+    { key: 'tahun', header: 'Tahun', sortable: true },
+    { key: 'masaIdeal', header: 'Masa Studi Ideal', sortable: true },
+    { key: 'masaMaks', header: 'Masa Studi Maks.', sortable: true },
     {
       header: 'Aksi',
+      className: 'text-right',
+      cellClassName: 'text-right',
       render: (row) => (
-        <div className="flex items-center gap-1">
-          <button type="button" className="btn btn-xs btn-info" onClick={() => setDetail(row)}>
-            Detail
-          </button>
-          <Link to={`/kurikulum/data/${row.id}/edit`} className="btn btn-xs btn-warning">
-            Edit
-          </Link>
-          <button type="button" className="btn btn-xs btn-error" onClick={() => del.askDelete(row)}>
-            Hapus
-          </button>
+        <div className="flex items-center justify-end gap-1">
+          <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
+          <IconLink
+            label="Ubah kurikulum"
+            icon={Pencil}
+            tone="text-warning"
+            to={`/kurikulum/data/${row.id}/edit`}
+          />
+          <IconButton
+            label="Hapus kurikulum"
+            icon={Trash2}
+            tone="text-error"
+            tooltipPosition="tooltip-left"
+            onClick={() => setDeleteTarget(row)}
+          />
         </div>
       ),
     },
@@ -59,17 +60,17 @@ export const KurikulumDataPage = () => {
 
       <Card title="Data Kurikulum">
         <div className="max-w-xl">
-          <label className="label py-1">
-            <span className="label-text font-medium text-xs">Pilih Program Studi</span>
-          </label>
-          <select className="select select-bordered w-full" value={prodi} onChange={(e) => setProdi(e.target.value)}>
-            <option value="">-- Pilih Program Studi --</option>
-            {PROGRAM_STUDI_OPTIONS.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
+          <fieldset className="fieldset gap-1 p-0">
+            <legend className="fieldset-legend text-xs font-medium">Pilih Program Studi</legend>
+            <select className="select w-full" value={prodi} onChange={(e) => setProdi(e.target.value)}>
+              <option value="">-- Pilih Program Studi --</option>
+              {PROGRAM_STUDI_OPTIONS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </fieldset>
           <div className="mt-4">
             <Button variant="outline" size="sm" className="font-semibold" disabled={!prodi} onClick={() => setOpened(prodi)}>
               BUKA &raquo;
@@ -89,7 +90,12 @@ export const KurikulumDataPage = () => {
             </Link>
           }
         >
-          <DataTable columns={columns} data={visible} rowKey={(r) => r.id} />
+          <DataTable
+            resource="kurikulum"
+            columns={columns}
+            rowKey={(r) => r.id}
+            searchPlaceholder="Cari nama kurikulum atau tahun..."
+          />
         </Card>
       )}
 
@@ -111,9 +117,14 @@ export const KurikulumDataPage = () => {
       </Drawer>
 
       <ConfirmDeleteModal
-        open={del.isOpen}
-        onClose={del.close}
-        onConfirm={() => del.confirm((item) => setData((prev) => prev.filter((r) => r.id !== item.id)))}
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        title="Hapus Kurikulum"
+        message={`Yakin ingin menghapus kurikulum ${deleteTarget?.nama || ''}?`}
+        onConfirm={() => {
+          mutations.remove.mutate(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
       />
     </div>
   );

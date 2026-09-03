@@ -16,7 +16,7 @@ export const Card = ({
   const hasHeader = !!(title || subtitle || actions || Icon);
   return (
     <div
-      className={`card bg-base-100 shadow-sm ${className}`}
+      className={`card bg-base-100 shadow-xs ${className}`}
       {...props}
     >
       <div className={`card-body p-5 md:p-6 ${bodyClassName}`}>

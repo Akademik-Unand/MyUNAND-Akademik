@@ -1,22 +1,15 @@
 import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { IconButton } from './IconButton';
 
 export const RowActions = ({ onDetail, onEdit, onDelete, extra }) => {
   return (
-    <div className="flex items-center gap-1 justify-end">
+    <div className="flex items-center justify-end gap-1">
       {onDetail && (
-        <button type="button" className="btn btn-xs btn-ghost text-info" title="Detail" onClick={onDetail}>
-          <Eye size={14} />
-        </button>
+        <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={onDetail} />
       )}
-      {onEdit && (
-        <button type="button" className="btn btn-xs btn-ghost text-warning" title="Edit" onClick={onEdit}>
-          <Pencil size={14} />
-        </button>
-      )}
+      {onEdit && <IconButton label="Ubah data" icon={Pencil} tone="text-warning" onClick={onEdit} />}
       {onDelete && (
-        <button type="button" className="btn btn-xs btn-ghost text-error" title="Hapus" onClick={onDelete}>
-          <Trash2 size={14} />
-        </button>
+        <IconButton label="Hapus data" icon={Trash2} tone="text-error" onClick={onDelete} />
       )}
       {extra}
     </div>

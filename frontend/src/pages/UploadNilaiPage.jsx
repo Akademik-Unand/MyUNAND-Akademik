@@ -1,16 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Eye, Settings2 } from 'lucide-react';
+import { IconButton, IconLink } from '../components/common/IconButton';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { FilterBar } from '../components/common/FilterBar';
 import { DataTable } from '../components/common/DataTable';
-import { PageSkeleton } from '../components/common/PageSkeleton';
 import { Drawer } from '../components/ui/Drawer';
 import { DetailList } from '../components/common/DetailList';
-import { useMockQuery } from '../hooks/useMockQuery';
 import {
-  UPLOAD_NILAI,
-  UPLOAD_HISTORY,
   FILTER_DEPARTEMEN,
   FILTER_PRODI,
   FILTER_KURIKULUM,
@@ -25,49 +22,70 @@ const filterFields = [
 ];
 
 export const UploadNilaiPage = () => {
-  const { data, isLoading } = useMockQuery(UPLOAD_NILAI);
   const [tab, setTab] = useState('kelas');
   const [historyItem, setHistoryItem] = useState(null);
 
-  if (isLoading) return <PageSkeleton tableCols={8} />;
-
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'kelas', header: 'Kelas', cellClassName: 'font-semibold' },
-    { key: 'mataKuliah', header: 'Mata Kuliah' },
-    { key: 'sks', header: 'SKS' },
-    { key: 'prodi', header: 'Prodi' },
-    { key: 'semester', header: 'Semester' },
-    { key: 'peserta', header: 'Jumlah Peserta' },
+    { key: 'kelas', header: 'Kelas', sortable: true, cellClassName: 'font-semibold' },
+    { key: 'mataKuliah', header: 'Mata Kuliah', sortable: true },
+    { key: 'sks', header: 'SKS', sortable: true },
     {
-      header: 'Action',
+      key: 'prodi',
+      header: 'Prodi',
+      sortable: true,
+      filter: { type: 'select', options: FILTER_PRODI },
+    },
+    {
+      key: 'semester',
+      header: 'Semester',
+      sortable: true,
+      filter: { type: 'select', options: FILTER_SEMESTER },
+    },
+    { key: 'peserta', header: 'Jumlah Peserta', sortable: true },
+    {
+      header: 'Aksi',
+      className: 'text-right',
+      cellClassName: 'text-right',
       render: (row) => (
-        <Link to={`/perkuliahan/upload-nilai/${encodeURIComponent(row.kelas)}`} className="btn btn-success btn-xs">
-          Kelola
-        </Link>
+        <IconLink
+          label="Kelola nilai"
+          icon={Settings2}
+          tone="text-success"
+          tooltipPosition="tooltip-left"
+          to={`/perkuliahan/upload-nilai/${encodeURIComponent(row.kelas)}`}
+        />
       ),
     },
   ];
 
   const historyColumns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'kelas', header: 'Kelas' },
-    { key: 'mataKuliah', header: 'Mata Kuliah' },
-    { key: 'pengunggah', header: 'Pengunggah' },
-    { key: 'waktu', header: 'Waktu' },
+    { key: 'kelas', header: 'Kelas', sortable: true },
+    { key: 'mataKuliah', header: 'Mata Kuliah', sortable: true },
+    { key: 'pengunggah', header: 'Pengunggah', sortable: true },
+    { key: 'waktu', header: 'Waktu', sortable: true },
     {
       key: 'status',
       header: 'Status',
+      sortable: true,
+      filter: { type: 'select', options: ['Berhasil', 'Diproses', 'Gagal'] },
       render: (row) => (
         <span className={`badge badge-sm ${row.status === 'Berhasil' ? 'badge-success' : 'badge-warning'}`}>{row.status}</span>
       ),
     },
     {
       header: 'Aksi',
+      className: 'text-right',
+      cellClassName: 'text-right',
       render: (row) => (
-        <button type="button" className="btn btn-ghost btn-xs" onClick={() => setHistoryItem(row)}>
-          Detail
-        </button>
+        <IconButton
+          label="Lihat detail"
+          icon={Eye}
+          tone="text-info"
+          tooltipPosition="tooltip-left"
+          onClick={() => setHistoryItem(row)}
+        />
       ),
     },
   ];
@@ -82,7 +100,7 @@ export const UploadNilaiPage = () => {
       <Card title="Filter">
         <FilterBar fields={filterFields} />
       </Card>
-      <div className="tabs tabs-boxed bg-base-200 w-fit">
+      <div className="tabs tabs-box bg-base-200 w-fit">
         <button type="button" className={`tab ${tab === 'kelas' ? 'tab-active' : ''}`} onClick={() => setTab('kelas')}>
           Daftar Kelas
         </button>
@@ -92,11 +110,23 @@ export const UploadNilaiPage = () => {
       </div>
       {tab === 'kelas' ? (
         <Card title="Daftar Kelas">
-          <DataTable columns={columns} data={data} rowKey={(r) => r.kelas} />
+          <DataTable
+            resource="upload-nilai"
+            paramPrefix="kelas_"
+            columns={columns}
+            rowKey={(r) => r.kelas}
+            searchPlaceholder="Cari kelas atau mata kuliah..."
+          />
         </Card>
       ) : (
         <Card title="History Upload Nilai">
-          <DataTable columns={historyColumns} data={UPLOAD_HISTORY} rowKey={(r) => r.id} />
+          <DataTable
+            resource="upload-history"
+            paramPrefix="history_"
+            columns={historyColumns}
+            rowKey={(r) => r.id}
+            searchPlaceholder="Cari kelas atau pengunggah..."
+          />
         </Card>
       )}
       <Drawer

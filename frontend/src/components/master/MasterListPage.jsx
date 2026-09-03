@@ -1,70 +1,69 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { Plus } from 'lucide-react';
 import { PageHeader } from '../common/PageHeader';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { DataTable } from '../common/DataTable';
-import { PageSkeleton } from '../common/PageSkeleton';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { Modal } from '../ui/Modal';
 import { Drawer } from '../ui/Drawer';
 import { DetailList } from '../common/DetailList';
 import { RowActions } from '../common/RowActions';
 import { FormActions } from '../common/FormActions';
-import { Plus } from 'lucide-react';
-import { useMockQuery } from '../../hooks/useMockQuery';
-import { useConfirmDelete } from '../../hooks/useConfirmDelete';
+import { useResourceMutations } from '../../hooks/useResourceMutations';
 
 /**
- * Shared list page for master entities that use modal create/edit + drawer detail.
+ * Halaman daftar bersama untuk entitas master: create/edit lewat modal,
+ * detail lewat drawer, dan tabel standar yang state-nya tersimpan di URL.
  */
 export const MasterListPage = ({
   title,
   subtitle,
   breadcrumbs,
   columns,
-  mockData,
+  resource,
+  idKey,
   FormComponent,
   emptyForm,
   rowKey,
   detailItems,
-  tableCols = 4,
+  searchPlaceholder,
 }) => {
-  const { data, isLoading, setData } = useMockQuery(mockData);
-  const del = useConfirmDelete();
+  const mutations = useResourceMutations(resource, {
+    create: `${title} berhasil ditambahkan.`,
+    update: `${title} berhasil diperbarui.`,
+    remove: `${title} berhasil dihapus.`,
+  });
+
   const [modal, setModal] = useState({ open: false, mode: 'create', values: emptyForm });
   const [detail, setDetail] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
+  const closeModal = () => setModal((m) => ({ ...m, open: false }));
   const openCreate = () => setModal({ open: true, mode: 'create', values: { ...emptyForm } });
   const openEdit = (row) => setModal({ open: true, mode: 'edit', values: { ...row } });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (modal.mode === 'create') {
-      setData((prev) => [{ ...modal.values, no: prev.length + 1 }, ...prev]);
-      toast.success('Data berhasil ditambahkan');
+      mutations.create.mutate(modal.values);
     } else {
-      setData((prev) =>
-        prev.map((row) => (rowKey(row) === rowKey(modal.values) ? { ...row, ...modal.values } : row))
-      );
-      toast.success('Data berhasil diperbarui');
+      mutations.update.mutate({ id: modal.values[idKey], payload: modal.values });
     }
-    setModal({ open: false, mode: 'create', values: emptyForm });
+    closeModal();
   };
-
-  if (isLoading) return <PageSkeleton showFilter={false} tableCols={tableCols} />;
 
   const tableColumns = [
     ...columns,
     {
       header: 'Aksi',
-      align: 'right',
       cellClassName: 'text-right',
+      className: 'text-right',
       render: (row) => (
         <RowActions
           onDetail={() => setDetail(row)}
           onEdit={() => openEdit(row)}
-          onDelete={() => del.askDelete(row)}
+          onDelete={() => setDeleteTarget(row)}
         />
       ),
     },
@@ -84,16 +83,21 @@ export const MasterListPage = ({
       />
 
       <Card title={`Daftar ${title}`}>
-        <DataTable columns={tableColumns} data={data} rowKey={rowKey} />
+        <DataTable
+          resource={resource}
+          columns={tableColumns}
+          rowKey={rowKey}
+          searchPlaceholder={searchPlaceholder || `Cari ${title.toLowerCase()}...`}
+        />
       </Card>
 
       <Modal
         open={modal.open}
-        onClose={() => setModal((m) => ({ ...m, open: false }))}
+        onClose={closeModal}
         title={modal.mode === 'create' ? `Tambah ${title}` : `Ubah ${title}`}
         footer={
           <FormActions
-            onCancel={() => setModal((m) => ({ ...m, open: false }))}
+            onCancel={closeModal}
             submitLabel={modal.mode === 'create' ? 'Simpan' : 'Perbarui'}
             onSubmitClick={() => document.getElementById('master-form')?.requestSubmit()}
           />
@@ -117,12 +121,14 @@ export const MasterListPage = ({
       </Drawer>
 
       <ConfirmDeleteModal
-        open={del.isOpen}
-        onClose={del.close}
-        onConfirm={() =>
-          del.confirm((item) => setData((prev) => prev.filter((row) => rowKey(row) !== rowKey(item))))
-        }
-        message={`Yakin ingin menghapus ${title.toLowerCase()} ini?`}
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          mutations.remove.mutate(deleteTarget[idKey]);
+          setDeleteTarget(null);
+        }}
+        title={`Hapus ${title}`}
+        message={`Yakin ingin menghapus ${title.toLowerCase()} ini? Tindakan ini tidak dapat dibatalkan.`}
       />
     </div>
   );

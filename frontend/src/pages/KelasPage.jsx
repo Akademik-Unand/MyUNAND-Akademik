@@ -1,30 +1,21 @@
-import { Link } from 'react-router-dom';
 import { Settings2 } from 'lucide-react';
+import { IconLink } from '../components/common/IconButton';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
-import { FilterBar } from '../components/common/FilterBar';
 import { DataTable } from '../components/common/DataTable';
-import { PageSkeleton } from '../components/common/PageSkeleton';
-import { useMockQuery } from '../hooks/useMockQuery';
-import { KELAS, FILTER_SEMESTER } from '../constants/mockData';
-
-const filterFields = [
-  { label: 'Semester', placeholder: 'Pilih Semester', options: FILTER_SEMESTER.map((s) => ({ value: s, label: s })) },
-];
+import { FILTER_SEMESTER } from '../constants/mockData';
 
 export const KelasPage = () => {
-  const { data, isLoading } = useMockQuery(KELAS);
-
-  if (isLoading) return <PageSkeleton tableCols={8} />;
-
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'kode', header: 'Kelas', cellClassName: 'font-semibold' },
-    { key: 'mataKuliah', header: 'Nama Mata Kuliah' },
-    { key: 'sks', header: 'SKS' },
+    { key: 'kode', header: 'Kelas', sortable: true, cellClassName: 'font-semibold' },
+    { key: 'mataKuliah', header: 'Nama Mata Kuliah', sortable: true },
+    { key: 'sks', header: 'SKS', sortable: true },
     {
       key: 'prodi',
       header: 'Prodi',
+      sortable: true,
+      filter: { type: 'select', options: ['S1', 'S2', 'S3'] },
       render: (row) => (
         <div>
           <div className="text-sm">{row.prodi}</div>
@@ -32,14 +23,25 @@ export const KelasPage = () => {
         </div>
       ),
     },
-    { key: 'semester', header: 'Semester' },
-    { key: 'peserta', header: 'Jumlah Peserta' },
     {
-      header: 'Action',
+      key: 'semester',
+      header: 'Semester',
+      sortable: true,
+      filter: { type: 'select', options: FILTER_SEMESTER },
+    },
+    { key: 'peserta', header: 'Jumlah Peserta', sortable: true },
+    {
+      header: 'Aksi',
+      className: 'text-right',
+      cellClassName: 'text-right',
       render: (row) => (
-        <Link to={`/perkuliahan/kelas/${encodeURIComponent(row.kode)}`} className="btn btn-info btn-xs gap-1">
-          <Settings2 size={13} /> Kelola
-        </Link>
+        <IconLink
+          label="Kelola kelas"
+          icon={Settings2}
+          tone="text-info"
+          tooltipPosition="tooltip-left"
+          to={`/perkuliahan/kelas/${encodeURIComponent(row.kode)}`}
+        />
       ),
     },
   ];
@@ -51,11 +53,13 @@ export const KelasPage = () => {
         subtitle="Kelola daftar kelas perkuliahan per semester"
         breadcrumbs={[{ label: 'Semester & Perkuliahan' }, { label: 'Kelas' }]}
       />
-      <Card title="Filter">
-        <FilterBar fields={filterFields} />
-      </Card>
       <Card title="Daftar Kelas">
-        <DataTable columns={columns} data={data} rowKey={(r) => r.kode} />
+        <DataTable
+          resource="kelas"
+          columns={columns}
+          rowKey={(r) => r.kode}
+          searchPlaceholder="Cari kelas, mata kuliah, atau dosen..."
+        />
       </Card>
     </div>
   );

@@ -3,17 +3,19 @@ import { StatCard } from '../components/common/StatCard';
 import { StackedBarOverview } from '../components/dashboard/StackedBarOverview';
 import { DeadlineCard } from '../components/dashboard/DeadlineCard';
 import { QuickActionCard } from '../components/dashboard/QuickActionCard';
-import { ProjectProgressCard } from '../components/dashboard/ProjectProgressCard';
 import { DashboardSkeleton } from '../components/dashboard/DashboardSkeleton';
 import { Button } from '../components/ui/Button';
 import { Users, GraduationCap, BookOpen, Award, RefreshCw, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { useMockQuery } from '../hooks/useMockQuery';
+import { useQuery } from '@tanstack/react-query';
 
-const DASHBOARD_READY = [{ ok: true }];
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const DashboardPage = () => {
-  const { isLoading } = useMockQuery(DASHBOARD_READY, 450);
+  const { isPending } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: () => wait(450).then(() => true),
+  });
 
   const handleSync = () => {
     toast.success('Sinkronisasi berhasil', {
@@ -27,12 +29,14 @@ export const DashboardPage = () => {
     });
   };
 
-  if (isLoading) return <DashboardSkeleton />;
+  if (isPending) return <DashboardSkeleton />;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        breadcrumbs={[{ label: 'Dashboard Admin' }]}
+        title="Dashboard Admin"
+        subtitle="Ringkasan capaian kurikulum dan perkuliahan semester berjalan"
+        breadcrumbs={[{ label: 'Dashboard' }]}
         action={
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={handleSync}>
@@ -81,18 +85,11 @@ export const DashboardPage = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
-        <div className="xl:col-span-8 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DeadlineCard />
-            <QuickActionCard />
-          </div>
-          <StackedBarOverview />
-        </div>
-        <div className="xl:col-span-4">
-          <ProjectProgressCard />
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+        <DeadlineCard />
+        <QuickActionCard />
       </div>
+      <StackedBarOverview />
     </div>
   );
 };

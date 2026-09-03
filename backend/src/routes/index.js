@@ -37,6 +37,8 @@ registerCrud('/fakultas', models.Fakultas, {
 
 registerCrud('/departemen', models.Departemen, {
   searchFields: ['kode_departemen', 'nama_resmi', 'nama_singkat'],
+  sortableFields: ['kode_departemen', 'nama_resmi', 'nama_singkat', 'createdAt'],
+  filterableFields: ['kode_departemen', 'fakultas_id', 'universitas_id'],
   defaultInclude: [
     { model: models.Universitas, as: 'universitas' },
     { model: models.Fakultas, as: 'fakultas' },
@@ -45,6 +47,8 @@ registerCrud('/departemen', models.Departemen, {
 
 registerCrud('/jenjang-akademik', models.JenjangAkademik, {
   searchFields: ['kode_jenjang', 'nama_jenjang'],
+  sortableFields: ['kode_jenjang', 'nama_jenjang', 'createdAt'],
+  filterableFields: ['kode_jenjang'],
 });
 
 registerCrud('/model-kurikulum', models.ModelKurikulum, {
@@ -53,6 +57,8 @@ registerCrud('/model-kurikulum', models.ModelKurikulum, {
 
 registerCrud('/program-studi', models.ProgramStudi, {
   searchFields: ['kode_prodi', 'nama_resmi', 'nama_singkat'],
+  sortableFields: ['kode_prodi', 'nama_resmi', 'nama_singkat', 'createdAt'],
+  filterableFields: ['kode_prodi', 'jenjang_akademik_id', 'fakultas_id', 'departemen_id'],
   defaultInclude: [
     { model: models.JenjangAkademik, as: 'jenjangAkademik' },
     { model: models.ModelKurikulum, as: 'modelKurikulum' },
@@ -81,9 +87,13 @@ registerCrud('/bimbingan-akademik', models.BimbinganAkademik, {
 // 2. Semester & Waktu
 registerCrud('/jenis-semester', models.JenisSemester, {
   searchFields: ['nama', 'alias'],
+  sortableFields: ['nama', 'alias', 'createdAt'],
+  filterableFields: ['nama', 'alias'],
 });
 
 registerCrud('/semester', models.Semester, {
+  sortableFields: ['createdAt'],
+  filterableFields: ['jenis_semester_id'],
   defaultInclude: [{ model: models.JenisSemester, as: 'jenisSemester' }],
 });
 
@@ -97,6 +107,8 @@ registerCrud('/semester-prodi', models.SemesterProdi, {
 // 3. Kurikulum & Matakuliah
 registerCrud('/kurikulum', models.Kurikulum, {
   searchFields: ['nama'],
+  sortableFields: ['nama', 'tahun', 'masa_studi_ideal', 'masa_studi_maksimal', 'createdAt'],
+  filterableFields: ['program_studi_id', 'tahun'],
   defaultInclude: [
     { model: models.ProgramStudi, as: 'programStudi' },
     { model: models.Cp, as: 'cp' },
@@ -113,6 +125,8 @@ registerCrud('/tipe-matakuliah', models.TipeMatakuliah, {
 
 registerCrud('/matakuliah', models.Matakuliah, {
   searchFields: ['kode_matakuliah', 'nama_resmi'],
+  sortableFields: ['kode_matakuliah', 'nama_resmi', 'sks', 'createdAt'],
+  filterableFields: ['kode_matakuliah', 'jenis_semester_id', 'tipe_matakuliah_id'],
   defaultInclude: [
     { model: models.JenisSemester, as: 'jenisSemester' },
     { model: models.TipeMatakuliah, as: 'tipeMatakuliah' },
@@ -169,6 +183,8 @@ registerCrud('/ruang', models.Ruang, {
 
 registerCrud('/kelas', models.Kelas, {
   searchFields: ['nama'],
+  sortableFields: ['nama', 'createdAt'],
+  filterableFields: ['matakuliah_id', 'semester_prodi_id'],
   defaultInclude: [
     { model: models.Matakuliah, as: 'matakuliah' },
     { model: models.SemesterProdi, as: 'semesterProdi' },
@@ -220,6 +236,8 @@ registerCrud('/evaluasi-cpmk', models.EvaluasiCpmk, {
 });
 
 registerCrud('/rekap-cp', models.RekapCp, {
+  sortableFields: ['createdAt'],
+  filterableFields: ['mahasiswa_id', 'cp_id'],
   defaultInclude: [
     { model: models.Mahasiswa, as: 'mahasiswa' },
     { model: models.Cp, as: 'cp' },
@@ -227,6 +245,8 @@ registerCrud('/rekap-cp', models.RekapCp, {
 });
 
 registerCrud('/laporan-cp', models.LaporanCp, {
+  sortableFields: ['createdAt'],
+  filterableFields: ['program_studi_id', 'kurikulum_id'],
   defaultInclude: [
     { model: models.ProgramStudi, as: 'programStudi' },
     { model: models.Kurikulum, as: 'kurikulum' },

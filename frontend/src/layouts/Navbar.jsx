@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Menu, Bell, Palette, ChevronDown, User, LogOut, Check, ShieldCheck, Search } from 'lucide-react';
+import { Menu, Bell, ChevronDown, User, LogOut, ShieldCheck, Search } from 'lucide-react';
 import { useUIStore } from '../store/ui.store';
 import { useAuthStore } from '../store/auth.store';
-import { AVAILABLE_THEMES } from '../constants/theme';
 import { NavSearchModal } from './NavSearchModal';
+import { AccessibilityMenu } from './AccessibilityMenu';
 
 export const Navbar = () => {
-  const { toggleSidebar, toggleMobileSidebar, theme, setTheme } = useUIStore();
+  const { toggleSidebar, toggleMobileSidebar } = useUIStore();
   const { user } = useAuthStore();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -19,7 +19,6 @@ export const Navbar = () => {
           setSearchOpen(true);
         }
       }
-      if (e.key === 'Escape') setSearchOpen(false);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -62,7 +61,7 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* Right side: Theme Switcher, Notifications, User Profile */}
+      {/* Right side: Kemudahan, Notifications, User Profile */}
       <div className="flex items-center gap-2 shrink-0">
         {/* Mobile search trigger */}
         <button
@@ -73,41 +72,7 @@ export const Navbar = () => {
           <Search size={18} />
         </button>
 
-        {/* Theme Picker Dropdown */}
-        <div className="dropdown dropdown-end">
-          <label tabIndex={0} className="btn btn-ghost btn-sm gap-1.5 font-medium text-xs px-2.5">
-            <Palette size={16} className="text-primary" />
-            <span className="hidden sm:inline-block capitalize">Tema: {theme}</span>
-            <ChevronDown size={14} className="opacity-60" />
-          </label>
-          <ul
-            tabIndex={0}
-            className="dropdown-content menu p-2 shadow-xl bg-base-100 rounded-box w-56 border border-base-300 z-50 mt-2 space-y-1"
-          >
-            <li className="menu-title text-[11px] font-medium uppercase tracking-wider text-base-content/60 px-3 py-1">
-              Pilihan Token Tema
-            </li>
-            {AVAILABLE_THEMES.map((t) => (
-              <li key={t.id}>
-                <button
-                  onClick={() => setTheme(t.id)}
-                  className={`flex items-center justify-between text-xs py-2 px-3 rounded-lg ${
-                    theme === t.id ? 'active bg-primary text-primary-content' : 'hover:bg-base-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-3.5 h-3.5 rounded-full border border-black/20"
-                      style={{ backgroundColor: t.primaryColor }}
-                    ></span>
-                    <span>{t.name}</span>
-                  </div>
-                  {theme === t.id && <Check size={14} />}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <AccessibilityMenu />
 
         {/* Notifications Dropdown */}
         <div className="dropdown dropdown-end">
@@ -117,7 +82,7 @@ export const Navbar = () => {
           </label>
           <div
             tabIndex={0}
-            className="dropdown-content card card-compact w-72 p-0 shadow-xl bg-base-100 border border-base-300 z-50 mt-2"
+            className="dropdown-content card card-sm w-72 p-0 shadow-xl bg-base-100 border border-base-300 z-50 mt-2"
           >
             <div className="card-body p-4">
               <h3 className="font-medium text-sm border-b border-base-200 pb-2">Notifikasi Akademik</h3>

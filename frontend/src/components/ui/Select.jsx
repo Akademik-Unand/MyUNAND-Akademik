@@ -21,13 +21,11 @@ export const Select = ({
   }[size] || 'select-md';
 
   return (
-    <div className={`form-control w-full ${className}`}>
+    <fieldset className={`fieldset w-full gap-1 p-0 ${className}`}>
       {label && (
-        <label className="label py-1">
-          <span className="label-text font-medium text-xs text-base-content/80">{label}</span>
-        </label>
+        <legend className="fieldset-legend text-xs font-medium text-base-content/80">{label}</legend>
       )}
-      <select className={`select select-bordered w-full ${sizeClass} ${selectClassName}`} {...props}>
+      <select className={`select w-full ${sizeClass} ${selectClassName}`} {...props}>
         {placeholder && <option value="">{placeholder}</option>}
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -35,6 +33,6 @@ export const Select = ({
           </option>
         ))}
       </select>
-    </div>
+    </fieldset>
   );
 };

@@ -11,7 +11,7 @@ export const stackedDepartmentOptions = (categories) => ({
     stackType: '100%',
     toolbar: { show: false },
     fontFamily: "'DM Sans', system-ui, sans-serif",
-    foreColor: 'hsl(var(--bc) / 0.7)',
+    foreColor: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
     redrawOnParentResize: true,
   },
   plotOptions: {
@@ -45,31 +45,4 @@ export const stackedDepartmentOptions = (categories) => ({
   },
   fill: { opacity: 1 },
   states: { hover: { filter: { type: 'none' } } },
-});
-
-export const radialProgressOptions = (percent) => ({
-  chart: {
-    type: 'radialBar',
-    fontFamily: "'DM Sans', system-ui, sans-serif",
-    sparkline: { enabled: true },
-  },
-  colors: ['#16a34a'],
-  plotOptions: {
-    radialBar: {
-      startAngle: -135,
-      endAngle: 135,
-      hollow: { size: '62%' },
-      track: { background: 'hsl(var(--b3))', strokeWidth: '100%' },
-      dataLabels: {
-        name: { show: true, fontSize: '12px', offsetY: 18, color: 'hsl(var(--bc) / 0.6)' },
-        value: { show: true, fontSize: '22px', fontWeight: 700, offsetY: -8, color: 'hsl(var(--bc))' },
-      },
-    },
-  },
-  labels: ['Capaian'],
-  fill: {
-    type: 'gradient',
-    gradient: { shade: 'light', type: 'horizontal', gradientToColors: ['#86efac'], stops: [0, 100] },
-  },
-  seriesLabel: percent,
 });

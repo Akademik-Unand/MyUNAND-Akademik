@@ -1,20 +1,20 @@
 import { MasterListPage } from '../components/master/MasterListPage';
 import { JenjangForm } from '../components/master/JenjangForm';
-import { JENJANG_AKADEMIK } from '../constants/mockData';
 
 export const JenjangAkademikPage = () => (
   <MasterListPage
     title="Jenjang Akademik"
     subtitle="Kelola data jenjang akademik pada SIAKAD Kurikulum"
     breadcrumbs={[{ label: 'Master Data' }, { label: 'Jenjang Akademik' }]}
-    mockData={JENJANG_AKADEMIK}
+    resource="jenjang-akademik"
+    idKey="kode"
     FormComponent={JenjangForm}
     emptyForm={{ kode: '', nama: '' }}
     rowKey={(r) => r.kode}
-    tableCols={3}
+    searchPlaceholder="Cari kode atau nama jenjang..."
     columns={[
-      { key: 'kode', header: 'Kode Jenjang' },
-      { key: 'nama', header: 'Nama Jenjang' },
+      { key: 'kode', header: 'Kode Jenjang', sortable: true },
+      { key: 'nama', header: 'Nama Jenjang', sortable: true },
     ]}
     detailItems={(d) => [
       { label: 'Kode', value: d.kode },

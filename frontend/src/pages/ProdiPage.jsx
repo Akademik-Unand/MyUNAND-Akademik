@@ -1,47 +1,54 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { IconButton, IconLink } from '../components/common/IconButton';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { DataTable } from '../components/common/DataTable';
-import { PageSkeleton } from '../components/common/PageSkeleton';
 import { ConfirmDeleteModal } from '../components/common/ConfirmDeleteModal';
 import { Drawer } from '../components/ui/Drawer';
 import { DetailList } from '../components/common/DetailList';
-import { useMockQuery } from '../hooks/useMockQuery';
-import { useConfirmDelete } from '../hooks/useConfirmDelete';
-import { PRODI } from '../constants/mockData';
+import { useResourceMutations } from '../hooks/useResourceMutations';
 
 export const ProdiPage = () => {
-  const { data, isLoading, setData } = useMockQuery(PRODI);
-  const del = useConfirmDelete();
+  const mutations = useResourceMutations('prodi', { remove: 'Program studi berhasil dihapus.' });
   const [detail, setDetail] = useState(null);
-
-  if (isLoading) return <PageSkeleton showFilter={false} tableCols={8} />;
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const columns = [
-    { key: 'kode', header: 'Kode Prodi' },
-    { key: 'jenjang', header: 'Jenjang' },
-    { key: 'univ', header: 'Universitas ID' },
-    { key: 'fakultas', header: 'Fakultas ID' },
-    { key: 'departemen', header: 'Departemen ID' },
-    { key: 'nama', header: 'Nama Resmi' },
-    { key: 'singkat', header: 'Nama Singkat' },
+    { key: 'kode', header: 'Kode Prodi', sortable: true },
+    {
+      key: 'jenjang',
+      header: 'Jenjang',
+      sortable: true,
+      filter: { type: 'select', options: ['S1', 'S2', 'S3', 'D3'] },
+    },
+    { key: 'univ', header: 'Universitas ID', sortable: true },
+    { key: 'fakultas', header: 'Fakultas ID', sortable: true },
+    { key: 'departemen', header: 'Departemen ID', sortable: true },
+    { key: 'nama', header: 'Nama Resmi', sortable: true },
+    { key: 'singkat', header: 'Nama Singkat', sortable: true },
     {
       header: 'Aksi',
+      className: 'text-right',
       cellClassName: 'text-right',
       render: (row) => (
         <div className="flex items-center gap-1 justify-end">
-          <button type="button" className="btn btn-xs btn-ghost text-info" onClick={() => setDetail(row)}>
-            Detail
-          </button>
-          <Link to={`/master/prodi/${encodeURIComponent(row.kode)}/edit`} className="btn btn-xs btn-ghost text-warning">
-            Edit
-          </Link>
-          <button type="button" className="btn btn-xs btn-ghost text-error" onClick={() => del.askDelete(row)}>
-            Hapus
-          </button>
+          <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
+          <IconLink
+            label="Ubah prodi"
+            icon={Pencil}
+            tone="text-warning"
+            to={`/master/prodi/${encodeURIComponent(row.kode)}/edit`}
+          />
+          <IconButton
+            label="Hapus prodi"
+            icon={Trash2}
+            tone="text-error"
+            tooltipPosition="tooltip-left"
+            onClick={() => setDeleteTarget(row)}
+          />
         </div>
       ),
     },
@@ -63,7 +70,12 @@ export const ProdiPage = () => {
       />
 
       <Card title="Daftar Program Studi">
-        <DataTable columns={columns} data={data} rowKey={(r) => r.kode} />
+        <DataTable
+          resource="prodi"
+          columns={columns}
+          rowKey={(r) => r.kode}
+          searchPlaceholder="Cari kode atau nama prodi..."
+        />
       </Card>
 
       <Drawer open={Boolean(detail)} onClose={() => setDetail(null)} title="Detail Program Studi" subtitle={detail?.kode}>
@@ -84,9 +96,14 @@ export const ProdiPage = () => {
       </Drawer>
 
       <ConfirmDeleteModal
-        open={del.isOpen}
-        onClose={del.close}
-        onConfirm={() => del.confirm((item) => setData((prev) => prev.filter((r) => r.kode !== item.kode)))}
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        title="Hapus Program Studi"
+        message={`Yakin ingin menghapus prodi ${deleteTarget?.nama || ''}?`}
+        onConfirm={() => {
+          mutations.remove.mutate(deleteTarget.kode);
+          setDeleteTarget(null);
+        }}
       />
     </div>
   );

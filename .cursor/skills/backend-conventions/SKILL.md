@@ -1,6 +1,6 @@
 ---
 name: backend-conventions
-description: Aturan wajib dan struktur folder untuk backend project ini (Express.js + Sequelize + Joi + CASL). Gunakan skill ini SETIAP kali membuat, mengedit, atau meninjau kode backend — endpoint baru, controller, service, model, migrasi, validasi, middleware, atau permission. Wajib dicek juga saat menulis test dan dokumentasi API. Jangan generate kode backend tanpa membaca skill ini terlebih dahulu.
+description: Aturan wajib backend Express + Sequelize + Joi + CASL, termasuk kontrak list (page, limit, search, sortBy, sortOrder, filter) dan pagination. Gunakan SETIAP kali membuat atau meninjau endpoint, crudFactory, controller, service, model, migrasi, validasi, atau permission. Jangan generate kode backend tanpa membaca skill ini terlebih dahulu.
 ---
 
 # Backend Conventions — Express.js + Sequelize
@@ -76,34 +76,78 @@ route → middleware (auth, permission, validasi) → controller → service →
 
 ## 5. Standarisasi Response
 
-Semua response API — sukses maupun error — HARUS mengikuti format yang sama lewat helper terpusat (contoh: `utils/apiResponse.js`), jangan `res.json({...})` manual berulang-ulang.
+Semua response lewat helper `helpers/response.js` (`success`, `error`, `notFound`, `validationError`). Jangan `res.json({...})` manual.
 
 Format sukses:
 ```json
 {
-  "success": true,
-  "message": "Data KRS berhasil dibuat",
-  "statusCode": 201,
-  "data": { }
+  "code": 200,
+  "status": "success",
+  "message": "Data ProgramStudi berhasil diambil",
+  "data": {},
+  "meta": { "timestamp": "...", "version": "1.0" }
 }
 ```
 
 Format error:
 ```json
 {
-  "success": false,
-  "message": "Validasi gagal",
-  "statusCode": 422,
-  "errors": [ { "field": "nim", "message": "NIM wajib diisi" } ]
+  "code": 422,
+  "status": "error",
+  "message": "Validation failed",
+  "error": [{ "field": "nim", "message": "NIM wajib diisi" }],
+  "meta": { "timestamp": "...", "version": "1.0" }
 }
 ```
 
-Untuk list/pagination, `data` berbentuk:
+List **tidak** menaruh `page`/`total` di dalam `data`. `data` = array baris; pagination jadi sibling:
+
 ```json
-{ "items": [ ], "page": 1, "limit": 10, "total": 42 }
+{
+  "code": 200,
+  "status": "success",
+  "message": "...",
+  "data": [],
+  "pagination": { "page": 1, "limit": 10, "total": 42, "totalPages": 5 },
+  "meta": { "timestamp": "...", "version": "1.0" }
+}
 ```
 
-Gunakan custom Error class (`AppError`) yang membawa `statusCode` + `message`, dilempar dari service, ditangkap oleh global error handler (lihat poin 7).
+Ini kontrak yang sama dengan `DataTable` / `listResource` di frontend.
+
+## 5b. List query — wajib didukung `crudFactory`
+
+GET collection memakai `createCrudController` di `controllers/crudFactory.js`, bukan query ad-hoc beda-beda tiap resource.
+
+Query params yang diterima:
+
+| Param | Arti |
+|---|---|
+| `page` | halaman (default 1) |
+| `limit` | baris per halaman |
+| `search` | cari di `searchFields` (`Op.like`) |
+| `sortBy` | kolom urut, whitelist `sortableFields` |
+| `sortOrder` | `asc` atau `desc` |
+| `filter[field]` | filter nested (Express); FE mengirim objek `filter` |
+| `field=value` | filter langsung, selain reserved params |
+
+Reserved (jangan diperlakukan sebagai filter kolom): `page`, `limit`, `search`, `sortBy`, `sortOrder`, `filter`, `order`, `sort`.
+
+Saat daftar resource di `routes/index.js`, isi whitelist:
+
+```js
+createCrudController(Model, {
+  searchFields: ['nama_resmi', 'kode_prodi'],
+  sortableFields: ['kode_prodi', 'nama_resmi', 'createdAt'],
+  filterableFields: ['kode_prodi', 'jenjang_akademik_id'],
+  defaultInclude: [...],
+  defaultOrder: [['createdAt', 'DESC']],
+});
+```
+
+Tanpa whitelist, semua atribut model boleh di-sort/filter — tetap isi whitelist supaya klien tidak mengurut kolom sembarangan. Kolom teks di-filter dengan `LIKE`; selain itu equality.
+
+Frontend mengirim `filter` sebagai objek; mock memakai bentuk yang sama. Jangan ganti nama param jadi `sort`/`q`/`per_page`.
 
 ## 6. Logging — Wajib Pino
 
@@ -163,7 +207,9 @@ Gunakan custom Error class (`AppError`) yang membawa `statusCode` + `message`, d
 Setiap kali membuat fitur/endpoint baru, pastikan:
 - [ ] Route → middleware (validasi Joi + permission CASL) → controller → service, semua ada
 - [ ] Migrasi baru (bukan edit migrasi lama) kalau ada perubahan skema
-- [ ] Response pakai format terstandar (sukses & error)
+- [ ] Response pakai helper `success`/`error` (`code` + `status`, bukan `success: true`)
+- [ ] GET list: `page`/`limit`/`search`/`sortBy`/`sortOrder`/`filter`, hasil `data` + `pagination`
+- [ ] `sortableFields` + `filterableFields` di-whitelist di route
 - [ ] Logging ditambahkan di titik penting
 - [ ] Logic reusable dipindah ke helper/utils
 - [ ] Permission CASL didefinisikan & middleware dipasang

@@ -2,20 +2,35 @@
 const { Op } = require('sequelize');
 const { success, notFound, validationError } = require('../helpers/response');
 
+const RESERVED_PARAMS = ['page', 'limit', 'search', 'sortBy', 'sortOrder', 'filter', 'order', 'sort'];
+
+const isTextType = (attribute) => {
+  const type = String(attribute?.type ?? '').toLowerCase();
+  return type.includes('char') || type.includes('text') || type.includes('string');
+};
+
 /**
  * Factory helper to generate complete REST CRUD operations for any Sequelize model
- * @param {import('sequelize').ModelStatic<any>} Model 
- * @param {Object} options 
+ * @param {import('sequelize').ModelStatic<any>} Model
+ * @param {Object} options
  * @param {Array} [options.defaultInclude=[]] Default relations to include
  * @param {Array<string>} [options.searchFields=[]] Fields to search on ?search=...
+ * @param {Array<string>} [options.sortableFields=[]] Whitelist for ?sortBy=
+ * @param {Array<string>} [options.filterableFields=[]] Whitelist for ?filter[field]=
  * @param {Array} [options.defaultOrder=[['createdAt', 'DESC']]]
  */
 const createCrudController = (Model, options = {}) => {
   const {
     defaultInclude = [],
     searchFields = [],
+    sortableFields = [],
+    filterableFields = [],
     defaultOrder = [['createdAt', 'DESC']],
   } = options;
+
+  const attributeNames = Object.keys(Model.rawAttributes || {});
+  const allowedSort = sortableFields.length > 0 ? sortableFields : attributeNames;
+  const allowedFilter = filterableFields.length > 0 ? filterableFields : attributeNames;
 
   return {
     async getAll(req, res, next) {
@@ -24,31 +39,48 @@ const createCrudController = (Model, options = {}) => {
         const limit = parseInt(req.query.limit, 10) || 100;
         const offset = (page - 1) * limit;
         const search = req.query.search;
+        const sortBy = req.query.sortBy;
+        const sortOrder = String(req.query.sortOrder || 'asc').toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
 
         const where = {};
 
-        // 1. Search across searchFields
         if (search && searchFields.length > 0) {
           where[Op.or] = searchFields.map((field) => ({
             [field]: { [Op.like]: `%${search}%` },
           }));
         }
 
-        // 2. Direct filter query params (except page, limit, search, order)
-        const reservedParams = ['page', 'limit', 'search', 'order', 'sort'];
-        for (const [key, val] of Object.entries(req.query)) {
-          if (!reservedParams.includes(key) && val !== undefined && val !== '') {
-            // Check if Model has this attribute
-            if (Model.rawAttributes[key]) {
-              where[key] = val;
-            }
+        const applyFilter = (key, val) => {
+          if (val === undefined || val === '' || !allowedFilter.includes(key) || !Model.rawAttributes[key]) {
+            return;
+          }
+          where[key] = isTextType(Model.rawAttributes[key])
+            ? { [Op.like]: `%${val}%` }
+            : val;
+        };
+
+        const nestedFilter = req.query.filter;
+        if (nestedFilter && typeof nestedFilter === 'object' && !Array.isArray(nestedFilter)) {
+          for (const [key, val] of Object.entries(nestedFilter)) {
+            applyFilter(key, val);
           }
         }
+
+        for (const [key, val] of Object.entries(req.query)) {
+          if (!RESERVED_PARAMS.includes(key)) {
+            applyFilter(key, val);
+          }
+        }
+
+        const order =
+          sortBy && allowedSort.includes(sortBy) && Model.rawAttributes[sortBy]
+            ? [[sortBy, sortOrder]]
+            : defaultOrder;
 
         const { count, rows } = await Model.findAndCountAll({
           where,
           include: defaultInclude,
-          order: defaultOrder,
+          order,
           limit,
           offset,
           distinct: true,

@@ -60,10 +60,10 @@ export const Sidebar = () => {
   const renderMenu = (expanded) => (
     <div className="flex flex-col h-full bg-base-100 border-r border-base-300 select-none">
       {/* Sidebar Header / Brand */}
-      <div className="h-16 flex items-center justify-between gap-1 bg-neutral px-3 border-b border-neutral">
+      <div className="relative h-16 flex items-center justify-center bg-base-100 px-3 border-b border-base-300">
         <NavLink
           to="/"
-          className="flex items-center min-w-0 flex-1 h-full"
+          className="flex h-full items-center justify-center"
           onClick={() => setMobileSidebarOpen(false)}
           title="myUNAND"
         >
@@ -72,7 +72,7 @@ export const Sidebar = () => {
             alt="myUNAND"
             className={
               expanded
-                ? 'h-10 w-auto max-w-full object-contain object-left'
+                ? 'h-10 w-auto max-w-full object-contain'
                 : 'h-10 w-10 object-cover object-left'
             }
           />
@@ -81,7 +81,7 @@ export const Sidebar = () => {
         {/* Close button on mobile drawer */}
         <button
           onClick={() => setMobileSidebarOpen(false)}
-          className="btn btn-ghost btn-square btn-xs text-neutral-content lg:hidden"
+          className="btn btn-ghost btn-square btn-xs absolute right-2 text-base-content lg:hidden"
           aria-label="Tutup Menu"
         >
           <X size={18} />
@@ -100,7 +100,7 @@ export const Sidebar = () => {
                 onClick={() => setMobileSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-xs font-semibold transition-colors ${
                   isActive
-                    ? 'bg-primary text-primary-content shadow-sm'
+                    ? 'bg-primary text-primary-content shadow-xs'
                     : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
                 }`}
                 title={item.label}
@@ -186,7 +186,7 @@ export const Sidebar = () => {
                         onClick={() => setMobileSidebarOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-xs font-semibold transition-colors ${
                           isActive
-                            ? 'bg-primary text-primary-content shadow-sm'
+                            ? 'bg-primary text-primary-content shadow-xs'
                             : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
                         }`}
                         title={subItem.label}

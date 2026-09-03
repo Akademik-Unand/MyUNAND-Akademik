@@ -2,15 +2,13 @@ import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 
 const DateRange = ({ label, start, end, onStart, onEnd }) => (
-  <div className="form-control w-full">
-    <label className="label py-1">
-      <span className="label-text font-medium text-xs text-base-content/80">{label}</span>
-    </label>
+  <fieldset className="fieldset w-full gap-1 p-0">
+    <legend className="fieldset-legend text-xs font-medium text-base-content/80">{label}</legend>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      <input type="date" className="input input-bordered input-sm w-full" value={start || ''} onChange={onStart} />
-      <input type="date" className="input input-bordered input-sm w-full" value={end || ''} onChange={onEnd} />
+      <input type="date" className="input input-sm w-full" value={start || ''} onChange={onStart} />
+      <input type="date" className="input input-sm w-full" value={end || ''} onChange={onEnd} />
     </div>
-  </div>
+  </fieldset>
 );
 
 export const SettingSemesterForm = ({ values, onChange }) => {

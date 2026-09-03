@@ -1,21 +1,27 @@
 import { MasterListPage } from '../components/master/MasterListPage';
 import { DepartemenForm } from '../components/master/DepartemenForm';
-import { DEPARTEMEN } from '../constants/mockData';
 
 export const DepartemenPage = () => (
   <MasterListPage
     title="Departemen"
     subtitle="Kelola data departemen pada SIAKAD Kurikulum"
     breadcrumbs={[{ label: 'Master Data' }, { label: 'Departemen' }]}
-    mockData={DEPARTEMEN}
+    resource="departemen"
+    idKey="kode"
     FormComponent={DepartemenForm}
     emptyForm={{ kode: '', fakultas: '', nama: '', singkat: '' }}
     rowKey={(r) => r.kode}
+    searchPlaceholder="Cari kode atau nama departemen..."
     columns={[
-      { key: 'kode', header: 'Kode Departemen' },
-      { key: 'fakultas', header: 'Fakultas' },
-      { key: 'nama', header: 'Nama Resmi Departemen' },
-      { key: 'singkat', header: 'Nama Singkat' },
+      { key: 'kode', header: 'Kode Departemen', sortable: true },
+      {
+        key: 'fakultas',
+        header: 'Fakultas',
+        sortable: true,
+        filter: { type: 'select', options: ['Fakultas Teknik', 'Fakultas Ekonomi'] },
+      },
+      { key: 'nama', header: 'Nama Resmi Departemen', sortable: true },
+      { key: 'singkat', header: 'Nama Singkat', sortable: true },
     ]}
     detailItems={(d) => [
       { label: 'Kode', value: d.kode },

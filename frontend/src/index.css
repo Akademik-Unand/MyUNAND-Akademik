@@ -1,20 +1,100 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: myunand --default, myunand-dark --prefersdark;
+}
+
+/* Tema utama myUNAND. Sudut kotak & field sengaja tipis, badge tetap kapsul. */
+@plugin "daisyui/theme" {
+  name: "myunand";
+  default: true;
+  color-scheme: light;
+
+  --color-primary: #15803d;
+  --color-primary-content: #ffffff;
+  --color-secondary: #0284c7;
+  --color-secondary-content: #ffffff;
+  --color-accent: #d97706;
+  --color-accent-content: #ffffff;
+  --color-neutral: #1e293b;
+  --color-neutral-content: #f8fafc;
+
+  --color-base-100: #ffffff;
+  --color-base-200: #f3f4f6;
+  --color-base-300: #e5e7eb;
+  --color-base-content: #1e293b;
+
+  --color-info: #0ea5e9;
+  --color-info-content: #ffffff;
+  --color-success: #16a34a;
+  --color-success-content: #ffffff;
+  --color-warning: #f59e0b;
+  --color-warning-content: #ffffff;
+  --color-error: #ef4444;
+  --color-error-content: #ffffff;
+
+  --radius-selector: 0.375rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.375rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "myunand-dark";
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-primary: #22c55e;
+  --color-primary-content: #ffffff;
+  --color-secondary: #38bdf8;
+  --color-secondary-content: #082f49;
+  --color-accent: #fbbf24;
+  --color-accent-content: #422006;
+  --color-neutral: #cbd5e1;
+  --color-neutral-content: #0f172a;
+
+  --color-base-100: #0f172a;
+  --color-base-200: #1e293b;
+  --color-base-300: #334155;
+  --color-base-content: #f1f5f9;
+
+  --color-info: #38bdf8;
+  --color-info-content: #082f49;
+  --color-success: #4ade80;
+  --color-success-content: #052e16;
+  --color-warning: #fbbf24;
+  --color-warning-content: #422006;
+  --color-error: #f87171;
+  --color-error-content: #450a0a;
+
+  --radius-selector: 0.375rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.375rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  --font-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    font-size: var(--app-font-size, 16px);
   }
+}
 
-  /* Tipis / thin corners for boxes & buttons; badges tetap pill (kapsul) */
-  :root,
-  [data-theme] {
-    --rounded-box: 0.375rem;
-    --rounded-btn: 0.375rem;
-    --tab-radius: 0.375rem;
-    --rounded-badge: 9999px;
-  }
+/* --radius-selector juga dipakai checkbox/radio, jadi bentuk kapsul hanya untuk badge */
+.badge {
+  border-radius: 9999px;
 }
 
 /* Custom modern scrollbar */
@@ -37,23 +117,24 @@
 }
 
 /* Hide scrollbar but keep scrollability */
-.no-scrollbar {
+@utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Sonner toasts themed to match DaisyUI tokens */
 [data-sonner-toaster] {
-  --normal-bg: hsl(var(--b1));
-  --normal-text: hsl(var(--bc));
-  --normal-border: hsl(var(--b3));
+  --normal-bg: var(--color-base-100);
+  --normal-text: var(--color-base-content);
+  --normal-border: var(--color-base-300);
   font-family: 'DM Sans', system-ui, sans-serif;
 }
 .myunand-toast {
-  border: 1px solid hsl(var(--b3)) !important;
+  border: 1px solid var(--color-base-300) !important;
   box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.12) !important;
 }
 .myunand-toast-title {
@@ -62,6 +143,5 @@
 }
 .myunand-toast-desc {
   font-size: 0.75rem;
-  color: hsl(var(--bc) / 0.7);
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
 }
-

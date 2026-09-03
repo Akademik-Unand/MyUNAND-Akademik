@@ -3,7 +3,7 @@
  */
 export const StatCard = ({ title, value, subtitle, icon: Icon, trend, className = '' }) => {
   return (
-    <div className={`card bg-base-100 shadow-sm ${className}`}>
+    <div className={`card bg-base-100 shadow-xs ${className}`}>
       <div className="card-body p-4 md:p-5 flex flex-row items-center gap-4">
         {Icon && (
           <div className="w-10 h-10 shrink-0 rounded-full bg-base-200 text-base-content/60 flex items-center justify-center">

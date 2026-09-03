@@ -6,14 +6,21 @@ export const FormActions = ({
   isLoading = false,
   formId,
   onSubmitClick,
+  className = '',
 }) => {
   return (
-    <div className="flex items-center gap-2 pt-2">
-      <Button type={formId || onSubmitClick ? 'button' : 'submit'} size="sm" isLoading={isLoading} form={formId} onClick={onSubmitClick}>
-        {submitLabel}
-      </Button>
+    <div className={`flex items-center justify-end gap-2 ${className}`}>
       <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
         Batal
+      </Button>
+      <Button
+        type={formId || onSubmitClick ? 'button' : 'submit'}
+        size="sm"
+        isLoading={isLoading}
+        form={formId}
+        onClick={onSubmitClick}
+      >
+        {submitLabel}
       </Button>
     </div>
   );
