@@ -27,3 +27,14 @@ export const deleteResourceItem = (resource, id) =>
 
 export const replaceResourceRows = (resource, rows) =>
   env.useMock ? mock.replaceResourceRows(resource, rows) : notImplemented();
+
+export const loginWithPassword = (payload) =>
+  env.useMock ? mock.loginWithPassword(payload) : notImplemented();
+
+export const loginWithSso = () => (env.useMock ? mock.loginWithSso() : notImplemented());
+
+export const updateProfile = (payload) =>
+  env.useMock ? mock.updateProfile(payload) : notImplemented();
+
+export const changePassword = (payload) =>
+  env.useMock ? mock.changePassword(payload) : notImplemented();

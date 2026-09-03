@@ -29,6 +29,8 @@ registerCrud('/universitas', models.Universitas, {
 
 registerCrud('/fakultas', models.Fakultas, {
   searchFields: ['kode_fakultas', 'nama_resmi', 'nama_singkat'],
+  sortableFields: ['kode_fakultas', 'nama_resmi', 'nama_singkat', 'createdAt'],
+  filterableFields: ['kode_fakultas', 'universitas_id'],
   defaultInclude: [
     { model: models.Universitas, as: 'universitas' },
     { model: models.Departemen, as: 'departemen' },

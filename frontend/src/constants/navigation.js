@@ -14,6 +14,11 @@ export const NAVIGATION_MENU = [
     title: 'Master Data',
     items: [
       {
+        label: 'Fakultas',
+        path: '/master/fakultas',
+        icon: 'Landmark',
+      },
+      {
         label: 'Departemen',
         path: '/master/departemen',
         icon: 'Building2',

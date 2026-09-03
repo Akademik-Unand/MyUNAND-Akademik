@@ -2,6 +2,7 @@ import {
   CPMK_DETAIL,
   CPMK_KURIKULUM,
   DEPARTEMEN,
+  FAKULTAS,
   DOKUMEN_EVALUASI,
   EVALUASI_CPMK,
   EVALUASI_NILAI_PESERTA,
@@ -39,6 +40,10 @@ const buildResource = (rows, { idKey, searchable }) => ({
 });
 
 const resources = {
+  fakultas: buildResource(FAKULTAS, {
+    idKey: 'kode',
+    searchable: ['kode', 'nama', 'singkat', 'universitas'],
+  }),
   departemen: buildResource(DEPARTEMEN, { idKey: 'kode', searchable: ['kode', 'nama'] }),
   prodi: buildResource(PRODI, {
     idKey: 'kode',
@@ -168,3 +173,62 @@ export const replaceResourceRows = async (resource, rows) => {
   target.rows = rows.map((row) => ({ ...row }));
   return target.rows;
 };
+
+const MOCK_USER = {
+  id: 1,
+  name: 'Jonas S.',
+  email: 'admin@unand.ac.id',
+  role: 'Administrator',
+  faculty: 'Fakultas Teknik',
+  university: 'Universitas Andalas',
+};
+
+const authResult = (user) => ({
+  access_token: 'mock-token',
+  token_type: 'Bearer',
+  user,
+});
+
+export const loginWithPassword = async ({ username, password }) => {
+  await delay(400);
+  if (!String(username || '').trim() || !password) {
+    const err = new Error('Username dan kata sandi wajib diisi.');
+    throw err;
+  }
+  const name = String(username).trim();
+  return authResult({
+    ...MOCK_USER,
+    name: name.includes('@') ? MOCK_USER.name : name,
+    email: name.includes('@') ? name : MOCK_USER.email,
+  });
+};
+
+export const loginWithSso = async () => {
+  await delay(500);
+  return authResult({
+    ...MOCK_USER,
+    name: 'Pengguna SSO',
+    email: 'sso@unand.ac.id',
+    role: 'Dosen',
+  });
+};
+
+export const updateProfile = async (payload) => {
+  await delay(300);
+  return { ...payload };
+};
+
+export const changePassword = async ({ currentPassword, newPassword, confirmPassword }) => {
+  await delay(300);
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    throw new Error('Semua kolom kata sandi wajib diisi.');
+  }
+  if (newPassword.length < 6) {
+    throw new Error('Kata sandi baru minimal 6 karakter.');
+  }
+  if (newPassword !== confirmPassword) {
+    throw new Error('Konfirmasi kata sandi tidak sama.');
+  }
+  return { ok: true };
+};
+

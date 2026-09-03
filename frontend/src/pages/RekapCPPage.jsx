@@ -9,11 +9,14 @@ import { FilterBar } from '../components/common/FilterBar';
 import { DataTable } from '../components/common/DataTable';
 import { Drawer } from '../components/ui/Drawer';
 import { DetailList } from '../components/common/DetailList';
+import { Select } from '../components/ui/Select';
 import {
   FILTER_DEPARTEMEN,
   FILTER_PRODI,
   FILTER_KURIKULUM,
   FILTER_SEMESTER,
+  KURIKULUM_CP,
+  MK_SEMESTER,
 } from '../constants/mockData';
 
 const topFilters = [
@@ -83,44 +86,51 @@ export const RekapCPPage = () => {
 
       <Card title="Filter data">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
-          <fieldset className="fieldset gap-1 p-0">
-            <legend className="fieldset-legend text-xs">CP</legend>
-            <select className="select select-sm w-full"><option>-- Semua CP/SCP --</option></select>
-          </fieldset>
-          <fieldset className="fieldset gap-1 p-0">
-            <legend className="fieldset-legend text-xs">MK</legend>
-            <select className="select select-sm w-full"><option>-- Semua MK --</option></select>
-          </fieldset>
-          <fieldset className="fieldset gap-1 p-0">
-            <legend className="fieldset-legend text-xs">Kelas</legend>
-            <select className="select select-sm w-full">
-              <option>-- Semua Kelas --</option>
-              <option>A</option>
-              <option>B</option>
-            </select>
-          </fieldset>
-          <fieldset className="fieldset gap-1 p-0">
-            <legend className="fieldset-legend text-xs">MK Transkrip Saja?</legend>
-            <select className="select select-sm w-full">
-              <option>Tidak</option>
-              <option>Ya</option>
-            </select>
-          </fieldset>
-          <fieldset className="fieldset gap-1 p-0">
-            <legend className="fieldset-legend text-xs">Pilihan Data</legend>
-            <select className="select select-sm w-full">
-              <option>Persen Mencapai Target</option>
-            </select>
-          </fieldset>
-          <fieldset className="fieldset gap-1 p-0">
-            <legend className="fieldset-legend text-xs">Angkatan</legend>
-            <select className="select select-sm w-full">
-              <option>-- Semua Angkatan --</option>
-              <option>2021</option>
-              <option>2022</option>
-              <option>2023</option>
-            </select>
-          </fieldset>
+          <Select
+            size="sm"
+            label="CP"
+            placeholder="Semua CP/SCP"
+            options={KURIKULUM_CP.map((cp) => ({ value: cp.kode, label: cp.kode }))}
+          />
+          <Select
+            size="sm"
+            label="MK"
+            placeholder="Semua MK"
+            options={MK_SEMESTER.map((mk) => ({ value: mk.kode, label: `${mk.kode} — ${mk.nama}` }))}
+          />
+          <Select
+            size="sm"
+            label="Kelas"
+            placeholder="Semua Kelas"
+            options={[
+              { value: 'A', label: 'A' },
+              { value: 'B', label: 'B' },
+              { value: 'C', label: 'C' },
+              { value: 'KBI', label: 'KBI' },
+            ]}
+          />
+          <Select
+            size="sm"
+            label="MK Transkrip Saja?"
+            placeholder="Pilih"
+            options={[
+              { value: 'Tidak', label: 'Tidak' },
+              { value: 'Ya', label: 'Ya' },
+            ]}
+            defaultValue="Tidak"
+          />
+          <Select
+            size="sm"
+            label="Pilihan Data"
+            options={[{ value: 'persen', label: 'Persen Mencapai Target' }]}
+            defaultValue="persen"
+          />
+          <Select
+            size="sm"
+            label="Angkatan"
+            placeholder="Semua Angkatan"
+            options={['2021', '2022', '2023', '2024'].map((year) => ({ value: year, label: year }))}
+          />
         </div>
         <Button size="sm" onClick={() => toast.info('Filter diterapkan', { description: 'Data mock tidak berubah.' })}>
           Apply Filter

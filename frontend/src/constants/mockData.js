@@ -1,3 +1,11 @@
+export const FAKULTAS = [
+  { kode: 'FT', universitas: 'Universitas Andalas', nama: 'Fakultas Teknik', singkat: 'FT' },
+  { kode: 'FEB', universitas: 'Universitas Andalas', nama: 'Fakultas Ekonomi dan Bisnis', singkat: 'FEB' },
+  { kode: 'FMIPA', universitas: 'Universitas Andalas', nama: 'Fakultas Matematika dan Ilmu Pengetahuan Alam', singkat: 'FMIPA' },
+  { kode: 'FH', universitas: 'Universitas Andalas', nama: 'Fakultas Hukum', singkat: 'FH' },
+  { kode: 'FP', universitas: 'Universitas Andalas', nama: 'Fakultas Pertanian', singkat: 'FP' },
+];
+
 export const DEPARTEMEN = [
   { kode: 'DPT001', fakultas: 'Fakultas Teknik', nama: 'Teknik Informatika', singkat: 'TI' },
   { kode: 'DPT002', fakultas: 'Fakultas Teknik', nama: 'Teknik Elektro', singkat: 'TE' },
@@ -58,13 +66,65 @@ export const PROGRAM_STUDI_OPTIONS = [
   'Teknik Industri - S3 Reguler',
 ];
 
-export const FILTER_DEPARTEMEN = ['JURUSAN TEKNIK MESIN', 'JURUSAN TEKNIK ELEKTRO', 'JURUSAN TEKNIK SIPIL', 'JURUSAN TEKNIK INDUSTRI'];
+export const FILTER_DEPARTEMEN = [
+  'JURUSAN TEKNIK MESIN',
+  'JURUSAN TEKNIK ELEKTRO',
+  'JURUSAN TEKNIK SIPIL',
+  'JURUSAN TEKNIK INDUSTRI',
+  'JURUSAN TEKNIK LINGKUNGAN',
+  'JURUSAN TEKNIK INFORMATIKA',
+  'JURUSAN ARSITEKTUR',
+  'DEPARTEMEN MANAJEMEN',
+  'DEPARTEMEN AKUNTANSI',
+  'DEPARTEMEN EKONOMI',
+  'DEPARTEMEN ILMU HUKUM',
+  'DEPARTEMEN AGRONOMI',
+  'DEPARTEMEN PROTEKSI TANAMAN',
+  'DEPARTEMEN ILMU TANAH',
+  'DEPARTEMEN MATEMATIKA',
+  'DEPARTEMEN FISIKA',
+  'DEPARTEMEN KIMIA',
+  'DEPARTEMEN BIOLOGI',
+  'DEPARTEMEN STATISTIKA',
+  'DEPARTEMEN FARMASI',
+  'DEPARTEMEN KEPERAWATAN',
+  'DEPARTEMEN GIZI',
+  'DEPARTEMEN ILMU KOMUNIKASI',
+  'DEPARTEMEN SOSIOLOGI',
+  'DEPARTEMEN ANTROPOLOGI',
+];
 
-export const FILTER_PRODI = ['S1', 'S2', 'S3'];
+export const FILTER_PRODI = ['S1', 'S2', 'S3', 'D3', 'Profesi'];
 
-export const FILTER_KURIKULUM = ['Kurikulum JTM-S1-2021-2026', 'Kurikulum JTE-S1-2021-2026', 'Kurikulum JTS-S1-2021-2026'];
+export const FILTER_KURIKULUM = [
+  'Kurikulum JTM-S1-2021-2026',
+  'Kurikulum JTM-S1-2016-2021',
+  'Kurikulum JTE-S1-2021-2026',
+  'Kurikulum JTE-S2-2020-2025',
+  'Kurikulum JTS-S1-2021-2026',
+  'Kurikulum JTS-S2-2019-2024',
+  'Kurikulum JTI-S1-2021-2026',
+  'Kurikulum JTL-S1-2022-2027',
+  'Kurikulum TI-S1-2023-2028',
+  'Kurikulum MNJ-S1-2020-2025',
+];
 
-export const FILTER_SEMESTER = ['Genap 2024', 'Ganjil 2024', 'Genap 2023'];
+export const FILTER_SEMESTER = [
+  'Genap 2024',
+  'Ganjil 2024',
+  'Pendek 2024',
+  'Genap 2025',
+  'Ganjil 2025',
+  'Pendek 2025',
+  'Genap 2023',
+  'Ganjil 2023',
+  'Pendek 2023',
+  'Genap 2022',
+  'Ganjil 2022',
+  'Pendek 2022',
+  'Genap 2021',
+  'Ganjil 2021',
+];
 
 const scpRow = {
   target: '60%',

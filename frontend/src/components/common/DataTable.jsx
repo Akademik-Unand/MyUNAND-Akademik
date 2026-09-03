@@ -5,6 +5,7 @@ import { useTableQuery } from '../../hooks/useTableQuery';
 import { applyQuery } from '../../utils/queryRows';
 import { DataTablePagination } from './DataTablePagination';
 import { DataTableToolbar } from './DataTableToolbar';
+import { Select } from '../ui/Select';
 import { Skeleton } from '../ui/Skeleton';
 
 const NO_ROWS = [];
@@ -20,23 +21,17 @@ const ColumnFilter = ({ column, value, onChange }) => {
   if (!config) return null;
 
   if (config.type === 'select') {
+    const options = config.options.map((option) =>
+      typeof option === 'string' ? { value: option, label: option } : option
+    );
     return (
-      <select
-        className="select select-xs w-full"
+      <Select
+        size="xs"
+        placeholder="Semua"
+        options={options}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        aria-label={`Filter ${column.header}`}
-      >
-        <option value="">Semua</option>
-        {config.options.map((option) => {
-          const item = typeof option === 'string' ? { value: option, label: option } : option;
-          return (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          );
-        })}
-      </select>
+      />
     );
   }
 
@@ -109,7 +104,7 @@ export const DataTable = ({
       />
 
       <div className={`overflow-x-auto ${isFetching ? 'opacity-60' : ''}`}>
-        <table className={`table table-sm w-full ${striped ? 'table-zebra' : ''}`}>
+        <table className={`table table-sm w-full border-collapse ${striped ? 'table-zebra' : ''}`}>
           <thead>
             <tr className="text-xs uppercase text-base-content/60">
               {columns.map((column, idx) => {

@@ -1,7 +1,6 @@
 import { PageHeader } from '../components/common/PageHeader';
 import { StatCard } from '../components/common/StatCard';
 import { StackedBarOverview } from '../components/dashboard/StackedBarOverview';
-import { DeadlineCard } from '../components/dashboard/DeadlineCard';
 import { QuickActionCard } from '../components/dashboard/QuickActionCard';
 import { DashboardSkeleton } from '../components/dashboard/DashboardSkeleton';
 import { Button } from '../components/ui/Button';
@@ -85,11 +84,8 @@ export const DashboardPage = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-        <DeadlineCard />
-        <QuickActionCard />
-      </div>
       <StackedBarOverview />
+      <QuickActionCard />
     </div>
   );
 };

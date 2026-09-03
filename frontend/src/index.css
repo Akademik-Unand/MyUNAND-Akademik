@@ -97,6 +97,16 @@
   border-radius: 9999px;
 }
 
+/* Garis tegas antar kolom dan baris — default DaisyUI hanya garis horizontal. */
+.table {
+  border-collapse: collapse;
+  border: 1px solid var(--color-base-300);
+}
+
+.table :is(th, td) {
+  border: 1px solid var(--color-base-300);
+}
+
 /* Custom modern scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

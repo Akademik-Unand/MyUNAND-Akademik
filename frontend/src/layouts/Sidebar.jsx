@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Landmark,
   Building2,
   GraduationCap,
   TrendingUp,
@@ -24,6 +25,7 @@ import { useUIStore } from '../store/ui.store';
 // Map icon string to Lucide component
 const ICON_MAP = {
   LayoutDashboard,
+  Landmark,
   Building2,
   GraduationCap,
   TrendingUp,

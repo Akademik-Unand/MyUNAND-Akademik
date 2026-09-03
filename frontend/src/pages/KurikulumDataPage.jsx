@@ -10,6 +10,7 @@ import { ConfirmDeleteModal } from '../components/common/ConfirmDeleteModal';
 import { Drawer } from '../components/ui/Drawer';
 import { DetailList } from '../components/common/DetailList';
 import { useResourceMutations } from '../hooks/useResourceMutations';
+import { Select } from '../components/ui/Select';
 import { PROGRAM_STUDI_OPTIONS } from '../constants/mockData';
 
 export const KurikulumDataPage = () => {
@@ -60,17 +61,13 @@ export const KurikulumDataPage = () => {
 
       <Card title="Data Kurikulum">
         <div className="max-w-xl">
-          <fieldset className="fieldset gap-1 p-0">
-            <legend className="fieldset-legend text-xs font-medium">Pilih Program Studi</legend>
-            <select className="select w-full" value={prodi} onChange={(e) => setProdi(e.target.value)}>
-              <option value="">-- Pilih Program Studi --</option>
-              {PROGRAM_STUDI_OPTIONS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </fieldset>
+          <Select
+            label="Pilih Program Studi"
+            placeholder="Pilih Program Studi"
+            value={prodi}
+            onChange={(e) => setProdi(e.target.value)}
+            options={PROGRAM_STUDI_OPTIONS.map((item) => ({ value: item, label: item }))}
+          />
           <div className="mt-4">
             <Button variant="outline" size="sm" className="font-semibold" disabled={!prodi} onClick={() => setOpened(prodi)}>
               BUKA &raquo;

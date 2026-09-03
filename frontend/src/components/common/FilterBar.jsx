@@ -6,6 +6,7 @@ export const FilterBar = ({ fields = [], className = '' }) => {
       {fields.map((field) => (
         <Select
           key={field.label}
+          size="sm"
           label={field.label}
           placeholder={field.placeholder}
           options={field.options}

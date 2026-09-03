@@ -1,6 +1,7 @@
 import { Plus, Trash2, X } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { IconButton } from '../common/IconButton';
+import { Select } from '../ui/Select';
 import { SUMBER_PENILAIAN_OPTIONS } from '../../constants/mockData';
 
 const newSumber = () => ({
@@ -99,17 +100,16 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                     onChange={(e) => updateCpmk(cpmk.id, { targetNilai: Number(e.target.value) })}
                   />
                 </fieldset>
-                <fieldset className="fieldset gap-1 p-0">
-                  <legend className="fieldset-legend text-xs">Skala Nilai</legend>
-                  <select
-                    className="select select-sm"
-                    value={cpmk.skala}
-                    onChange={(e) => updateCpmk(cpmk.id, { skala: e.target.value })}
-                  >
-                    <option value="100">Skala 100</option>
-                    <option value="4">Skala 4</option>
-                  </select>
-                </fieldset>
+                <Select
+                  size="sm"
+                  label="Skala Nilai"
+                  value={cpmk.skala}
+                  onChange={(e) => updateCpmk(cpmk.id, { skala: e.target.value })}
+                  options={[
+                    { value: '100', label: 'Skala 100' },
+                    { value: '4', label: 'Skala 4' },
+                  ]}
+                />
               </div>
 
               {cpmk.cpl.map((cpl) => (
@@ -151,8 +151,8 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                                 </button>
                               </label>
                             ) : (
-                              <select
-                                className="select select-sm"
+                              <Select
+                                size="sm"
                                 value={row.nama}
                                 onChange={(e) =>
                                   updateSumber(cpmk.id, cpl.id, row.id, {
@@ -160,13 +160,11 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                                     custom: e.target.value === 'Lainnya' ? '' : row.custom,
                                   })
                                 }
-                              >
-                                {SUMBER_PENILAIAN_OPTIONS.map((option) => (
-                                  <option key={option} value={option}>
-                                    {option}
-                                  </option>
-                                ))}
-                              </select>
+                                options={SUMBER_PENILAIAN_OPTIONS.map((option) => ({
+                                  value: option,
+                                  label: option,
+                                }))}
+                              />
                             )}
                           </fieldset>
                           <fieldset className="fieldset gap-1 p-0">

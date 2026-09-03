@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Bell, ChevronDown, User, LogOut, ShieldCheck, Search } from 'lucide-react';
 import { useUIStore } from '../store/ui.store';
 import { useAuthStore } from '../store/auth.store';
 import { NavSearchModal } from './NavSearchModal';
 import { AccessibilityMenu } from './AccessibilityMenu';
+import { getInitials } from '../utils/initials';
 
 export const Navbar = () => {
   const { toggleSidebar, toggleMobileSidebar } = useUIStore();
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
@@ -108,10 +111,10 @@ export const Navbar = () => {
 
         {/* User Profile Dropdown */}
         <div className="dropdown dropdown-end">
-          <label tabIndex={0} className="btn btn-ghost btn-sm gap-2 pl-1 pr-2 rounded-xl">
-            <div className="avatar">
-              <div className="w-8 h-8 rounded-full ring-2 ring-primary/30">
-                <img src={user?.avatar} alt={user?.name} />
+          <label tabIndex={0} className="btn btn-ghost btn-sm gap-2 pl-1 pr-2">
+            <div className="avatar avatar-placeholder">
+              <div className="w-8 rounded-full bg-primary text-primary-content text-xs">
+                <span>{getInitials(user?.name)}</span>
               </div>
             </div>
             <div className="hidden md:flex flex-col text-left">
@@ -136,15 +139,22 @@ export const Navbar = () => {
               </div>
             </li>
             <li>
-              <a className="text-xs py-2">
+              <Link to="/profil" className="text-xs py-2">
                 <User size={15} /> Profil Saya
-              </a>
+              </Link>
             </li>
             <div className="divider my-1"></div>
             <li>
-              <a className="text-xs py-2 text-error font-medium hover:bg-error/10">
+              <button
+                type="button"
+                className="text-xs py-2 text-error font-medium hover:bg-error/10"
+                onClick={() => {
+                  logout();
+                  navigate('/login', { replace: true });
+                }}
+              >
                 <LogOut size={15} /> Keluar
-              </a>
+              </button>
             </li>
           </ul>
         </div>

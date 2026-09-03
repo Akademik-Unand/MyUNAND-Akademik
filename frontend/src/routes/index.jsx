@@ -1,7 +1,11 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
+import { ProtectedRoute, GuestRoute } from './ProtectedRoute';
+import { LoginPage } from '../pages/LoginPage';
+import { ProfilePage } from '../pages/ProfilePage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { FakultasPage } from '../pages/FakultasPage';
 import { DepartemenPage } from '../pages/DepartemenPage';
 import { ProdiPage } from '../pages/ProdiPage';
 import { ProdiFormPage } from '../pages/ProdiFormPage';
@@ -31,11 +35,20 @@ import { LaporanCPViewPage } from '../pages/LaporanCPViewPage';
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <MainLayout />,
+    element: <GuestRoute />,
+    children: [{ path: '/login', element: <LoginPage /> }],
+  },
+  {
+    element: <ProtectedRoute />,
     children: [
+      {
+        path: '/',
+        element: <MainLayout />,
+        children: [
       { index: true, element: <DashboardPage /> },
+      { path: 'profil', element: <ProfilePage /> },
 
+      { path: 'master/fakultas', element: <FakultasPage /> },
       { path: 'master/departemen', element: <DepartemenPage /> },
       { path: 'master/prodi/baru', element: <ProdiFormPage /> },
       { path: 'master/prodi/:kode/edit', element: <ProdiFormPage /> },
@@ -69,7 +82,9 @@ export const router = createBrowserRouter([
       { path: 'perkuliahan/laporan-cp/:id', element: <LaporanCPViewPage /> },
       { path: 'perkuliahan/laporan-cp', element: <LaporanCPPage /> },
 
-      { path: '*', element: <NotFoundPage /> },
+          { path: '*', element: <NotFoundPage /> },
+        ],
+      },
     ],
   },
 ]);
