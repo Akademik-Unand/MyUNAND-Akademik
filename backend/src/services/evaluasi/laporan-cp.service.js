@@ -1,13 +1,15 @@
 'use strict';
 
-const { LaporanCp, ProgramStudi, Kurikulum, User } = require('../../models');
+const { sequelize, LaporanCp, ProgramStudi, Kurikulum, User } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
+const { orgFiltersOnProgramStudiId } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["nama_laporan"],
   sortableFields: ["createdAt"],
   filterableFields: ["program_studi_id","kurikulum_id"],
+  virtualFilters: orgFiltersOnProgramStudiId(sequelize),
   defaultInclude: [
     { model: ProgramStudi, as: 'programStudi' },
     { model: Kurikulum, as: 'kurikulum' },

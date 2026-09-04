@@ -32,7 +32,7 @@ export const LoginForm = () => {
     setPending(true);
     try {
       const result = await loginWithPassword({ email: email.trim(), password });
-      login(result.user, result.access_token);
+      login(result.user, result.access_token, result.refresh_token);
       navigate(nextPath, { replace: true });
     } catch (err) {
       setError(err.message || 'Gagal masuk. Periksa email dan kata sandi.');

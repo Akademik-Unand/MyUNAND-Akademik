@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useFilterOptions } from './useFilterOptions';
+import { useOrgScope } from './useOrgScope';
 import {
-  EMPTY_ACADEMIC_FILTER,
+  academicScopeLock,
   applyAcademicField,
   buildAcademicFilterFields,
   cascadeAcademicOptions,
@@ -11,10 +12,14 @@ import {
 
 const DEFAULT_KEYS = ['fakultas', 'departemen', 'prodi', 'kurikulum'];
 
-export const useAcademicFilter = ({ keys = DEFAULT_KEYS } = {}) => {
+export const useAcademicFilter = ({ keys = DEFAULT_KEYS, scope: scopeOverride } = {}) => {
   const raw = useFilterOptions();
-  const [draft, setDraft] = useState(EMPTY_ACADEMIC_FILTER);
-  const [applied, setApplied] = useState(EMPTY_ACADEMIC_FILTER);
+  const ownScope = useOrgScope();
+  const scope = scopeOverride || ownScope;
+  const scoped = Boolean(scope?.level && scope.level !== 'universitas');
+
+  const [draft, setDraft] = useState(() => academicScopeLock(scope));
+  const [applied, setApplied] = useState(() => academicScopeLock(scope));
 
   const options = useMemo(
     () =>
@@ -26,30 +31,37 @@ export const useAcademicFilter = ({ keys = DEFAULT_KEYS } = {}) => {
           kurikulum: raw.kurikulumRows,
           semester: raw.semesterRows,
         },
-        draft
+        draft,
+        scope
       ),
-    [raw.fakultasRows, raw.departemenRows, raw.prodiRows, raw.kurikulumRows, raw.semesterRows, draft]
+    [raw.fakultasRows, raw.departemenRows, raw.prodiRows, raw.kurikulumRows, raw.semesterRows, draft, scope]
   );
 
   const setField = useCallback((key, value) => setDraft((prev) => applyAcademicField(prev, key, value)), []);
 
   const fields = useMemo(
-    () => buildAcademicFilterFields({ keys, draft, options, onChange: setField }),
-    [keys, draft, options, setField]
+    () => buildAcademicFilterFields({ keys, draft, options, onChange: setField, scope }),
+    [keys, draft, options, setField, scope]
   );
 
-  const extraFilter = useMemo(() => toAcademicExtraFilter(applied, keys), [applied, keys]);
+  const extraFilter = useMemo(() => {
+    const base = toAcademicExtraFilter(applied, keys);
+    if (base) return base;
+    // User dengan scope unit: tetap buka daftar (server yang membatasi datanya).
+    return scoped ? {} : undefined;
+  }, [applied, keys, scoped]);
 
   return {
     draft,
     applied,
     fields,
     extraFilter,
-    canApply: isAcademicDraftReady(draft),
+    scope,
+    canApply: isAcademicDraftReady(draft) || scoped,
     apply: () => setApplied({ ...draft }),
     reset: () => {
-      setDraft(EMPTY_ACADEMIC_FILTER);
-      setApplied(EMPTY_ACADEMIC_FILTER);
+      setDraft(academicScopeLock(scope));
+      setApplied(academicScopeLock(scope));
     },
   };
 };

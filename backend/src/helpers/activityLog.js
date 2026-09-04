@@ -8,6 +8,7 @@ const SENSITIVE_KEYS = [
   'token',
   'remember_token',
   'access_token',
+  'refresh_token',
   'currentPassword',
   'newPassword',
   'confirmPassword',
@@ -26,6 +27,9 @@ const normalizePath = (path) => String(path || '').split('?')[0].replace(/^\/api
 const shouldRecord = (method, path, status) => {
   const clean = normalizePath(path);
   if (clean === '/up' || clean === '/activity-logs' || clean.startsWith('/activity-logs/')) {
+    return false;
+  }
+  if (method === 'POST' && clean === '/auth/refresh') {
     return false;
   }
   if (method === 'POST' && clean === '/auth/login') {

@@ -21,6 +21,26 @@ router.get(
   rekapCpController.list
 );
 
+/** GET /rekap-cp/detail */
+router.get(
+  '/detail',
+  authenticate,
+  attachAbility,
+  checkPermission('read', subject),
+  validate({ query: rekapCpValidation.listDetail }),
+  rekapCpController.listDetail
+);
+
+/** GET /rekap-cp/grafik */
+router.get(
+  '/grafik',
+  authenticate,
+  attachAbility,
+  checkPermission('read', subject),
+  validate({ query: rekapCpValidation.listDetail }),
+  rekapCpController.listGrafik
+);
+
 /** POST /rekap-cp */
 router.post(
   '/',

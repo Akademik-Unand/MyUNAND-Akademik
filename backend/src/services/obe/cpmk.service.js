@@ -22,7 +22,7 @@ const LIST_OPTIONS = {
     { model: Matakuliah, as: 'matakuliah' },
     { model: SumberPenilaian, as: 'sumberPenilaian', separate: true },
     { model: Cpmk, as: 'parent' },
-    { model: Cpmk, as: 'subCpmk', separate: true },
+    { model: Cpmk, as: 'subCpmk', separate: true, include: [scpInclude] },
     scpInclude,
   ],
 };
@@ -68,15 +68,58 @@ const syncScpIds = async (cpmkId, scpIds, { required, transaction }) => {
   );
 };
 
-const create = async (payload) => {
-  const { scp_ids = [], ...attrs } = payload;
-  return sequelize.transaction(async (transaction) => {
-    await assertParent(attrs.parent_cpmk_id, attrs.matakuliah_id, transaction);
-    const item = await Cpmk.create(attrs, { transaction });
-    await syncScpIds(item.id, scp_ids, { required: Boolean(attrs.parent_cpmk_id), transaction });
-    return findLoaded(item.id, transaction);
-  });
+const createChildren = async (parent, children, transaction) => {
+  for (const sub of children) {
+    const child = await Cpmk.create(
+      {
+        matakuliah_id: parent.matakuliah_id,
+        parent_cpmk_id: parent.id,
+        nama_cpmk: sub.nama_cpmk,
+        deskripsi: sub.deskripsi || null,
+      },
+      { transaction }
+    );
+    await syncScpIds(child.id, sub.scp_ids, { required: true, transaction });
+  }
 };
+
+const createOne = async (payload, transaction) => {
+  const { scp_ids = [], sub_cpmk, ...attrs } = payload;
+  const children = Array.isArray(sub_cpmk) ? sub_cpmk : [];
+  if (attrs.parent_cpmk_id && children.length) {
+    throw new AppError('Sub-CPMK tidak boleh memiliki Sub-CPMK', 422);
+  }
+  if (!attrs.parent_cpmk_id && !children.length && !scp_ids.length) {
+    throw new AppError('Pilih minimal satu SCP, atau tambahkan Sub-CPMK', 422);
+  }
+
+  await assertParent(attrs.parent_cpmk_id, attrs.matakuliah_id, transaction);
+  const item = await Cpmk.create(attrs, { transaction });
+  if (children.length) {
+    await createChildren(item, children, transaction);
+  } else {
+    await syncScpIds(item.id, scp_ids, { required: true, transaction });
+    if (attrs.parent_cpmk_id) {
+      await CpmkScp.destroy({ where: { cpmk_id: attrs.parent_cpmk_id }, transaction });
+    }
+  }
+  return findLoaded(item.id, transaction);
+};
+
+const create = (payload) => sequelize.transaction((transaction) => createOne(payload, transaction));
+
+const createBulk = (items) =>
+  sequelize.transaction(async (transaction) => {
+    const mkIds = new Set(items.map((item) => item.matakuliah_id));
+    if (mkIds.size > 1) {
+      throw new AppError('Semua CPMK harus pada mata kuliah yang sama', 422);
+    }
+    const created = [];
+    for (const item of items) {
+      created.push(await createOne(item, transaction));
+    }
+    return created;
+  });
 
 const update = async (id, payload) => {
   const { scp_ids, ...attrs } = payload;
@@ -119,4 +162,4 @@ const remove = async (id) => {
 
 const restore = (id) => restoreRecord(Cpmk, id, 'CPMK');
 
-module.exports = { list, getById, create, update, remove, restore };
+module.exports = { list, getById, create, createBulk, update, remove, restore };

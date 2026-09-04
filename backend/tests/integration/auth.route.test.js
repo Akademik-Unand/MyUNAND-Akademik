@@ -13,6 +13,13 @@ describe('POST /api/v1/auth/login', () => {
   });
 });
 
+describe('POST /api/v1/auth/refresh', () => {
+  it('returns 422 when body is invalid', async () => {
+    const res = await request(app).post('/api/v1/auth/refresh').send({});
+    expect(res.status).toBe(422);
+  });
+});
+
 describe('PUT /api/v1/auth/profile', () => {
   it('rejects request without token', async () => {
     const res = await request(app).put('/api/v1/auth/profile').send({ name: 'Admin' });

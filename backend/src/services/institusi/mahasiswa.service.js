@@ -1,14 +1,16 @@
 'use strict';
 
-const { Mahasiswa, ProgramStudi } = require('../../models');
+const { sequelize, Mahasiswa, ProgramStudi } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
+const { orgFiltersOnProgramStudiId } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["niu","nama"],
   sortableFields: ["niu","nama","angkatan","createdAt"],
   filterableFields: ["niu","program_studi_id","angkatan"],
+  virtualFilters: orgFiltersOnProgramStudiId(sequelize),
   defaultInclude: [
     { model: ProgramStudi, as: 'programStudi' },
   ],

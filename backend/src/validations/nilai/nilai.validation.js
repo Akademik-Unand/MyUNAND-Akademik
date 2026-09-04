@@ -31,4 +31,8 @@ const upload = Joi.object({
   })).min(1).required(),
 });
 
-module.exports = { list, create, update, idParam, upload };
+const kelasIdParam = Joi.object({
+  kelasId: Joi.string().uuid().required(),
+});
+
+module.exports = { list, create, update, idParam, upload, kelasIdParam };

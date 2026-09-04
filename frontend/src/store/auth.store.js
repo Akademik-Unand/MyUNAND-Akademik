@@ -5,6 +5,7 @@ const STORAGE_KEY = 'myunand_auth';
 const emptySession = () => ({
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
 });
 
@@ -17,6 +18,7 @@ const readSession = () => {
     return {
       user: parsed.user,
       token: parsed.token || null,
+      refreshToken: parsed.refreshToken || null,
       isAuthenticated: true,
     };
   } catch {
@@ -31,7 +33,11 @@ const writeSession = (session) => {
   }
   localStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({ user: session.user, token: session.token || null })
+    JSON.stringify({
+      user: session.user,
+      token: session.token || null,
+      refreshToken: session.refreshToken || null,
+    })
   );
 };
 
@@ -40,11 +46,23 @@ const initial = readSession();
 export const useAuthStore = create((set) => ({
   ...initial,
 
-  login: (user, token = null) => {
-    const session = { user, token, isAuthenticated: true };
+  login: (user, token = null, refreshToken = null) => {
+    const session = { user, token, refreshToken, isAuthenticated: true };
     writeSession(session);
     set(session);
   },
+
+  setTokens: (token, refreshToken) =>
+    set((state) => {
+      const session = {
+        ...state,
+        token: token ?? state.token,
+        refreshToken: refreshToken ?? state.refreshToken,
+        isAuthenticated: Boolean(state.user),
+      };
+      writeSession(session);
+      return session;
+    }),
 
   setUser: (user) =>
     set((state) => {

@@ -23,6 +23,15 @@ const create = asyncHandler(async (req, res) => {
   return success(res, { code: 201, message: 'CPMK berhasil ditambahkan', data });
 });
 
+const createBulk = asyncHandler(async (req, res) => {
+  const data = await cpmkService.createBulk(req.body);
+  return success(res, {
+    code: 201,
+    message: `${data.length} CPMK berhasil ditambahkan`,
+    data,
+  });
+});
+
 const update = asyncHandler(async (req, res) => {
   const data = await cpmkService.update(req.params.id, req.body);
   return success(res, { message: 'CPMK berhasil diperbarui', data });
@@ -38,4 +47,4 @@ const restore = asyncHandler(async (req, res) => {
   return success(res, { message: 'CPMK berhasil dipulihkan', data });
 });
 
-module.exports = { list, getById, create, update, remove, restore };
+module.exports = { list, getById, create, createBulk, update, remove, restore };

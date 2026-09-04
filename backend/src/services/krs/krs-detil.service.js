@@ -1,18 +1,31 @@
 'use strict';
 
-const { KrsDetil, Kelas, Matakuliah } = require('../../models');
+const { KrsDetil, Krs, Mahasiswa, ProgramStudi, Kelas, Matakuliah } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 
 const LIST_OPTIONS = {
-  searchFields: [],
-  sortableFields: ["approved","createdAt"],
-  filterableFields: ["krs_id","kelas_id","approved"],
+  searchFields: ['$krs.mahasiswa.nama$', '$krs.mahasiswa.niu$'],
+  sortableFields: ['approved', 'createdAt'],
+  filterableFields: ['krs_id', 'kelas_id', 'approved'],
+  findOptions: { subQuery: false },
   defaultInclude: [
-    { model: Kelas, as: 'kelas',
+    {
+      model: Krs,
+      as: 'krs',
       include: [
-        { model: Matakuliah, as: 'matakuliah' },
-      ] },
+        {
+          model: Mahasiswa,
+          as: 'mahasiswa',
+          include: [{ model: ProgramStudi, as: 'programStudi' }],
+        },
+      ],
+    },
+    {
+      model: Kelas,
+      as: 'kelas',
+      include: [{ model: Matakuliah, as: 'matakuliah' }],
+    },
   ],
 };
 

@@ -1,13 +1,15 @@
 'use strict';
 
-const { EvaluasiCpmk, Kelas, Cpmk } = require('../../models');
+const { sequelize, EvaluasiCpmk, Kelas, Cpmk } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
+const { orgFiltersOnKelasId } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["analisis"],
   sortableFields: ["createdAt"],
   filterableFields: ["kelas_id","cpmk_id"],
+  virtualFilters: orgFiltersOnKelasId(sequelize),
   defaultInclude: [
     { model: Kelas, as: 'kelas' },
     { model: Cpmk, as: 'cpmk' },

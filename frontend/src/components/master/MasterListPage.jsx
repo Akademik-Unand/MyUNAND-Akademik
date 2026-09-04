@@ -14,6 +14,7 @@ import { Can } from '../auth/Can';
 import { useCan } from '../../hooks/useCan';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useBusyAction } from '../../hooks/useBusyAction';
+import { useResourceItem } from '../../hooks/useResourceQuery';
 
 /**
  * Halaman daftar bersama untuk entitas master: create/edit lewat modal,
@@ -33,6 +34,8 @@ export const MasterListPage = ({
   searchPlaceholder,
   afterSave,
   subject,
+  rowActionExtra,
+  detailResource,
 }) => {
   const can = useCan();
   const mutations = useResourceMutations(resource, {
@@ -44,6 +47,9 @@ export const MasterListPage = ({
   const { busy, run } = useBusyAction();
   const [modal, setModal] = useState({ open: false, mode: 'create', values: emptyForm });
   const [detail, setDetail] = useState(null);
+  // Bila ada detailResource, drawer memuat baris segar dari API (mis. user) supaya
+  // field yang tidak ada di daftar (roles/units) tetap tampil benar.
+  const liveDetail = useResourceItem(detailResource, detail ? detail[idKey] : null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const closeModal = () => {
@@ -85,11 +91,14 @@ export const MasterListPage = ({
       cellClassName: 'text-right',
       className: 'text-right',
       render: (row) => (
-        <RowActions
-          onDetail={() => setDetail(row)}
-          onEdit={subject && can('update', subject) ? () => openEdit(row) : undefined}
-          onDelete={subject && can('delete', subject) ? () => setDeleteTarget(row) : undefined}
-        />
+        <div className="flex items-center justify-end gap-1">
+          {rowActionExtra?.(row)}
+          <RowActions
+            onDetail={() => setDetail(row)}
+            onEdit={subject && can('update', subject) ? () => openEdit(row) : undefined}
+            onDelete={subject && can('delete', subject) ? () => setDeleteTarget(row) : undefined}
+          />
+        </div>
       ),
     },
   ];
@@ -152,7 +161,16 @@ export const MasterListPage = ({
         title={`Detail ${title}`}
         subtitle={detail ? rowKey(detail) : ''}
       >
-        {detail && <DetailList items={detailItems(detail)} />}
+        {detail &&
+          (detailResource ? (
+            liveDetail.isPending ? (
+              <p className="text-sm text-base-content/60">Memuat detail...</p>
+            ) : (
+              <DetailList items={detailItems(liveDetail.data)} />
+            )
+          ) : (
+            <DetailList items={detailItems(detail)} />
+          ))}
       </Drawer>
 
       <ConfirmDeleteModal

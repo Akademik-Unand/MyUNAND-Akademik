@@ -13,10 +13,12 @@ describe('activityLog helper', () => {
       email: 'admin@email.com',
       password: 'rahasia',
       token: 'abc',
+      refresh_token: 'xyz',
     })).toEqual({
       email: 'admin@email.com',
       password: '[redacted]',
       token: '[redacted]',
+      refresh_token: '[redacted]',
     });
   });
 
@@ -34,6 +36,7 @@ describe('activityLog helper', () => {
     expect(shouldRecord('POST', '/api/v1/auth/login', 200)).toBe(true);
     expect(shouldRecord('POST', '/api/v1/auth/login', 401)).toBe(true);
     expect(shouldRecord('POST', '/api/v1/auth/login', 422)).toBe(false);
+    expect(shouldRecord('POST', '/api/v1/auth/refresh', 200)).toBe(false);
   });
 
   it('infers action and subject from the path', () => {

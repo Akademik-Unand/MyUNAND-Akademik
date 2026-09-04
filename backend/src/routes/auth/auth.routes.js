@@ -45,9 +45,9 @@ router.put(
 );
 
 /** POST /auth/refresh */
-router.post('/refresh', authenticate, authController.refresh);
+router.post('/refresh', validate({ body: authValidation.refresh }), authController.refresh);
 
 /** POST /auth/logout */
-router.post('/logout', authenticate, authController.logout);
+router.post('/logout', validate({ body: authValidation.logout }), authController.logout);
 
 module.exports = router;

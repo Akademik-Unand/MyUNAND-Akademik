@@ -7,6 +7,8 @@ module.exports = (sequelize) => {
       User.belongsTo(models.Dosen, { foreignKey: 'dosen_id', as: 'dosen' });
       User.belongsTo(models.Mahasiswa, { foreignKey: 'mahasiswa_id', as: 'mahasiswa' });
       User.belongsToMany(models.Role, { through: models.UserRole, foreignKey: 'user_id', as: 'roles' });
+      User.hasMany(models.UserUnit, { foreignKey: 'user_id', as: 'units' });
+      User.hasMany(models.RefreshToken, { foreignKey: 'user_id', as: 'refreshTokens' });
     }
   }
   User.init({

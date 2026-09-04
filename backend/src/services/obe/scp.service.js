@@ -1,14 +1,16 @@
 'use strict';
 
-const { Scp, Cp } = require('../../models');
+const { sequelize, Scp, Cp } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
+const { orgFiltersOnCpId } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["nama_scp","deskripsi"],
   sortableFields: ["nama_scp","createdAt"],
   filterableFields: ["cp_id"],
+  virtualFilters: orgFiltersOnCpId(sequelize),
   defaultInclude: [
     { model: Cp, as: 'cp' },
   ],

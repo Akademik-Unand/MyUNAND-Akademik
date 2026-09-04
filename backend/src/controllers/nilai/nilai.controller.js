@@ -3,6 +3,7 @@
 const asyncHandler = require('../../middleware/asyncHandler');
 const { success } = require('../../helpers/response');
 const nilaiService = require('../../services/nilai/nilai.service');
+const nilaiMatriksService = require('../../services/nilai/nilai-matriks.service');
 
 const list = asyncHandler(async (req, res) => {
   const { rows, pagination } = await nilaiService.list(req.query);
@@ -37,4 +38,9 @@ const uploadBulk = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { list, getById, create, update, remove, uploadBulk };
+const getMatriks = asyncHandler(async (req, res) => {
+  const data = await nilaiMatriksService.getMatriksByKelas(req.params.kelasId);
+  return success(res, { message: 'Matriks nilai kelas berhasil diambil', data });
+});
+
+module.exports = { list, getById, create, update, remove, uploadBulk, getMatriks };

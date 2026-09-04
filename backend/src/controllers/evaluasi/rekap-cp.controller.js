@@ -3,6 +3,7 @@
 const asyncHandler = require('../../middleware/asyncHandler');
 const { success } = require('../../helpers/response');
 const rekapCpService = require('../../services/evaluasi/rekap-cp.service');
+const rekapCpDetailService = require('../../services/evaluasi/rekap-cp-detail.service');
 
 const list = asyncHandler(async (req, res) => {
   const { rows, pagination } = await rekapCpService.list(req.query);
@@ -33,4 +34,18 @@ const remove = asyncHandler(async (req, res) => {
   return success(res, { message: 'Rekap CP berhasil dihapus', data });
 });
 
-module.exports = { list, getById, create, update, remove };
+const listGrafik = asyncHandler(async (req, res) => {
+  const data = await rekapCpDetailService.listGrafik(req.query);
+  return success(res, { message: 'Grafik rekap CP berhasil diambil', data });
+});
+
+const listDetail = asyncHandler(async (req, res) => {
+  const { rows, pagination } = await rekapCpDetailService.listDetail(req.query);
+  return success(res, {
+    message: 'Data rekap nilai CP berhasil diambil',
+    data: rows,
+    pagination,
+  });
+});
+
+module.exports = { list, getById, create, update, remove, listDetail, listGrafik };

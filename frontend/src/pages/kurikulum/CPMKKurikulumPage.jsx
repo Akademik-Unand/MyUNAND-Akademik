@@ -85,7 +85,7 @@ export const CPMKKurikulumPage = () => {
       className: 'text-right',
       cellClassName: 'text-right',
       render: (row) => {
-        const mkId = row.matakuliah_id;
+        const mkId = row.matakuliah_id || row.matakuliah?.id;
         if (!mkId) return null;
         return (
           <Can any={CPMK_ACTIONS}>

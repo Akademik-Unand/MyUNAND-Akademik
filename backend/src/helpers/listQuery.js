@@ -9,7 +9,24 @@ const isTextType = (attribute) => {
   return type.includes('char') || type.includes('text') || type.includes('string');
 };
 
-const buildListQuery = (Model, query = {}, options = {}) => {
+/** Express 5 parser sederhana menyimpan `filter[field]=x` sebagai kunci literal. */
+const normalizeListQuery = (query = {}) => {
+  const next = { ...query };
+  const filter = {
+    ...(next.filter && typeof next.filter === 'object' && !Array.isArray(next.filter) ? next.filter : {}),
+  };
+  for (const [key, val] of Object.entries(query)) {
+    const match = /^filter\[(.+)\]$/.exec(key);
+    if (!match) continue;
+    if (filter[match[1]] === undefined) filter[match[1]] = val;
+    delete next[key];
+  }
+  if (Object.keys(filter).length) next.filter = filter;
+  return next;
+};
+
+const buildListQuery = (Model, rawQuery = {}, options = {}) => {
+  const query = normalizeListQuery(rawQuery);
   const {
     searchFields = [],
     sortableFields = [],
@@ -50,7 +67,9 @@ const buildListQuery = (Model, query = {}, options = {}) => {
     }
     where[key] = isTextType(Model.rawAttributes[key])
       ? { [Op.like]: `%${val}%` }
-      : val;
+      : Array.isArray(val)
+        ? { [Op.in]: val }
+        : val;
   };
 
   const nestedFilter = query.filter;
@@ -113,6 +132,7 @@ const paginate = async (Model, query, options = {}) => {
 
 module.exports = {
   RESERVED_PARAMS,
+  normalizeListQuery,
   buildListQuery,
   paginate,
 };

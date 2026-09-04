@@ -1,6 +1,6 @@
 'use strict';
 
-const { User, Role, Permission, Dosen, Mahasiswa } = require('../models');
+const { User, Role, Permission, Dosen, Mahasiswa, UserUnit, Fakultas, Departemen, ProgramStudi } = require('../models');
 const AppError = require('./AppError');
 
 const ACCESS_INCLUDE = [
@@ -11,6 +11,15 @@ const ACCESS_INCLUDE = [
     as: 'roles',
     through: { attributes: [] },
     include: [{ model: Permission, as: 'permissions', through: { attributes: [] } }],
+  },
+  {
+    model: UserUnit,
+    as: 'units',
+    include: [
+      { model: Fakultas, as: 'fakultas' },
+      { model: Departemen, as: 'departemen' },
+      { model: ProgramStudi, as: 'programStudi' },
+    ],
   },
 ];
 
@@ -40,6 +49,12 @@ const toAccessPayload = (user) => {
     mahasiswa_id: user.mahasiswa_id,
     dosen: user.dosen,
     mahasiswa: user.mahasiswa,
+    units: (user.units || []).map((unit) => ({
+      id: unit.id,
+      fakultas_id: unit.fakultas_id || null,
+      departemen_id: unit.departemen_id || null,
+      program_studi_id: unit.program_studi_id || null,
+    })),
   };
 };
 

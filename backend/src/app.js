@@ -13,6 +13,7 @@ const errorHandler = require('./middleware/errorHandler');
 const { success, notFound } = require('./helpers/response');
 
 const app = express();
+app.set('query parser', 'extended');
 
 app.use(helmet());
 app.use(requestLogger);

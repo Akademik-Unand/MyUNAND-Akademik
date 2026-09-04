@@ -27,6 +27,16 @@ router.put(
   usersController.assignRoles
 );
 
+/** PUT /users/:id/units */
+router.put(
+  '/:id/units',
+  authenticate,
+  attachAbility,
+  checkPermission('assign-units', subject),
+  validate({ params: usersValidation.idParam, body: usersValidation.assignUnits }),
+  usersController.assignUnits
+);
+
 /** POST /users/:id/restore */
 router.post('/:id/restore', authenticate, attachAbility, checkPermission('restore', subject), validate({ params: usersValidation.idParam }), usersController.restore);
 

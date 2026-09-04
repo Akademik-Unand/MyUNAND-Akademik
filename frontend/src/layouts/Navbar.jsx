@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Bell, ChevronDown, User, LogOut, ShieldCheck, Search } from 'lucide-react';
 import { useUIStore } from '../store/ui.store';
 import { useAuthStore } from '../store/auth.store';
+import { logoutSession } from '../services/api';
 import { NavSearchModal } from './NavSearchModal';
 import { AccessibilityMenu } from './AccessibilityMenu';
 import { getInitials } from '../utils/initials';
@@ -10,7 +11,7 @@ import { roleLabel } from '../constants/roles';
 
 export const Navbar = () => {
   const { toggleSidebar, toggleMobileSidebar } = useUIStore();
-  const { user, logout } = useAuthStore();
+  const { user, logout, refreshToken } = useAuthStore();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -151,7 +152,12 @@ export const Navbar = () => {
               <button
                 type="button"
                 className="text-xs py-2 text-error font-medium hover:bg-error/10"
-                onClick={() => {
+                onClick={async () => {
+                  try {
+                    if (refreshToken) await logoutSession(refreshToken);
+                  } catch {
+                    /* tetap keluar di klien */
+                  }
                   logout();
                   navigate('/login', { replace: true });
                 }}

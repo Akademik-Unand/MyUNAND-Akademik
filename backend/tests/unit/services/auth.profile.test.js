@@ -1,7 +1,11 @@
 'use strict';
 
 jest.mock('../../../src/models', () => ({
+  sequelize: {
+    transaction: jest.fn((fn) => fn({ LOCK: { UPDATE: 'UPDATE' } })),
+  },
   User: { findByPk: jest.fn() },
+  RefreshToken: { create: jest.fn(), findOne: jest.fn(), update: jest.fn() },
 }));
 jest.mock('../../../src/helpers/userAccess', () => ({
   toAccessPayload: jest.fn((user) => ({ id: user.id, name: user.name, email: user.email })),

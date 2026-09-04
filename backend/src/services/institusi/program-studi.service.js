@@ -8,7 +8,7 @@ const { restoreRecord } = require('../../helpers/softDelete');
 const LIST_OPTIONS = {
   searchFields: ["kode_prodi","nama_resmi","nama_singkat"],
   sortableFields: ["kode_prodi","nama_resmi","nama_singkat","createdAt"],
-  filterableFields: ["kode_prodi","jenjang_akademik_id","fakultas_id","departemen_id"],
+  filterableFields: ["kode_prodi","jenjang_akademik_id","fakultas_id","departemen_id","id"],
   defaultInclude: [
     { model: JenjangAkademik, as: 'jenjangAkademik' },
     { model: ModelKurikulum, as: 'modelKurikulum' },

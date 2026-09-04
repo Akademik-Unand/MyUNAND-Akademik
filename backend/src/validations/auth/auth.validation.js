@@ -25,4 +25,12 @@ const changePassword = Joi.object({
   new_password: Joi.string().min(6).required(),
 });
 
-module.exports = { login, register, updateProfile, changePassword };
+const refresh = Joi.object({
+  refresh_token: Joi.string().min(32).required(),
+});
+
+const logout = Joi.object({
+  refresh_token: Joi.string().min(32).required(),
+});
+
+module.exports = { login, register, updateProfile, changePassword, refresh, logout };

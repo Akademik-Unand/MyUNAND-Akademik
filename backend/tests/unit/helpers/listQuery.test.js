@@ -28,6 +28,16 @@ describe('buildListQuery', () => {
     ]);
   });
 
+  it('reads filter[field] keys from a simple query parser', () => {
+    const result = buildListQuery(Model, {
+      'filter[kode_fakultas]': 'F01',
+      'filter[universitas_id]': 'u-1',
+    }, options);
+
+    expect(result.where.kode_fakultas).toEqual({ [Op.like]: '%F01%' });
+    expect(result.where.universitas_id).toBe('u-1');
+  });
+
   it('ignores reserved params as filters', () => {
     const result = buildListQuery(Model, {
       page: 2,

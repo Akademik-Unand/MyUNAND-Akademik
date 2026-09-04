@@ -2,13 +2,17 @@
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { User } = require('../../models');
+const { sequelize, User, RefreshToken } = require('../../models');
 const jwtConfig = require('../../config/jwt');
 const AppError = require('../../helpers/AppError');
 const logger = require('../../utils/logger');
+const { expiresAtFrom } = require('../../helpers/jwtExpiry');
+const { hashRefreshToken, createRefreshTokenValue } = require('../../helpers/refreshToken');
 const { findUserWithAccess, getUserAccessById, toAccessPayload } = require('../../helpers/userAccess');
 
-const generateToken = (user, roles = []) =>
+const REFRESH_FALLBACK_MS = 7 * 24 * 60 * 60 * 1000;
+
+const generateAccessToken = (user, roles = []) =>
   jwt.sign(
     {
       id: user.id,
@@ -18,10 +22,37 @@ const generateToken = (user, roles = []) =>
       name: user.name,
       dosen_id: user.dosen_id,
       mahasiswa_id: user.mahasiswa_id,
+      typ: 'access',
     },
     jwtConfig.secret,
     { expiresIn: jwtConfig.expiresIn }
   );
+
+const persistRefreshToken = async (userId, transaction) => {
+  const raw = createRefreshTokenValue();
+  await RefreshToken.create(
+    {
+      user_id: userId,
+      token_hash: hashRefreshToken(raw),
+      expires_at: expiresAtFrom(jwtConfig.refreshExpiresIn, REFRESH_FALLBACK_MS),
+    },
+    { transaction }
+  );
+  return raw;
+};
+
+const issueSession = async (user, { transaction } = {}) => {
+  const payload = toAccessPayload(user);
+  const refreshToken = await persistRefreshToken(user.id, transaction);
+  return {
+    access_token: generateAccessToken(user, payload.roles),
+    refresh_token: refreshToken,
+    token_type: 'Bearer',
+    expires_in: jwtConfig.expiresIn,
+    refresh_expires_in: jwtConfig.refreshExpiresIn,
+    user: payload,
+  };
+};
 
 const login = async ({ email, password }) => {
   const user = await findUserWithAccess({ email });
@@ -34,15 +65,8 @@ const login = async ({ email, password }) => {
     throw new AppError('Email atau password salah', 401);
   }
 
-  const payload = toAccessPayload(user);
   logger.info({ userId: user.id, email: user.email }, 'User login');
-
-  return {
-    access_token: generateToken(user, payload.roles),
-    token_type: 'Bearer',
-    expires_in: jwtConfig.expiresIn,
-    user: payload,
-  };
+  return issueSession(user);
 };
 
 const register = async (payload) => {
@@ -94,14 +118,40 @@ const changePassword = async (userId, { current_password, new_password }) => {
 
 const me = async (userId) => toAccessPayload(await getUserAccessById(userId));
 
-const refresh = async (userId) => {
-  const user = await getUserAccessById(userId);
-  const payload = toAccessPayload(user);
-  return {
-    access_token: generateToken(user, payload.roles),
-    token_type: 'Bearer',
-    expires_in: jwtConfig.expiresIn,
-  };
+const refresh = async (refreshToken) => {
+  const tokenHash = hashRefreshToken(refreshToken);
+  return sequelize.transaction(async (transaction) => {
+    const row = await RefreshToken.findOne({
+      where: { token_hash: tokenHash },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    if (!row || row.revoked_at || row.expires_at <= new Date()) {
+      throw new AppError('Refresh token tidak valid atau sudah kadaluarsa', 401);
+    }
+    await row.update({ revoked_at: new Date() }, { transaction });
+    const user = await getUserAccessById(row.user_id);
+    return issueSession(user, { transaction });
+  });
 };
 
-module.exports = { login, register, profile, updateProfile, changePassword, me, refresh };
+const logout = async (refreshToken) => {
+  const tokenHash = hashRefreshToken(refreshToken);
+  const now = new Date();
+  await RefreshToken.update(
+    { revoked_at: now },
+    { where: { token_hash: tokenHash, revoked_at: null } }
+  );
+  return { ok: true };
+};
+
+module.exports = {
+  login,
+  register,
+  profile,
+  updateProfile,
+  changePassword,
+  me,
+  refresh,
+  logout,
+};

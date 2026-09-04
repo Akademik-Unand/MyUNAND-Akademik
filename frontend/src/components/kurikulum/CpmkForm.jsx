@@ -1,6 +1,9 @@
+import { useId } from 'react';
 import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
 import { ScpPicker } from './ScpPicker';
+import { SubCpmkFields } from './SubCpmkFields';
+import { emptySubCpmk } from '../../helpers/cpmkForm';
 
 export const CpmkForm = ({
   values,
@@ -12,6 +15,9 @@ export const CpmkForm = ({
 }) => {
   const set = (key) => (e) => onChange({ ...values, [key]: e.target.value });
   const hasSub = Boolean(values.has_sub);
+  // Nama grup radio dibuat unik per instance, supaya pilihan di satu baris CPMK
+  // tidak saling memengaruhi baris CPMK lain (bulk create).
+  const radioName = useId();
 
   return (
     <div className="space-y-3">
@@ -22,7 +28,7 @@ export const CpmkForm = ({
         placeholder={showHasSub ? 'CPMK 1' : 'Sub-CPMK 1'}
         required
       />
-      <Textarea label="Deskripsi" value={values.deskripsi || ''} onChange={set('deskripsi')} />
+      <Textarea label="Deskripsi *" value={values.deskripsi || ''} onChange={set('deskripsi')} required />
       {showHasSub && (
         <fieldset className="fieldset p-0 gap-1">
           <legend className="fieldset-legend text-xs font-medium text-base-content/80">
@@ -33,9 +39,9 @@ export const CpmkForm = ({
               <input
                 type="radio"
                 className="radio radio-sm radio-primary"
-                name="has_sub"
+                name={radioName}
                 checked={!hasSub}
-                onChange={() => onChange({ ...values, has_sub: false })}
+                onChange={() => onChange({ ...values, has_sub: false, sub_cpmk: [] })}
               />
               Tidak, petakan langsung ke SCP
             </label>
@@ -43,14 +49,28 @@ export const CpmkForm = ({
               <input
                 type="radio"
                 className="radio radio-sm radio-primary"
-                name="has_sub"
+                name={radioName}
                 checked={hasSub}
-                onChange={() => onChange({ ...values, has_sub: true, scp_ids: values.scp_ids || [] })}
+                onChange={() =>
+                  onChange({
+                    ...values,
+                    has_sub: true,
+                    scp_ids: [],
+                    sub_cpmk: values.sub_cpmk?.length ? values.sub_cpmk : [emptySubCpmk()],
+                  })
+                }
               />
               Ya, setiap Sub-CPMK akan dipetakan ke SCP
             </label>
           </div>
         </fieldset>
+      )}
+      {showHasSub && hasSub && (
+        <SubCpmkFields
+          items={values.sub_cpmk || []}
+          kurikulumId={kurikulumId}
+          onChange={(sub_cpmk) => onChange({ ...values, sub_cpmk })}
+        />
       )}
       {showScp && (
         <ScpPicker

@@ -17,6 +17,7 @@ const RESOURCE_PATH = {
   'dokumen-evaluasi': '/dokumen-evaluasi',
   'kelas-peserta': '/krs-detil',
   'evaluasi-nilai': '/nilai',
+  'rekap-cp-detail': '/rekap-cp/detail',
 };
 
 const resourcePath = (resource) => RESOURCE_PATH[resource] || `/${resource}`;
@@ -35,6 +36,9 @@ export const getResourceItem = (resource, id) =>
 export const createResourceItem = (resource, payload) =>
   apiRequest(resourcePath(resource), { method: 'POST', body: payload });
 
+export const bulkCreateResourceItems = (resource, items) =>
+  apiRequest(`${resourcePath(resource)}/bulk`, { method: 'POST', body: items });
+
 export const updateResourceItem = (resource, id, payload) =>
   apiRequest(`${resourcePath(resource)}/${id}`, { method: 'PUT', body: payload });
 
@@ -43,6 +47,12 @@ export const deleteResourceItem = (resource, id) =>
 
 export const loginWithPassword = ({ email, password }) =>
   apiRequest('/auth/login', { method: 'POST', body: { email, password } });
+
+export const refreshSession = (refreshToken) =>
+  apiRequest('/auth/refresh', { method: 'POST', body: { refresh_token: refreshToken } });
+
+export const logoutSession = (refreshToken) =>
+  apiRequest('/auth/logout', { method: 'POST', body: { refresh_token: refreshToken } });
 
 export const loginWithSso = () =>
   Promise.reject(new Error('SSO Unand belum tersedia.'));
@@ -63,8 +73,19 @@ export const getCurrentUser = () => apiRequest('/auth/me');
 
 export const getDashboardSummary = () => apiRequest('/dashboard/summary');
 
+export const getKelasNilaiMatriks = (kelasId) =>
+  apiRequest(`/nilai/kelas/${kelasId}/matriks`);
+
+export const getRekapCpGrafik = (params) => apiRequest('/rekap-cp/grafik', { params });
+
+export const uploadNilaiBulk = (payload) =>
+  apiRequest('/nilai/upload', { method: 'POST', body: payload });
+
 export const assignUserRoles = (userId, roleIds) =>
   apiRequest(`/users/${userId}/roles`, { method: 'PUT', body: { role_ids: roleIds } });
+
+export const assignUserUnits = (userId, units) =>
+  apiRequest(`/users/${userId}/units`, { method: 'PUT', body: { units } });
 
 export const getRolePermissionMatrix = () => apiRequest('/roles/matrix');
 

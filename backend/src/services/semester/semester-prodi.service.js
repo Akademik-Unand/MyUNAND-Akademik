@@ -1,13 +1,15 @@
 'use strict';
 
-const { SemesterProdi, ProgramStudi, Semester, JenisSemester } = require('../../models');
+const { sequelize, SemesterProdi, ProgramStudi, Semester, JenisSemester } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
+const { orgFiltersOnSemesterProdiId } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: [],
   sortableFields: ["is_aktif","createdAt"],
   filterableFields: ["program_studi_id","semester_id","is_aktif"],
+  virtualFilters: orgFiltersOnSemesterProdiId(sequelize),
   defaultInclude: [
     { model: ProgramStudi, as: 'programStudi' },
     { model: Semester, as: 'semester',

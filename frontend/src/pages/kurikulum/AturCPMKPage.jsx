@@ -1,12 +1,11 @@
-import { Fragment } from 'react';
+import { useMemo } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { IconButton, IconLink } from '../../components/common/IconButton';
+import { Plus } from 'lucide-react';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
 import { ConfirmDeleteModal } from '../../components/common/ConfirmDeleteModal';
+import { CpmkKelolaTable } from '../../components/kurikulum/CpmkKelolaTable';
 import { useResourceItem, useResourceQuery } from '../../hooks/useResourceQuery';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useConfirmDelete } from '../../hooks/useConfirmDelete';
@@ -14,19 +13,6 @@ import { PageSkeleton } from '../../components/common/PageSkeleton';
 import { Can } from '../../components/auth/Can';
 
 const querySuffix = (kurikulumId) => (kurikulumId ? `?kurikulum_id=${kurikulumId}` : '');
-
-const ScpBadges = ({ items }) => {
-  if (!items?.length) return '—';
-  return (
-    <div className="flex flex-wrap gap-1">
-      {items.map((scp) => (
-        <Badge key={scp.id} variant="ghost" wrap>
-          {scp.nama_scp}
-        </Badge>
-      ))}
-    </div>
-  );
-};
 
 export const AturCPMKPage = () => {
   const { id } = useParams();
@@ -42,9 +28,21 @@ export const AturCPMKPage = () => {
     remove: 'CPMK berhasil dihapus.',
   });
   const del = useConfirmDelete();
-  const data = query.data ?? [];
-  const byId = new Map(data.map((item) => [item.id, item]));
-  const roots = data.filter((item) => !item.parent_cpmk_id || !byId.has(item.parent_cpmk_id));
+  const data = (query.data ?? []).filter((item) => item.matakuliah_id === id);
+  const { roots, childrenByParent } = useMemo(() => {
+    const byId = new Map(data.map((item) => [item.id, item]));
+    const grouped = new Map();
+    for (const item of data) {
+      if (!item.parent_cpmk_id || !byId.has(item.parent_cpmk_id)) continue;
+      const list = grouped.get(item.parent_cpmk_id) || [];
+      list.push(item);
+      grouped.set(item.parent_cpmk_id, list);
+    }
+    return {
+      roots: data.filter((item) => !item.parent_cpmk_id || !byId.has(item.parent_cpmk_id)),
+      childrenByParent: grouped,
+    };
+  }, [data]);
 
   if (mk.isPending || query.isPending) return <PageSkeleton showFilter={false} tableCols={4} />;
 
@@ -79,99 +77,13 @@ export const AturCPMKPage = () => {
       />
 
       <Card>
-        <div className="overflow-x-auto">
-          <table className="table table-sm w-full">
-            <thead>
-              <tr>
-                <th>Nama</th>
-                <th>Deskripsi</th>
-                <th>SCP terkait</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {roots.map((item) => {
-                const children = data.filter((row) => row.parent_cpmk_id === item.id);
-                return (
-                  <Fragment key={item.id}>
-                    <tr>
-                      <td className="font-semibold">{item.nama_cpmk}</td>
-                      <td>{item.deskripsi || '—'}</td>
-                      <td>
-                        <ScpBadges items={item.scp} />
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-1">
-                          <Can I="create" a="Cpmk">
-                            <IconLink
-                              label="Tambah Sub-CPMK"
-                              icon={Plus}
-                              to={`/kurikulum/cpmk/${id}/${item.id}/sub/baru${suffix}`}
-                            />
-                          </Can>
-                          <Can I="update" a="Cpmk">
-                            <IconLink
-                              label="Ubah CPMK"
-                              icon={Pencil}
-                              tone="text-warning"
-                              to={`/kurikulum/cpmk/${id}/${item.id}/edit${suffix}`}
-                            />
-                          </Can>
-                          <Can I="delete" a="Cpmk">
-                            <IconButton
-                              label="Hapus CPMK"
-                              icon={Trash2}
-                              tone="text-error"
-                              tooltipPosition="tooltip-left"
-                              onClick={() => del.askDelete(item)}
-                            />
-                          </Can>
-                        </div>
-                      </td>
-                    </tr>
-                    {children.map((child) => (
-                      <tr key={child.id}>
-                        <td className="pl-8">{child.nama_cpmk}</td>
-                        <td>{child.deskripsi || '—'}</td>
-                        <td>
-                          <ScpBadges items={child.scp} />
-                        </td>
-                        <td>
-                          <div className="flex items-center gap-1">
-                            <Can I="update" a="Cpmk">
-                              <IconLink
-                                label="Ubah Sub-CPMK"
-                                icon={Pencil}
-                                tone="text-warning"
-                                to={`/kurikulum/cpmk/${id}/${child.id}/edit${suffix}`}
-                              />
-                            </Can>
-                            <Can I="delete" a="Cpmk">
-                              <IconButton
-                                label="Hapus Sub-CPMK"
-                                icon={Trash2}
-                                tone="text-error"
-                                tooltipPosition="tooltip-left"
-                                onClick={() => del.askDelete(child)}
-                              />
-                            </Can>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </Fragment>
-                );
-              })}
-              {roots.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="text-sm text-base-content/60">
-                    Belum ada CPMK. Tambah CPMK, pilih apakah punya Sub-CPMK, lalu petakan ke CP/SCP.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <CpmkKelolaTable
+          roots={roots}
+          childrenByParent={childrenByParent}
+          mkId={id}
+          suffix={suffix}
+          onDelete={del.askDelete}
+        />
         <div className="mt-4">
           <Link to="/kurikulum/cpmk" className="btn btn-ghost btn-sm">
             Kembali

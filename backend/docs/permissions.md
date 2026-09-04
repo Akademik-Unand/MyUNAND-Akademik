@@ -4,7 +4,7 @@ Format nama: `{subject}.{action}` (contoh `fakultas.read`, `krs.approve`).
 Satu aksi = satu baris. Jangan `manage-*`.
 
 Aksi standar: `read`, `create`, `update`, `delete`.
-Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`.
+Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`, `assign-units`.
 `restore` hanya untuk data master (soft delete).
 
 ## Subject
@@ -18,7 +18,7 @@ Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`.
 - nilai: nilai (+ `nilai.upload`)
 - evaluasi: history-upload-nilai, evaluasi-cpmk, jenis-dokumen-evaluasi, dokumen-evaluasi
 - laporan: rekap-cp, laporan-cp
-- iam: user, role, permission, activity-log (`activity-log.read` saja; + `user.assign-roles`, `role.sync-permissions`)
+- iam: user, role, permission, activity-log (`activity-log.read` saja; + `user.assign-roles`, `role.sync-permissions`, `user.assign-units`)
 
 ## Grant default
 
@@ -27,6 +27,16 @@ Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`.
 - admin-fakultas: seperti admin, tanpa ubah universitas dan tanpa `role.sync-permissions`
 - admin-departemen: seperti admin-fakultas, fakultas hanya read
 - admin-prodi: seperti admin-departemen, departemen hanya read
+
+## Scope unit organisasi
+
+Role organisasi otomatis membatasi data ke unitnya (server-side, tidak bisa dilewati klien):
+- admin-fakultas / pimpinan-fakultas → data fakultasnya (fakultas → semua departemen & prodi di dalamnya)
+- admin-departemen / pimpinan-departemen → data departemennya (departemen → semua prodi di dalamnya)
+- admin-prodi / pimpinan-prodi → data prodinya
+
+Unit user ditentukan dari `user_units` (tabel assignment per user; diatur lewat `PUT /api/v1/users/:id/units`).
+Admin universitas tidak dibatasi. User multi-unit mendapat gabungan unitnya.
 - dosen: `krs.read`, `krs.approve`, seluruh nilai/evaluasi, laporan read
 - dosen-pa: grant dosen + bimbingan akademik + `mahasiswa.read`
 - mahasiswa: `krs.read` / `krs.create` / `krs.update`, laporan read

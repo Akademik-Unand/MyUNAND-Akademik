@@ -14,6 +14,7 @@ import {
 } from '../../services/api';
 import { Can } from '../../components/auth/Can';
 import { mkKode, mkLabel } from '../../helpers/mkSemester';
+import { bobotMelebihiMaks, MAX_MK_BOBOT } from '../../helpers/cpmkBobot';
 
 export const AturCPMKSemesterPage = () => {
   const { id } = useParams();
@@ -33,6 +34,10 @@ export const AturCPMKSemesterPage = () => {
 
   const save = async () => {
     if (saving) return;
+    if (bobotMelebihiMaks(items)) {
+      toast.error(`Total bobot sumber penilaian maksimal ${MAX_MK_BOBOT}%.`);
+      return;
+    }
     setSaving(true);
     try {
       for (const cpmk of items) {
@@ -92,7 +97,7 @@ export const AturCPMKSemesterPage = () => {
             Reset
           </Button>
           <Can I="update" a="Cpmk">
-            <Button size="sm" onClick={save} isLoading={saving}>
+            <Button size="sm" onClick={save} isLoading={saving} disabled={bobotMelebihiMaks(items)}>
               Simpan
             </Button>
           </Can>

@@ -49,6 +49,7 @@ const SPECIAL = [
   { key: 'krs', action: 'approve', description: 'Menyetujui KRS' },
   { key: 'nilai', action: 'upload', description: 'Unggah nilai massal' },
   { key: 'user', action: 'assign-roles', description: 'Menetapkan role ke user' },
+  { key: 'user', action: 'assign-units', description: 'Menetapkan unit organisasi ke user' },
   { key: 'role', action: 'sync-permissions', description: 'Menyimpan matriks permission role' },
 ];
 

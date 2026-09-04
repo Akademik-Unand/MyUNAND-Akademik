@@ -39,4 +39,9 @@ const assignRoles = asyncHandler(async (req, res) => {
   return success(res, { message: 'Role user berhasil diperbarui', data });
 });
 
-module.exports = { list, getById, create, update, remove, restore, assignRoles };
+const assignUnits = asyncHandler(async (req, res) => {
+  const data = await usersService.assignUnits(req.params.id, req.body.units || []);
+  return success(res, { message: 'Unit user berhasil diperbarui', data });
+});
+
+module.exports = { list, getById, create, update, remove, restore, assignRoles, assignUnits };

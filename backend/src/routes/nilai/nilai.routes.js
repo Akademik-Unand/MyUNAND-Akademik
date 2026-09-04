@@ -27,6 +27,16 @@ router.post(
   nilaiController.uploadBulk
 );
 
+/** GET /nilai/kelas/:kelasId/matriks */
+router.get(
+  '/kelas/:kelasId/matriks',
+  authenticate,
+  attachAbility,
+  checkPermission('read', subject),
+  validate({ params: nilaiValidation.kelasIdParam }),
+  nilaiController.getMatriks
+);
+
 /** GET /nilai/:id */
 router.get('/:id', authenticate, attachAbility, checkPermission('read', subject), validate({ params: nilaiValidation.idParam }), nilaiController.getById);
 

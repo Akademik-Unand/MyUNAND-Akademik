@@ -8,7 +8,7 @@ const { restoreRecord } = require('../../helpers/softDelete');
 const LIST_OPTIONS = {
   searchFields: ["kode_departemen","nama_resmi","nama_singkat"],
   sortableFields: ["kode_departemen","nama_resmi","nama_singkat","createdAt"],
-  filterableFields: ["kode_departemen","fakultas_id","universitas_id"],
+  filterableFields: ["kode_departemen","fakultas_id","universitas_id","id"],
   defaultInclude: [
     { model: Universitas, as: 'universitas' },
     { model: Fakultas, as: 'fakultas' },

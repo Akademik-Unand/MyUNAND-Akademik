@@ -100,16 +100,60 @@ describe('cpmk parent and scp mapping', () => {
     );
   });
 
-  it('allows a root CPMK without SCP when it will have sub-CPMK', async () => {
-    Cpmk.create.mockResolvedValue({ id: parentId });
-    Cpmk.findByPk.mockResolvedValueOnce({ id: parentId, parent_cpmk_id: null, scp: [] });
+  it('rejects a root CPMK without SCP and without sub-CPMK', async () => {
+    await expect(
+      cpmkService.create({
+        matakuliah_id: mkId,
+        nama_cpmk: 'CPMK 1',
+        scp_ids: [],
+      })
+    ).rejects.toMatchObject({ code: 422 });
+    expect(Cpmk.create).not.toHaveBeenCalled();
+  });
+
+  it('creates nested sub-CPMK and maps SCP only to children', async () => {
+    const secondChild = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+    Cpmk.create
+      .mockResolvedValueOnce({ id: parentId, matakuliah_id: mkId })
+      .mockResolvedValueOnce({ id: childId })
+      .mockResolvedValueOnce({ id: secondChild });
+    Cpmk.findByPk.mockResolvedValue({ id: parentId, parent_cpmk_id: null, scp: [] });
 
     await cpmkService.create({
       matakuliah_id: mkId,
       nama_cpmk: 'CPMK 1',
-      scp_ids: [],
+      scp_ids: [scpId],
+      sub_cpmk: [
+        { nama_cpmk: 'Sub 1', scp_ids: [scpId] },
+        { nama_cpmk: 'Sub 2', scp_ids: [scpId] },
+      ],
     });
 
-    expect(CpmkScp.bulkCreate).not.toHaveBeenCalled();
+    expect(Cpmk.create).toHaveBeenCalledTimes(3);
+    expect(CpmkScp.bulkCreate).toHaveBeenCalledTimes(2);
+    expect(CpmkScp.bulkCreate).toHaveBeenCalledWith(
+      [{ scp_id: scpId, cpmk_id: childId }],
+      { transaction: {} }
+    );
+    expect(CpmkScp.bulkCreate).toHaveBeenCalledWith(
+      [{ scp_id: scpId, cpmk_id: secondChild }],
+      { transaction: {} }
+    );
+  });
+
+  it('clears parent SCP when a sub-CPMK is added later', async () => {
+    Cpmk.findByPk
+      .mockResolvedValueOnce({ id: parentId, matakuliah_id: mkId, parent_cpmk_id: null })
+      .mockResolvedValueOnce({ id: childId, parent_cpmk_id: parentId, scp: [{ id: scpId }] });
+    Cpmk.create.mockResolvedValue({ id: childId });
+
+    await cpmkService.create({
+      matakuliah_id: mkId,
+      nama_cpmk: 'Sub 1',
+      parent_cpmk_id: parentId,
+      scp_ids: [scpId],
+    });
+
+    expect(CpmkScp.destroy).toHaveBeenCalledWith({ where: { cpmk_id: parentId }, transaction: {} });
   });
 });

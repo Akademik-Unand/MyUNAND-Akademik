@@ -27,4 +27,19 @@ const assignRoles = Joi.object({
   role_ids: Joi.array().items(Joi.string().uuid()).required(),
 });
 
-module.exports = { list, create, update, idParam, assignRoles };
+const unitItem = Joi.object({
+  fakultas_id: Joi.string().uuid().allow(null),
+  departemen_id: Joi.string().uuid().allow(null),
+  program_studi_id: Joi.string().uuid().allow(null),
+}).custom((value, helpers) => {
+  if (!value.fakultas_id && !value.departemen_id && !value.program_studi_id) {
+    return helpers.message('Setiap unit wajib memilih minimal satu level (fakultas/departemen/prodi)');
+  }
+  return value;
+});
+
+const assignUnits = Joi.object({
+  units: Joi.array().items(unitItem).max(50).default([]),
+});
+
+module.exports = { list, create, update, idParam, assignRoles, assignUnits };

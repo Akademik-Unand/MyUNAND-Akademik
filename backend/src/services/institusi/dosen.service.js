@@ -1,14 +1,16 @@
 'use strict';
 
-const { Dosen, ProgramStudi } = require('../../models');
+const { sequelize, Dosen, ProgramStudi } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
+const { orgFiltersOnProgramStudiId } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["nip","nama","nidn"],
   sortableFields: ["nip","nama","nidn","createdAt"],
   filterableFields: ["nip","program_studi_id"],
+  virtualFilters: orgFiltersOnProgramStudiId(sequelize),
   defaultInclude: [
     { model: ProgramStudi, as: 'programStudi' },
   ],

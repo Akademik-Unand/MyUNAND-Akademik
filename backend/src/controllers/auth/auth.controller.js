@@ -30,7 +30,7 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 const refresh = asyncHandler(async (req, res) => {
-  const data = await authService.refresh(req.user.id);
+  const data = await authService.refresh(req.body.refresh_token);
   return success(res, { message: 'Token berhasil diperbarui', data });
 });
 
@@ -40,6 +40,7 @@ const me = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
+  await authService.logout(req.body.refresh_token);
   return success(res, { message: 'Logout berhasil' });
 });
 

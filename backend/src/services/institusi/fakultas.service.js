@@ -1,14 +1,16 @@
 'use strict';
 
-const { Fakultas, Universitas, Departemen } = require('../../models');
+const { sequelize, Fakultas, Universitas, Departemen } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
+const { orgFiltersOnFakultasId } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["kode_fakultas","nama_resmi","nama_singkat"],
   sortableFields: ["kode_fakultas","nama_resmi","nama_singkat","createdAt"],
   filterableFields: ["kode_fakultas","universitas_id"],
+  virtualFilters: orgFiltersOnFakultasId(sequelize),
   defaultInclude: [
     { model: Universitas, as: 'universitas' },
     { model: Departemen, as: 'departemen' },

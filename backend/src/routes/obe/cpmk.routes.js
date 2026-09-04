@@ -31,6 +31,16 @@ router.post(
   cpmkController.create
 );
 
+/** POST /cpmk/bulk */
+router.post(
+  '/bulk',
+  authenticate,
+  attachAbility,
+  checkPermission('create', subject),
+  validate({ body: cpmkValidation.createBulk }),
+  cpmkController.createBulk
+);
+
 /** POST /cpmk/:id/restore */
 router.post(
   '/:id/restore',

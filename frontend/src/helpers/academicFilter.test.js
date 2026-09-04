@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   EMPTY_ACADEMIC_FILTER,
+  academicScopeLock,
   applyAcademicField,
+  buildAcademicFilterFields,
   cascadeAcademicOptions,
   isAcademicDraftReady,
   toAcademicExtraFilter,
@@ -69,5 +71,63 @@ describe('academicFilter', () => {
   it('treats empty draft as not ready to apply', () => {
     expect(isAcademicDraftReady(EMPTY_ACADEMIC_FILTER)).toBe(false);
     expect(isAcademicDraftReady({ ...EMPTY_ACADEMIC_FILTER, fakultasId: 'f1' })).toBe(true);
+  });
+
+  it('locks filter state for a single-unit prodi scope', () => {
+    expect(academicScopeLock({ level: 'prodi', prodi_ids: ['p1'] })).toEqual({
+      fakultasId: '',
+      departemenId: '',
+      prodiId: 'p1',
+    });
+  });
+
+  it('leaves prodi empty for multi-unit prodi scope', () => {
+    expect(academicScopeLock({ level: 'prodi', prodi_ids: ['p1', 'p2'] }).prodiId).toBe('');
+  });
+
+  it('does not lock anything for university admin', () => {
+    expect(academicScopeLock({ level: 'universitas' })).toEqual({ fakultasId: '', departemenId: '', prodiId: '' });
+  });
+
+  it('limits options to the user prodi scope', () => {
+    const options = cascadeAcademicOptions(
+      {
+        fakultas: [{ id: 'f1', nama_resmi: 'FT' }],
+        departemen: [{ id: 'd1', fakultas_id: 'f1', nama_resmi: 'Informatika' }],
+        prodi: [
+          { id: 'p1', departemen_id: 'd1', nama_resmi: 'SI' },
+          { id: 'p2', departemen_id: 'd1', nama_resmi: 'TI' },
+        ],
+        kurikulum: [
+          { id: 'k1', program_studi_id: 'p1', nama: 'Kurikulum A' },
+          { id: 'k2', program_studi_id: 'p2', nama: 'Kurikulum B' },
+        ],
+        semester: [],
+      },
+      EMPTY_ACADEMIC_FILTER,
+      { level: 'prodi', prodi_ids: ['p1'] }
+    );
+    expect(options.prodi.map((row) => row.value)).toEqual(['p1']);
+    expect(options.kurikulum.map((row) => row.value)).toEqual(['k1']);
+  });
+
+  it('disables fields above the user scope level', () => {
+    const scope = { level: 'prodi', prodi_ids: ['p1'] };
+    const fields = buildAcademicFilterFields({
+      keys: ['fakultas', 'departemen', 'prodi', 'kurikulum'],
+      draft: EMPTY_ACADEMIC_FILTER,
+      options: {
+        fakultas: [],
+        departemen: [],
+        prodi: [{ value: 'p1', label: 'SI' }],
+        kurikulum: [],
+      },
+      onChange: () => {},
+      scope,
+    });
+    expect(fields[0].disabled).toBe(true); // fakultas
+    expect(fields[1].disabled).toBe(true); // departemen
+    expect(fields[2].disabled).toBe(false); // prodi
+    expect(fields[2].value).toBe('p1');
   });
 });
