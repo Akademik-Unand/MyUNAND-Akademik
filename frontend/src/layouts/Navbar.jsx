@@ -119,7 +119,9 @@ export const Navbar = () => {
             </div>
             <div className="hidden md:flex flex-col text-left">
               <span className="text-xs font-medium text-base-content leading-tight">{user?.name}</span>
-              <span className="text-[10px] text-base-content/60 leading-tight">{user?.role}</span>
+              <span className="text-[10px] text-base-content/60 leading-tight">
+                {(user?.roles || []).map((role) => role.name).join(', ') || user?.role}
+              </span>
             </div>
             <ChevronDown size={14} className="opacity-60 hidden md:inline-block" />
           </label>

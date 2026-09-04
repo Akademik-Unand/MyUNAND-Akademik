@@ -27,6 +27,7 @@ export const useResourceMutations = (resource, labels = {}) => {
       invalidate();
       toast.success(labels.create || 'Data berhasil ditambahkan.', MOCK_NOTE);
     },
+    onError: (err) => toast.error(err.message || 'Gagal menambahkan data.'),
   });
 
   const update = useMutation({
@@ -35,6 +36,7 @@ export const useResourceMutations = (resource, labels = {}) => {
       invalidate();
       toast.success(labels.update || 'Data berhasil diperbarui.', MOCK_NOTE);
     },
+    onError: (err) => toast.error(err.message || 'Gagal memperbarui data.'),
   });
 
   const remove = useMutation({
@@ -43,11 +45,13 @@ export const useResourceMutations = (resource, labels = {}) => {
       invalidate();
       toast.success(labels.remove || 'Data berhasil dihapus.', MOCK_NOTE);
     },
+    onError: (err) => toast.error(err.message || 'Gagal menghapus data.'),
   });
 
   const replaceAll = useMutation({
     mutationFn: (rows) => replaceResourceRows(resource, rows),
     onSuccess: () => invalidate(),
+    onError: (err) => toast.error(err.message || 'Gagal menyimpan data.'),
   });
 
   return { create, update, remove, replaceAll, invalidate };

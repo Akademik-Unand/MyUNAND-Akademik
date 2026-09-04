@@ -10,7 +10,7 @@ export const FormActions = ({
 }) => {
   return (
     <div className={`flex items-center justify-end gap-2 ${className}`}>
-      <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+      <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={isLoading}>
         Batal
       </Button>
       <Button
@@ -18,7 +18,7 @@ export const FormActions = ({
         size="sm"
         isLoading={isLoading}
         form={formId}
-        onClick={onSubmitClick}
+        onClick={isLoading ? undefined : onSubmitClick}
       >
         {submitLabel}
       </Button>

@@ -15,6 +15,7 @@ export const ProfilePasswordForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
     setError('');
     setSaving(true);
     try {

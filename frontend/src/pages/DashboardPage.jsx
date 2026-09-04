@@ -7,20 +7,23 @@ import { Button } from '../components/ui/Button';
 import { Users, GraduationCap, BookOpen, Award, RefreshCw, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { useBusyAction } from '../hooks/useBusyAction';
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const DashboardPage = () => {
+  const { busy, runMock } = useBusyAction();
   const { isPending } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => wait(450).then(() => true),
   });
 
-  const handleSync = () => {
-    toast.success('Sinkronisasi berhasil', {
-      description: 'Data kurikulum berhasil disinkronkan dengan SIAKAD.',
+  const handleSync = () =>
+    runMock(() => {
+      toast.success('Sinkronisasi berhasil', {
+        description: 'Data kurikulum berhasil disinkronkan dengan SIAKAD.',
+      });
     });
-  };
 
   const handleCreate = () => {
     toast.info('Fitur Input Data', {
@@ -38,7 +41,7 @@ export const DashboardPage = () => {
         breadcrumbs={[{ label: 'Dashboard' }]}
         action={
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={handleSync}>
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={handleSync} isLoading={busy}>
               <RefreshCw size={14} />
               <span>Sinkron Data</span>
             </Button>

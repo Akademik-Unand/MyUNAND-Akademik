@@ -20,6 +20,6 @@ module.exports = (sequelize) => {
     matakuliah_id: { type: DataTypes.UUID, allowNull: false },
     nama_cpmk: { type: DataTypes.STRING(255), allowNull: false },
     deskripsi: { type: DataTypes.TEXT, allowNull: true },
-  }, { sequelize, modelName: 'Cpmk', tableName: 'cpmk', timestamps: true });
+  }, { sequelize, modelName: 'Cpmk', tableName: 'cpmk', timestamps: true, paranoid: true });
   return Cpmk;
 };

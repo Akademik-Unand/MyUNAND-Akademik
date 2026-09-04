@@ -13,6 +13,6 @@ module.exports = (sequelize) => {
     nama: { type: DataTypes.STRING(50), allowNull: false, unique: true },
     alias: { type: DataTypes.STRING(10), allowNull: true },
     urut: { type: DataTypes.SMALLINT, allowNull: false, defaultValue: 0 },
-  }, { sequelize, modelName: 'JenisSemester', tableName: 'jenis_semester', timestamps: true });
+  }, { sequelize, modelName: 'JenisSemester', tableName: 'jenis_semester', timestamps: true, paranoid: true });
   return JenisSemester;
 };

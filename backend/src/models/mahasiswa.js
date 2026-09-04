@@ -16,6 +16,6 @@ module.exports = (sequelize) => {
     angkatan: { type: DataTypes.SMALLINT, defaultValue: 0 },
     program_studi_id: { type: DataTypes.UUID, allowNull: true },
     jenis_kelamin: { type: DataTypes.ENUM('L', 'P'), allowNull: true },
-  }, { sequelize, modelName: 'Mahasiswa', tableName: 'mahasiswa', timestamps: true });
+  }, { sequelize, modelName: 'Mahasiswa', tableName: 'mahasiswa', timestamps: true, paranoid: true });
   return Mahasiswa;
 };

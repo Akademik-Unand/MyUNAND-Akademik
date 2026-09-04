@@ -15,6 +15,9 @@ import {
   UploadCloud,
   BarChart3,
   FileSpreadsheet,
+  Users,
+  Shield,
+  ScrollText,
   ChevronDown,
   ChevronRight,
   X,
@@ -38,6 +41,9 @@ const ICON_MAP = {
   UploadCloud,
   BarChart3,
   FileSpreadsheet,
+  Users,
+  Shield,
+  ScrollText,
 };
 
 export const Sidebar = () => {

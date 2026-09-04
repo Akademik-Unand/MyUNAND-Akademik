@@ -15,7 +15,16 @@ src/
 │   ├── ui/            # atom: Button, Input, Badge, Modal, Drawer, Skeleton
 │   ├── common/        # DataTable, ConfirmDeleteModal, PageHeader, RowActions
 │   └── <fitur>/       # spesifik domain, misal components/mk-semester/
-├── pages/
+├── pages/             # per domain, selaras backend: auth, master, semester, kurikulum, perkuliahan, nilai, evaluasi, iam
+│   ├── auth/
+│   ├── master/
+│   ├── semester/
+│   ├── kurikulum/
+│   ├── perkuliahan/
+│   ├── nilai/
+│   ├── evaluasi/
+│   └── iam/
+│   # DashboardPage, NotFoundPage, PlaceholderPage tetap di root pages/
 ├── layouts/
 ├── hooks/
 │   └── table/         # useTableParams, pagination/search/sort/filters (URL)
@@ -173,7 +182,11 @@ Empty state wajib (bukan tabel kosong). Master CRUD list: `MasterListPage` (moda
 
 ## 14. Otorisasi — CASL
 
-`<Can I="create" a="Krs">`. Jangan `if (user.role === 'admin')`. Route lewat `ProtectedRoute`.
+`<Can I="create" a="Fakultas">` dari `permissions[]` user (format `{subject}.{action}`), bukan `if (user.role === 'admin')`. User bisa **multi-role**; ability = gabungan permission. Route lewat `ProtectedRoute`.
+
+Pengelolaan akses: halaman matriks role × permission (`/pengaturan/peran`, wajib kotak cari name/description/group/subject) dan list user dengan assign banyak role (`/pengaturan/pengguna`). Jejak aktivitas (`/pengaturan/aktivitas`) read-only — DataTable tanpa tambah/ubah/hapus. Data lewat `services/api.js` (mock atau API). Jangan hardcode grant di komponen.
+
+Hapus data master di UI memanggil `delete` — backend yang soft-delete. Jangan janjikan hapus permanen di copy tombol.
 
 ## 15. Helper & Utils
 

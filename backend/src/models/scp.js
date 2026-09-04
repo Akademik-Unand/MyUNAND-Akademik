@@ -21,6 +21,6 @@ module.exports = (sequelize) => {
     deskripsi: { type: DataTypes.TEXT, allowNull: true },
     persen_capai_nilai_min: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
     nilai_min: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-  }, { sequelize, modelName: 'Scp', tableName: 'scp', timestamps: true });
+  }, { sequelize, modelName: 'Scp', tableName: 'scp', timestamps: true, paranoid: true });
   return Scp;
 };

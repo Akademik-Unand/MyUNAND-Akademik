@@ -15,6 +15,6 @@ module.exports = (sequelize) => {
     universitas_id: { type: DataTypes.UUID, allowNull: true },
     nama_resmi: { type: DataTypes.STRING(255), allowNull: false },
     nama_singkat: { type: DataTypes.STRING(255), allowNull: true },
-  }, { sequelize, modelName: 'Fakultas', tableName: 'fakultas', timestamps: true });
+  }, { sequelize, modelName: 'Fakultas', tableName: 'fakultas', timestamps: true, paranoid: true });
   return Fakultas;
 };

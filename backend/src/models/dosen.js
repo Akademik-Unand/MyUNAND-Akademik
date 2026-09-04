@@ -17,6 +17,6 @@ module.exports = (sequelize) => {
     nidn: { type: DataTypes.STRING(10), allowNull: true },
     nip_lama: { type: DataTypes.STRING(20), allowNull: true },
     nip_baru: { type: DataTypes.STRING(20), allowNull: true },
-  }, { sequelize, modelName: 'Dosen', tableName: 'dosen', timestamps: true });
+  }, { sequelize, modelName: 'Dosen', tableName: 'dosen', timestamps: true, paranoid: true });
   return Dosen;
 };

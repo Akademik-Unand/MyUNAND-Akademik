@@ -31,6 +31,6 @@ module.exports = (sequelize) => {
     jumlah_sks_praktikum: { type: DataTypes.TINYINT, defaultValue: 0 },
     jumlah_sks_praktikum_lapangan: { type: DataTypes.TINYINT, defaultValue: 0 },
     bobot_nilai_minimal_lulus: { type: DataTypes.FLOAT, defaultValue: 0 },
-  }, { sequelize, modelName: 'Matakuliah', tableName: 'matakuliah', timestamps: true });
+  }, { sequelize, modelName: 'Matakuliah', tableName: 'matakuliah', timestamps: true, paranoid: true });
   return Matakuliah;
 };

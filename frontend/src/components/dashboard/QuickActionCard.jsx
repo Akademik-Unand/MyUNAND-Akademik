@@ -2,8 +2,10 @@ import { Download, FileText, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { useBusyAction } from '../../hooks/useBusyAction';
 
 export const QuickActionCard = () => {
+  const { busy, runMock } = useBusyAction();
   return (
     <Card className="h-full bg-base-100">
       <div className="flex flex-col justify-between h-full gap-4">
@@ -30,10 +32,13 @@ export const QuickActionCard = () => {
             variant="secondary"
             size="sm"
             className="gap-1.5 font-semibold"
+            isLoading={busy}
             onClick={() =>
-              toast.success('Unduhan dimulai (mock)', {
-                description: 'File panduan belum tersambung ke penyimpanan.',
-              })
+              runMock(() =>
+                toast.success('Unduhan dimulai (mock)', {
+                  description: 'File panduan belum tersambung ke penyimpanan.',
+                })
+              )
             }
           >
             <Download size={15} />

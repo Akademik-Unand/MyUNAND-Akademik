@@ -24,7 +24,7 @@ export const AccessibilityMenu = () => {
         title="Kemudahan tampilan"
       >
         <Accessibility size={16} className="text-primary" />
-        <span className="hidden sm:inline text-xs font-medium">Kemudahan</span>
+        {/* <span className="hidden sm:inline text-xs font-medium">Kemudahan</span> */}
       </button>
 
       <div

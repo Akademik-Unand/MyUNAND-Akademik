@@ -11,6 +11,10 @@ module.exports = (sequelize) => {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     name: { type: DataTypes.STRING(255), allowNull: false, unique: true },
     guard_name: { type: DataTypes.STRING(255), allowNull: false, defaultValue: 'api' },
-  }, { sequelize, modelName: 'Permission', tableName: 'permissions', timestamps: true });
+    action: { type: DataTypes.STRING(50), allowNull: true },
+    subject: { type: DataTypes.STRING(80), allowNull: true },
+    group: { type: DataTypes.STRING(50), allowNull: true },
+    description: { type: DataTypes.STRING(255), allowNull: true },
+  }, { sequelize, modelName: 'Permission', tableName: 'permissions', timestamps: true, paranoid: true });
   return Permission;
 };

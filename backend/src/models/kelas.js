@@ -18,6 +18,6 @@ module.exports = (sequelize) => {
     nama: { type: DataTypes.STRING(10), allowNull: false },
     jumlah_peserta_min: { type: DataTypes.SMALLINT, defaultValue: 0 },
     jumlah_peserta_max: { type: DataTypes.SMALLINT, defaultValue: 0 },
-  }, { sequelize, modelName: 'Kelas', tableName: 'kelas', timestamps: true });
+  }, { sequelize, modelName: 'Kelas', tableName: 'kelas', timestamps: true, paranoid: true });
   return Kelas;
 };

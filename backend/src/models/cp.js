@@ -15,6 +15,6 @@ module.exports = (sequelize) => {
     deskripsi: { type: DataTypes.TEXT, allowNull: true },
     nilai_max: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 100 },
     nilai_min: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-  }, { sequelize, modelName: 'Cp', tableName: 'cp', timestamps: true });
+  }, { sequelize, modelName: 'Cp', tableName: 'cp', timestamps: true, paranoid: true });
   return Cp;
 };

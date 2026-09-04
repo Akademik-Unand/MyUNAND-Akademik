@@ -14,7 +14,7 @@ export const ProfileIdentity = ({ user }) => {
         <p className="text-lg font-medium text-base-content truncate">{user.name}</p>
         <p className="text-sm text-base-content/70 truncate">{user.email}</p>
         <p className="mt-1 text-sm text-base-content/60">
-          {user.role}
+          {(user.roles || []).map((role) => role.name).join(', ') || user.role}
           {user.faculty ? ` · ${user.faculty}` : ''}
         </p>
       </div>

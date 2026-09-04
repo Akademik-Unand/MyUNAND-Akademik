@@ -48,7 +48,14 @@ export const Modal = ({
   };
 
   return (
-    <dialog ref={dialogRef} className="modal modal-bottom sm:modal-middle" onClose={handleClose}>
+    <dialog
+      ref={dialogRef}
+      className="modal modal-bottom sm:modal-middle"
+      onClose={handleClose}
+      onCancel={(event) => {
+        if (!closeOnBackdrop) event.preventDefault();
+      }}
+    >
       <div
         className={`modal-box flex max-h-[calc(100vh-5em)] flex-col overflow-hidden p-0 ${
           SIZE_CLASS[size] || SIZE_CLASS.md
@@ -60,7 +67,7 @@ export const Modal = ({
             {subtitle && <p className="mt-0.5 text-xs text-base-content/60">{subtitle}</p>}
           </div>
           <form method="dialog" className="shrink-0">
-            <button className="btn btn-ghost btn-xs btn-square" aria-label="Tutup">
+            <button className="btn btn-ghost btn-xs btn-square" aria-label="Tutup" disabled={!closeOnBackdrop}>
               <X size={16} />
             </button>
           </form>

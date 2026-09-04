@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '../ui/Button';
@@ -17,6 +17,7 @@ export const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [pending, setPending] = useState('');
+  const lockRef = useRef(false);
 
   const finish = (result) => {
     login(result.user, result.access_token);
@@ -25,12 +26,14 @@ export const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (lockRef.current || pending) return;
     setError('');
     if (!username.trim() || !password) {
       setError('Username dan kata sandi wajib diisi.');
       return;
     }
 
+    lockRef.current = true;
     setPending('password');
     try {
       const result = await loginWithPassword({ username: username.trim(), password });
@@ -38,12 +41,15 @@ export const LoginForm = () => {
     } catch (err) {
       setError(err.message || 'Gagal masuk. Periksa username dan kata sandi.');
     } finally {
+      lockRef.current = false;
       setPending('');
     }
   };
 
   const handleSso = async () => {
+    if (lockRef.current || pending) return;
     setError('');
+    lockRef.current = true;
     setPending('sso');
     try {
       const result = await loginWithSso();
@@ -51,6 +57,7 @@ export const LoginForm = () => {
     } catch (err) {
       toast.error(err.message || 'SSO belum dapat digunakan.');
     } finally {
+      lockRef.current = false;
       setPending('');
     }
   };

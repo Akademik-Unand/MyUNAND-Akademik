@@ -12,6 +12,6 @@ module.exports = (sequelize) => {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     name: { type: DataTypes.STRING(255), allowNull: false, unique: true },
     guard_name: { type: DataTypes.STRING(255), allowNull: false, defaultValue: 'api' },
-  }, { sequelize, modelName: 'Role', tableName: 'roles', timestamps: true });
+  }, { sequelize, modelName: 'Role', tableName: 'roles', timestamps: true, paranoid: true });
   return Role;
 };

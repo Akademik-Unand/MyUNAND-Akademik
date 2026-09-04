@@ -6,6 +6,7 @@ module.exports = (sequelize) => {
     static associate(models) {
       User.belongsTo(models.Dosen, { foreignKey: 'dosen_id', as: 'dosen' });
       User.belongsTo(models.Mahasiswa, { foreignKey: 'mahasiswa_id', as: 'mahasiswa' });
+      User.belongsToMany(models.Role, { through: models.UserRole, foreignKey: 'user_id', as: 'roles' });
     }
   }
   User.init({
@@ -23,6 +24,7 @@ module.exports = (sequelize) => {
     modelName: 'User',
     tableName: 'users',
     timestamps: true,
+    paranoid: true,
   });
   return User;
 };

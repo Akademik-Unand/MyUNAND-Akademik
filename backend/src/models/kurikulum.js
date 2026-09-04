@@ -22,6 +22,6 @@ module.exports = (sequelize) => {
     nama: { type: DataTypes.STRING(255), allowNull: true },
     masa_studi_ideal: { type: DataTypes.TINYINT, defaultValue: 0 },
     masa_studi_maksimal: { type: DataTypes.TINYINT, defaultValue: 0 },
-  }, { sequelize, modelName: 'Kurikulum', tableName: 'kurikulum', timestamps: true });
+  }, { sequelize, modelName: 'Kurikulum', tableName: 'kurikulum', timestamps: true, paranoid: true });
   return Kurikulum;
 };

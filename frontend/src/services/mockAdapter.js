@@ -8,6 +8,11 @@ import {
   EVALUASI_NILAI_PESERTA,
   JENIS_DOKUMEN_EVALUASI,
   JENIS_SEMESTER,
+  PERMISSIONS,
+  ROLE_PERMISSION_GRANTS,
+  ROLES,
+  ACTIVITY_LOGS,
+  USERS,
   JENJANG_AKADEMIK,
   KELAS,
   KELAS_PESERTA,
@@ -109,7 +114,16 @@ const resources = {
     idKey: 'no',
     searchable: ['nama', 'tipe', 'keterangan', 'status'],
   }),
+  users: buildResource(USERS, { idKey: 'id', searchable: ['name', 'email'] }),
+  roles: buildResource(ROLES, { idKey: 'id', searchable: ['name'] }),
+  permissions: buildResource(PERMISSIONS, { idKey: 'id', searchable: ['name', 'description'] }),
+  'activity-logs': buildResource(ACTIVITY_LOGS, {
+    idKey: 'id',
+    searchable: ['user_email', 'user_name', 'action', 'subject', 'summary', 'path', 'ip'],
+  }),
 };
+
+let roleGrants = { ...ROLE_PERMISSION_GRANTS };
 
 /** Mendaftarkan resource tambahan dari luar file ini (dipakai modul MK Semester). */
 export const registerResource = (name, rows, options) => {
@@ -141,10 +155,21 @@ export const getResourceRows = async (resource) => {
   return getResource(resource).rows.map((row) => ({ ...row }));
 };
 
+const attachUserRoles = (payload) => {
+  const roleRows = getResource('roles').rows;
+  const roleIds = payload.roleIds || (payload.roles || []).map((role) => role.id);
+  const roles = roleRows.filter((role) => roleIds.includes(role.id));
+  return {
+    ...payload,
+    roles,
+    role: roles[0]?.name || payload.role || 'admin',
+  };
+};
+
 export const createResourceItem = async (resource, payload) => {
   const target = getResource(resource);
   await delay(250);
-  const item = { ...payload };
+  const item = resource === 'users' ? attachUserRoles(payload) : { ...payload };
   if (!item[target.idKey]) item[target.idKey] = `${Date.now()}`;
   target.rows = [item, ...target.rows];
   return item;
@@ -153,8 +178,9 @@ export const createResourceItem = async (resource, payload) => {
 export const updateResourceItem = async (resource, id, payload) => {
   const target = getResource(resource);
   await delay(250);
+  const nextPayload = resource === 'users' ? attachUserRoles(payload) : payload;
   target.rows = target.rows.map((row) =>
-    normalize(row[target.idKey]) === normalize(id) ? { ...row, ...payload } : row
+    normalize(row[target.idKey]) === normalize(id) ? { ...row, ...nextPayload } : row
   );
   return target.rows.find((row) => normalize(row[target.idKey]) === normalize(id));
 };
@@ -175,12 +201,37 @@ export const replaceResourceRows = async (resource, rows) => {
 };
 
 const MOCK_USER = {
-  id: 1,
-  name: 'Jonas S.',
-  email: 'admin@unand.ac.id',
-  role: 'Administrator',
+  ...USERS[0],
   faculty: 'Fakultas Teknik',
   university: 'Universitas Andalas',
+};
+
+export const getCurrentUser = async () => {
+  await delay(200);
+  return { ...MOCK_USER };
+};
+
+export const assignUserRoles = async (userId, roleIds) => {
+  const target = getResource('users');
+  await delay(250);
+  const next = attachUserRoles({ roleIds });
+  target.rows = target.rows.map((row) => (normalize(row.id) === normalize(userId) ? { ...row, ...next } : row));
+  return target.rows.find((row) => normalize(row.id) === normalize(userId));
+};
+
+export const getRolePermissionMatrix = async () => {
+  await delay();
+  return {
+    roles: getResource('roles').rows.map((row) => ({ ...row })),
+    permissions: getResource('permissions').rows.map((row) => ({ ...row })),
+    grants: { ...roleGrants },
+  };
+};
+
+export const syncRolePermissions = async (roleId, permissionIds) => {
+  await delay(250);
+  roleGrants = { ...roleGrants, [roleId]: [...permissionIds] };
+  return { id: roleId, permission_ids: permissionIds };
 };
 
 const authResult = (user) => ({

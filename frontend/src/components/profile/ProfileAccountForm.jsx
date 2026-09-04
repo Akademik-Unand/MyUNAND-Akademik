@@ -19,6 +19,7 @@ export const ProfileAccountForm = ({ user }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
     setError('');
     if (!form.name.trim() || !form.email.trim()) {
       setError('Nama dan email wajib diisi.');

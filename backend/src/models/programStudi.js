@@ -25,6 +25,6 @@ module.exports = (sequelize) => {
     departemen_id: { type: DataTypes.UUID, allowNull: true },
     nama_resmi: { type: DataTypes.STRING(255), allowNull: false },
     nama_singkat: { type: DataTypes.STRING(255), allowNull: true },
-  }, { sequelize, modelName: 'ProgramStudi', tableName: 'program_studi', timestamps: true });
+  }, { sequelize, modelName: 'ProgramStudi', tableName: 'program_studi', timestamps: true, paranoid: true });
   return ProgramStudi;
 };

@@ -183,9 +183,15 @@ Frontend mengirim `filter` sebagai objek; mock memakai bentuk yang sama. Jangan 
 ## 12. Otorisasi — Role Based Permission dengan CASL
 
 - Gunakan `@casl/ability` untuk mendefinisikan permission, bukan hardcode pengecekan role (`if (user.role === 'admin')`) tersebar di controller.
-- Definisikan ability per role di `policies/` (misal `policies/defineAbility.js`), berbasis data role + permission dari database (tabel `roles`, `permissions`, atau `role_permissions`), bukan hardcode di kode kalau permission-nya bisa berubah dari admin panel.
-- Middleware `checkPermission('krs', 'create')` (atau bentuk serupa) dipasang di route sebelum controller, memakai `ability.can(action, subject)` dari CASL.
-- Kalau menambah fitur baru: (1) tambahkan permission baru ke seeder/tabel permission, (2) definisikan action & subject-nya di `defineAbility.js`, (3) pasang middleware permission di route-nya. Jangan lupa update dokumentasi permission.
+- Definisikan ability di `policies/defineAbility.js` dari **data** role + permission di database (`roles`, `permissions`, `role_permissions`, `user_roles`), bukan peta `manage-*` generik di kode.
+- Satu aksi = satu baris permission. Nama: `{subject}.{action}` huruf kecil, contoh `fakultas.read`, `krs.approve`. Jangan `manage-kurikulum`.
+- Aksi standar: `read`, `create`, `update`, `delete`. Aksi khusus kalau ada endpoint khusus (`approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`).
+- User **multi-role**: ability = gabungan permission semua role di `user_roles`. `users.role` hanya peran primer/tampilan.
+- Middleware `checkPermission('read', 'Fakultas')` (action, Subject PascalCase) dipasang di route sebelum controller.
+- Pengelolaan grant lewat matriks: `GET /roles/matrix` + `PUT /roles/:id/permissions`. Jangan hardcode grant di controller.
+- Data master/parent (institusi, semester induk, kurikulum, MK, CP/SCP/CPMK, ruang, kelas, role, permission, user) **soft delete** (`paranoid` / `deletedAt`). `DELETE` tidak permanen; pulihkan lewat `POST /:id/restore` + permission `{subject}.restore`.
+- Jejak aktivitas **tulis-saja** lewat middleware `activityLog`: catat create/update/delete/restore/login (+ assign-roles, sync-permissions, approve, upload). Jangan catat GET/list. Insert async; gagal insert tidak menggagalkan request. Password/token di-redact. Jangan log `/activity-logs` sendiri. Baca: `GET /activity-logs` + permission `activity-log.read`.
+- Kalau menambah fitur baru: (1) seeder/migrasi permission `{subject}.{action}` baru, (2) parser `defineAbility` tetap `{subject}.{action}` → `can(action, Subject)`, (3) pasang `checkPermission` di route, (4) update `docs/permissions.md`. Jangan menambah permission kasar.
 
 ## 13. Testing & Dokumentasi — Wajib Jest, per Function/Endpoint
 

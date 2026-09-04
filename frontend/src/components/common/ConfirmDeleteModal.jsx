@@ -11,15 +11,16 @@ export const ConfirmDeleteModal = ({
   onClose,
   onConfirm,
   title = 'Hapus data',
-  message = 'Yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.',
+  message = 'Yakin ingin menghapus data ini? Data master akan diarsipkan.',
   isLoading = false,
 }) => {
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={isLoading ? undefined : onClose}
       title={title}
-      subtitle="Tindakan ini tidak dapat dibatalkan"
+      subtitle="Data akan diarsipkan"
+      closeOnBackdrop={!isLoading}
       footer={
         <>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isLoading}>

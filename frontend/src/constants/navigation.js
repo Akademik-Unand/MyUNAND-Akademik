@@ -101,4 +101,25 @@ export const NAVIGATION_MENU = [
       },
     ],
   },
+  {
+    type: 'group',
+    title: 'Pengguna & Akses',
+    items: [
+      {
+        label: 'Pengguna',
+        path: '/pengaturan/pengguna',
+        icon: 'Users',
+      },
+      {
+        label: 'Peran & Permission',
+        path: '/pengaturan/peran',
+        icon: 'Shield',
+      },
+      {
+        label: 'Aktivitas',
+        path: '/pengaturan/aktivitas',
+        icon: 'ScrollText',
+      },
+    ],
+  },
 ];

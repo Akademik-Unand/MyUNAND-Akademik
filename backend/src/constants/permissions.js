@@ -1,0 +1,142 @@
+'use strict';
+
+const CRUD = ['read', 'create', 'update', 'delete'];
+
+const SUBJECTS = {
+  universitas: { casl: 'Universitas', group: 'institusi', master: true, label: 'Universitas' },
+  fakultas: { casl: 'Fakultas', group: 'institusi', master: true, label: 'Fakultas' },
+  departemen: { casl: 'Departemen', group: 'institusi', master: true, label: 'Departemen' },
+  'jenjang-akademik': { casl: 'JenjangAkademik', group: 'institusi', master: true, label: 'Jenjang Akademik' },
+  'model-kurikulum': { casl: 'ModelKurikulum', group: 'institusi', master: true, label: 'Model Kurikulum' },
+  'program-studi': { casl: 'ProgramStudi', group: 'institusi', master: true, label: 'Program Studi' },
+  dosen: { casl: 'Dosen', group: 'institusi', master: true, label: 'Dosen' },
+  mahasiswa: { casl: 'Mahasiswa', group: 'institusi', master: true, label: 'Mahasiswa' },
+  'bimbingan-akademik': { casl: 'BimbinganAkademik', group: 'institusi', master: false, label: 'Bimbingan Akademik' },
+  'jenis-semester': { casl: 'JenisSemester', group: 'semester', master: true, label: 'Jenis Semester' },
+  semester: { casl: 'Semester', group: 'semester', master: true, label: 'Semester' },
+  'semester-prodi': { casl: 'SemesterProdi', group: 'semester', master: false, label: 'Semester Prodi' },
+  kurikulum: { casl: 'Kurikulum', group: 'kurikulum', master: true, label: 'Kurikulum' },
+  'sifat-matakuliah': { casl: 'SifatMatakuliah', group: 'kurikulum', master: false, label: 'Sifat Matakuliah' },
+  'tipe-matakuliah': { casl: 'TipeMatakuliah', group: 'kurikulum', master: false, label: 'Tipe Matakuliah' },
+  matakuliah: { casl: 'Matakuliah', group: 'kurikulum', master: true, label: 'Matakuliah' },
+  'matakuliah-kurikulum': { casl: 'MatakuliahKurikulum', group: 'kurikulum', master: false, label: 'Matakuliah Kurikulum' },
+  cp: { casl: 'Cp', group: 'obe', master: true, label: 'CP' },
+  scp: { casl: 'Scp', group: 'obe', master: true, label: 'SCP' },
+  cpmk: { casl: 'Cpmk', group: 'obe', master: true, label: 'CPMK' },
+  'sumber-penilaian': { casl: 'SumberPenilaian', group: 'obe', master: false, label: 'Sumber Penilaian' },
+  'cpmk-scp': { casl: 'CpmkScp', group: 'obe', master: false, label: 'CPMK SCP' },
+  ruang: { casl: 'Ruang', group: 'perkuliahan', master: true, label: 'Ruang' },
+  kelas: { casl: 'Kelas', group: 'perkuliahan', master: true, label: 'Kelas' },
+  'dosen-kelas': { casl: 'DosenKelas', group: 'perkuliahan', master: false, label: 'Dosen Kelas' },
+  'jadwal-kelas': { casl: 'JadwalKelas', group: 'perkuliahan', master: false, label: 'Jadwal Kelas' },
+  'dosen-jadwal': { casl: 'DosenJadwal', group: 'perkuliahan', master: false, label: 'Dosen Jadwal' },
+  krs: { casl: 'Krs', group: 'krs', master: false, label: 'KRS' },
+  'krs-detil': { casl: 'KrsDetil', group: 'krs', master: false, label: 'KRS Detil' },
+  nilai: { casl: 'NilaiMahasiswa', group: 'nilai', master: false, label: 'Nilai Mahasiswa' },
+  'history-upload-nilai': { casl: 'HistoryUploadNilai', group: 'evaluasi', master: false, label: 'History Upload Nilai' },
+  'evaluasi-cpmk': { casl: 'EvaluasiCpmk', group: 'evaluasi', master: false, label: 'Evaluasi CPMK' },
+  'rekap-cp': { casl: 'RekapCp', group: 'laporan', master: false, label: 'Rekap CP' },
+  'laporan-cp': { casl: 'LaporanCp', group: 'laporan', master: false, label: 'Laporan CP' },
+  role: { casl: 'Role', group: 'iam', master: true, label: 'Role' },
+  permission: { casl: 'Permission', group: 'iam', master: true, label: 'Permission' },
+  user: { casl: 'User', group: 'iam', master: true, label: 'User' },
+  'activity-log': { casl: 'ActivityLog', group: 'iam', master: false, readOnly: true, label: 'Jejak Aktivitas' },
+};
+
+const SPECIAL = [
+  { key: 'krs', action: 'approve', description: 'Menyetujui KRS' },
+  { key: 'nilai', action: 'upload', description: 'Unggah nilai massal' },
+  { key: 'user', action: 'assign-roles', description: 'Menetapkan role ke user' },
+  { key: 'role', action: 'sync-permissions', description: 'Menyimpan matriks permission role' },
+];
+
+const toPermission = (key, action, extra = {}) => {
+  const meta = SUBJECTS[key];
+  return {
+    name: `${key}.${action}`,
+    action,
+    subject: meta.casl,
+    group: meta.group,
+    description: extra.description || `${action} ${meta.label}`,
+    key,
+    master: meta.master,
+  };
+};
+
+const buildCatalog = () => {
+  const items = [];
+  for (const [key, meta] of Object.entries(SUBJECTS)) {
+    if (meta.readOnly) {
+      items.push(toPermission(key, 'read', { description: `Lihat ${meta.label}` }));
+      continue;
+    }
+    for (const action of CRUD) {
+      items.push(toPermission(key, action));
+    }
+    if (meta.master) {
+      items.push(toPermission(key, 'restore', { description: `Pulihkan ${meta.label}` }));
+    }
+  }
+  for (const item of SPECIAL) {
+    items.push(toPermission(item.key, item.action, { description: item.description }));
+  }
+  return items;
+};
+
+const SUBJECT_BY_KEY = Object.fromEntries(
+  Object.entries(SUBJECTS).map(([key, meta]) => [key, meta.casl])
+);
+
+const MASTER_TABLES = [
+  'universitas',
+  'fakultas',
+  'departemen',
+  'jenjang_akademik',
+  'model_kurikulum',
+  'program_studi',
+  'dosen',
+  'mahasiswa',
+  'jenis_semester',
+  'semester',
+  'kurikulum',
+  'matakuliah',
+  'cp',
+  'scp',
+  'cpmk',
+  'ruang',
+  'kelas',
+  'roles',
+  'permissions',
+  'users',
+];
+
+const isAdminAllowed = (item) => {
+  if (item.name === 'role.delete' || item.name === 'permission.delete') return false;
+  return true;
+};
+
+const isDosenAllowed = (item) => {
+  if (item.group === 'krs' && ['read', 'approve'].includes(item.action)) return true;
+  if (item.group === 'nilai') return true;
+  if (item.group === 'evaluasi') return true;
+  if (item.group === 'laporan' && item.action === 'read') return true;
+  return false;
+};
+
+const isMahasiswaAllowed = (item) => {
+  if (item.key === 'krs' && ['read', 'create', 'update'].includes(item.action)) return true;
+  if (item.group === 'laporan' && item.action === 'read') return true;
+  return false;
+};
+
+module.exports = {
+  CRUD,
+  SUBJECTS,
+  SPECIAL,
+  SUBJECT_BY_KEY,
+  MASTER_TABLES,
+  buildCatalog,
+  isAdminAllowed,
+  isDosenAllowed,
+  isMahasiswaAllowed,
+};

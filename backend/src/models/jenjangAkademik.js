@@ -11,6 +11,6 @@ module.exports = (sequelize) => {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     kode_jenjang: { type: DataTypes.STRING(10), allowNull: false, unique: true },
     nama_jenjang: { type: DataTypes.STRING(255), allowNull: true },
-  }, { sequelize, modelName: 'JenjangAkademik', tableName: 'jenjang_akademik', timestamps: true });
+  }, { sequelize, modelName: 'JenjangAkademik', tableName: 'jenjang_akademik', timestamps: true, paranoid: true });
   return JenjangAkademik;
 };

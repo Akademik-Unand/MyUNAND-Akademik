@@ -506,6 +506,135 @@ export const DOKUMEN_EVALUASI = [
   { id: 'doc2', no: 2, nama: 'Rubrik Penilaian', keterangan: 'Rubrik CPMK 1–3', berkas: 'rubrik-cpmk.xlsx', uploader: 'Ilhamdi', waktu: '12 Juli 2025, 11:04' },
 ];
 
+export const ROLES = [
+  { id: 'role-superadmin', name: 'superadmin' },
+  { id: 'role-admin', name: 'admin' },
+  { id: 'role-dosen', name: 'dosen' },
+  { id: 'role-mahasiswa', name: 'mahasiswa' },
+];
+
+export const PERMISSIONS = [
+  { id: 'p-fakultas-read', name: 'fakultas.read', action: 'read', subject: 'Fakultas', group: 'institusi', description: 'Lihat fakultas' },
+  { id: 'p-fakultas-create', name: 'fakultas.create', action: 'create', subject: 'Fakultas', group: 'institusi', description: 'Tambah fakultas' },
+  { id: 'p-fakultas-update', name: 'fakultas.update', action: 'update', subject: 'Fakultas', group: 'institusi', description: 'Ubah fakultas' },
+  { id: 'p-fakultas-delete', name: 'fakultas.delete', action: 'delete', subject: 'Fakultas', group: 'institusi', description: 'Arsipkan fakultas' },
+  { id: 'p-fakultas-restore', name: 'fakultas.restore', action: 'restore', subject: 'Fakultas', group: 'institusi', description: 'Pulihkan fakultas' },
+  { id: 'p-krs-read', name: 'krs.read', action: 'read', subject: 'Krs', group: 'krs', description: 'Lihat KRS' },
+  { id: 'p-krs-create', name: 'krs.create', action: 'create', subject: 'Krs', group: 'krs', description: 'Buat KRS' },
+  { id: 'p-krs-approve', name: 'krs.approve', action: 'approve', subject: 'Krs', group: 'krs', description: 'Setujui KRS' },
+  { id: 'p-nilai-read', name: 'nilai.read', action: 'read', subject: 'NilaiMahasiswa', group: 'nilai', description: 'Lihat nilai' },
+  { id: 'p-nilai-upload', name: 'nilai.upload', action: 'upload', subject: 'NilaiMahasiswa', group: 'nilai', description: 'Unggah nilai' },
+  { id: 'p-user-read', name: 'user.read', action: 'read', subject: 'User', group: 'iam', description: 'Lihat user' },
+  { id: 'p-user-assign', name: 'user.assign-roles', action: 'assign-roles', subject: 'User', group: 'iam', description: 'Assign role user' },
+  { id: 'p-role-read', name: 'role.read', action: 'read', subject: 'Role', group: 'iam', description: 'Lihat role' },
+  { id: 'p-role-sync', name: 'role.sync-permissions', action: 'sync-permissions', subject: 'Role', group: 'iam', description: 'Simpan matriks permission' },
+  { id: 'p-laporan-read', name: 'laporan-cp.read', action: 'read', subject: 'LaporanCp', group: 'laporan', description: 'Lihat laporan CP' },
+  { id: 'p-activity-read', name: 'activity-log.read', action: 'read', subject: 'ActivityLog', group: 'iam', description: 'Lihat jejak aktivitas' },
+];
+
+export const ROLE_PERMISSION_GRANTS = {
+  'role-admin': PERMISSIONS.map((item) => item.id),
+  'role-dosen': ['p-krs-read', 'p-krs-approve', 'p-nilai-read', 'p-nilai-upload', 'p-laporan-read'],
+  'role-mahasiswa': ['p-krs-read', 'p-krs-create', 'p-laporan-read'],
+};
+
+export const USERS = [
+  {
+    id: 'user-admin',
+    name: 'Admin Kurikulum',
+    email: 'admin@email.com',
+    role: 'admin',
+    roles: [{ id: 'role-admin', name: 'admin' }],
+    permissions: PERMISSIONS.map((item) => item.name),
+  },
+  {
+    id: 'user-dosen',
+    name: 'Dosen Pembimbing',
+    email: 'dosen@email.com',
+    role: 'dosen',
+    roles: [{ id: 'role-dosen', name: 'dosen' }],
+    permissions: ['krs.read', 'krs.approve', 'nilai.read', 'nilai.upload', 'laporan-cp.read'],
+  },
+  {
+    id: 'user-multi',
+    name: 'Dosen Admin',
+    email: 'dosen.admin@email.com',
+    role: 'admin',
+    roles: [
+      { id: 'role-admin', name: 'admin' },
+      { id: 'role-dosen', name: 'dosen' },
+    ],
+    permissions: PERMISSIONS.map((item) => item.name),
+  },
+];
+
+export const ACTIVITY_LOGS = [
+  {
+    id: 'log-1',
+    createdAt: '2026-09-04T00:21:00+07:00',
+    user_name: 'Admin Kurikulum',
+    user_email: 'admin@email.com',
+    action: 'create',
+    subject: 'Fakultas',
+    resource_id: 'fak-1',
+    method: 'POST',
+    path: '/fakultas',
+    status_code: 201,
+    ip: '127.0.0.1',
+    user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/139.0',
+    summary: 'create Fakultas fak-1',
+    payload: { kode_fakultas: 'FT', nama_resmi: 'Fakultas Teknik' },
+  },
+  {
+    id: 'log-2',
+    createdAt: '2026-09-04T00:24:00+07:00',
+    user_name: 'Admin Kurikulum',
+    user_email: 'admin@email.com',
+    action: 'delete',
+    subject: 'Fakultas',
+    resource_id: 'fak-1',
+    method: 'DELETE',
+    path: '/fakultas/fak-1',
+    status_code: 200,
+    ip: '127.0.0.1',
+    user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/139.0',
+    summary: 'delete Fakultas fak-1',
+    payload: null,
+  },
+  {
+    id: 'log-3',
+    createdAt: '2026-09-04T00:25:00+07:00',
+    user_name: 'Admin Kurikulum',
+    user_email: 'admin@email.com',
+    action: 'restore',
+    subject: 'Fakultas',
+    resource_id: 'fak-1',
+    method: 'POST',
+    path: '/fakultas/fak-1/restore',
+    status_code: 200,
+    ip: '127.0.0.1',
+    user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/139.0',
+    summary: 'restore Fakultas fak-1',
+    payload: null,
+  },
+  {
+    id: 'log-4',
+    createdAt: '2026-09-04T00:10:00+07:00',
+    user_name: null,
+    user_email: 'admin@email.com',
+    action: 'login',
+    subject: 'User',
+    resource_id: null,
+    method: 'POST',
+    path: '/auth/login',
+    status_code: 200,
+    ip: '127.0.0.1',
+    user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/139.0',
+    summary: 'login User',
+    payload: { email: 'admin@email.com', password: '[redacted]' },
+  },
+];
+
 export const JENIS_DOKUMEN_EVALUASI = [
   { no: 1, nama: 'RPS', tipe: 'PDF', keharusan: 'Wajib', keterangan: 'Rencana pembelajaran semester', status: 'Sudah diunggah' },
   { no: 2, nama: 'Rubrik Penilaian', tipe: 'XLSX', keharusan: 'Wajib', keterangan: 'Rubrik capaian CPMK', status: 'Sudah diunggah' },

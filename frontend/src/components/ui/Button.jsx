@@ -1,9 +1,8 @@
+import { useRef, useState } from 'react';
+
 /**
- * Atomic Button component based on DaisyUI tokens
- * @param {Object} props
- * @param {'primary'|'secondary'|'accent'|'ghost'|'outline'|'neutral'} [props.variant='primary']
- * @param {'xs'|'sm'|'md'|'lg'} [props.size='md']
- * @param {boolean} [props.isLoading=false]
+ * Atomic Button. Saat isLoading atau onClick mengembalikan Promise,
+ * tombol menampilkan spinner dan menolak klik berikutnya.
  */
 export const Button = ({
   children,
@@ -12,8 +11,14 @@ export const Button = ({
   isLoading = false,
   className = '',
   disabled,
+  onClick,
+  type = 'button',
   ...props
 }) => {
+  const [innerBusy, setInnerBusy] = useState(false);
+  const lockRef = useRef(false);
+  const busy = Boolean(disabled || isLoading || innerBusy);
+
   const variantClass = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
@@ -31,13 +36,41 @@ export const Button = ({
     lg: 'btn-lg',
   }[size] || 'btn-md';
 
+  const handleClick = async (event) => {
+    if (busy || lockRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    lockRef.current = true;
+    try {
+      const result = onClick?.(event);
+      if (result && typeof result.then === 'function') {
+        setInnerBusy(true);
+        try {
+          await result;
+        } finally {
+          setInnerBusy(false);
+        }
+      }
+    } finally {
+      queueMicrotask(() => {
+        lockRef.current = false;
+      });
+    }
+  };
+
   return (
     <button
-      className={`btn ${variantClass} ${sizeClass} ${className}`}
-      disabled={disabled || isLoading}
+      type={type}
+      className={`btn ${variantClass} ${sizeClass} ${busy ? 'pointer-events-none' : ''} ${className}`}
       {...props}
+      disabled={busy}
+      aria-busy={isLoading || innerBusy}
+      onClick={handleClick}
     >
-      {isLoading && <span className="loading loading-spinner loading-xs"></span>}
+      {(isLoading || innerBusy) && <span className="loading loading-spinner loading-xs" />}
       {children}
     </button>
   );
