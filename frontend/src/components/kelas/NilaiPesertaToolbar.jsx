@@ -6,6 +6,7 @@ import { Can } from '../auth/Can';
 import { csvToNilaiItems, matrixToCsv } from '../../helpers/nilaiCsv';
 import { matakuliahKurikulumId } from '../../helpers/kelasInfo';
 import { uploadNilaiBulk } from '../../services/api';
+import { useNilaiPeriodOpen } from '../../hooks/usePeriodes';
 
 const downloadCsv = (filename, content) => {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
@@ -23,6 +24,7 @@ export const NilaiPesertaToolbar = ({ kelas, data, mode = 'link' }) => {
   const [busy, setBusy] = useState(false);
   const mkId = matakuliahKurikulumId(kelas);
   const kelasId = kelas?.id;
+  const nilaiOpen = useNilaiPeriodOpen(kelas).open;
 
   const onDownload = () => {
     if (!data?.peserta?.length) {
@@ -62,6 +64,7 @@ export const NilaiPesertaToolbar = ({ kelas, data, mode = 'link' }) => {
   };
 
   if (mode === 'link') {
+    if (!nilaiOpen) return null;
     return (
       <Can any={[{ I: 'update', a: 'NilaiMahasiswa' }, { I: 'upload', a: 'NilaiMahasiswa' }]}>
         <Link to={`/perkuliahan/upload-nilai/${kelasId}`} className="btn btn-success btn-sm">
@@ -78,25 +81,27 @@ export const NilaiPesertaToolbar = ({ kelas, data, mode = 'link' }) => {
           Download Template
         </button>
       </Can>
-      <Can I="upload" a="NilaiMahasiswa">
-        <>
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".csv,text/csv"
-            className="hidden"
-            onChange={onUploadFile}
-          />
-          <button
-            type="button"
-            className="btn btn-success btn-sm"
-            disabled={busy}
-            onClick={() => inputRef.current?.click()}
-          >
-            {busy ? 'Mengunggah...' : 'Upload Nilai'}
-          </button>
-        </>
-      </Can>
+      {nilaiOpen && (
+        <Can I="upload" a="NilaiMahasiswa">
+          <>
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={onUploadFile}
+            />
+            <button
+              type="button"
+              className="btn btn-success btn-sm"
+              disabled={busy}
+              onClick={() => inputRef.current?.click()}
+            >
+              {busy ? 'Mengunggah...' : 'Upload Nilai'}
+            </button>
+          </>
+        </Can>
+      )}
       {mkId && (
         <Can I="read" a="DokumenEvaluasi">
           <Link to={`/perkuliahan/mk-semester/${mkId}/dokumen`} className="btn btn-success btn-sm">

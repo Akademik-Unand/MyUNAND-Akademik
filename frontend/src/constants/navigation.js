@@ -52,6 +52,11 @@ export const NAVIGATION_MENU = [
             path: '/master/semester/setting',
             permission: { action: 'read', subject: 'Semester' },
           },
+          {
+            label: 'Periode',
+            path: '/master/semester/periode',
+            permission: { action: 'read', subject: 'Periode' },
+          },
         ],
       },
     ],

@@ -5,6 +5,7 @@ const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { orgFiltersOnCpmkId } = require('../../helpers/academicFilters');
 const { assertTotalBobotMk } = require('../../helpers/sumberBobot');
+const { assertCpmkPeriod } = require('../../helpers/academicPeriod');
 
 const LIST_OPTIONS = {
   searchFields: ["nama_sumber_penilaian"],
@@ -28,6 +29,7 @@ const getById = async (id) => {
 
 const create = async (payload) => {
   return sequelize.transaction(async (transaction) => {
+    await assertCpmkPeriod();
     await assertTotalBobotMk(payload.cpmk_id, { incomingBobot: payload.bobot }, transaction);
     const item = await SumberPenilaian.create(payload, { transaction });
     return SumberPenilaian.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude, transaction });
@@ -36,6 +38,7 @@ const create = async (payload) => {
 
 const update = async (id, payload) => {
   return sequelize.transaction(async (transaction) => {
+    await assertCpmkPeriod();
     const item = await SumberPenilaian.findByPk(id, { include: LIST_OPTIONS.defaultInclude, transaction });
     if (!item) {
       throw new AppError('Sumber Penilaian dengan ID tersebut tidak ditemukan', 404);
@@ -49,6 +52,7 @@ const update = async (id, payload) => {
 };
 
 const remove = async (id) => {
+  await assertCpmkPeriod();
   const item = await getById(id);
   await item.destroy();
   return { id };

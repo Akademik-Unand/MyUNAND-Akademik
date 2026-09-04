@@ -11,6 +11,7 @@ import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useConfirmDelete } from '../../hooks/useConfirmDelete';
 import { PageSkeleton } from '../../components/common/PageSkeleton';
 import { Can } from '../../components/auth/Can';
+import { useCpmkPeriodOpen } from '../../hooks/usePeriodes';
 
 const querySuffix = (kurikulumId) => (kurikulumId ? `?kurikulum_id=${kurikulumId}` : '');
 
@@ -28,6 +29,7 @@ export const AturCPMKPage = () => {
     remove: 'CPMK berhasil dihapus.',
   });
   const del = useConfirmDelete();
+  const cpmkOpen = useCpmkPeriodOpen().open;
   const data = (query.data ?? []).filter((item) => item.matakuliah_id === id);
   const { roots, childrenByParent } = useMemo(() => {
     const byId = new Map(data.map((item) => [item.id, item]));
@@ -65,13 +67,15 @@ export const AturCPMKPage = () => {
                 </Button>
               </Link>
             </Can>
-            <Can I="create" a="Cpmk">
-              <Link to={`/kurikulum/cpmk/${id}/baru${suffix}`}>
-                <Button size="sm" className="gap-1.5">
-                  <Plus size={15} /> Tambah CPMK
-                </Button>
-              </Link>
-            </Can>
+            {cpmkOpen && (
+              <Can I="create" a="Cpmk">
+                <Link to={`/kurikulum/cpmk/${id}/baru${suffix}`}>
+                  <Button size="sm" className="gap-1.5">
+                    <Plus size={15} /> Tambah CPMK
+                  </Button>
+                </Link>
+              </Can>
+            )}
           </div>
         }
       />
@@ -83,6 +87,7 @@ export const AturCPMKPage = () => {
           mkId={id}
           suffix={suffix}
           onDelete={del.askDelete}
+          canMutate={cpmkOpen}
         />
         <div className="mt-4">
           <Link to="/kurikulum/cpmk" className="btn btn-ghost btn-sm">

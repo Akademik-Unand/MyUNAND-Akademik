@@ -22,6 +22,7 @@ describe('organizational role grants', () => {
       'bimbingan-akademik.read',
       'mahasiswa.read',
       'rekap-cp.read',
+      'periode.read',
     ]));
     expect(names).not.toContain('fakultas.delete');
   });

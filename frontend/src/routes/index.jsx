@@ -17,6 +17,7 @@ import { JenjangAkademikPage } from '../pages/master/JenjangAkademikPage';
 import { JenisSemesterPage } from '../pages/semester/JenisSemesterPage';
 import { SettingSemesterPage } from '../pages/semester/SettingSemesterPage';
 import { SettingSemesterFormPage } from '../pages/semester/SettingSemesterFormPage';
+import { PeriodePage } from '../pages/semester/PeriodePage';
 import { KurikulumDataPage } from '../pages/kurikulum/KurikulumDataPage';
 import { KurikulumFormPage } from '../pages/kurikulum/KurikulumFormPage';
 import { CPKurikulumPage } from '../pages/kurikulum/CPKurikulumPage';
@@ -66,6 +67,7 @@ export const router = createBrowserRouter([
           { path: 'master/semester/setting/baru', element: gate('create', 'Semester', <SettingSemesterFormPage />) },
           { path: 'master/semester/setting/:id/edit', element: gate('update', 'Semester', <SettingSemesterFormPage />) },
           { path: 'master/semester/setting', element: gate('read', 'Semester', <SettingSemesterPage />) },
+          { path: 'master/semester/periode', element: gate('read', 'Periode', <PeriodePage />) },
 
           { path: 'kurikulum/data/baru', element: gate('create', 'Kurikulum', <KurikulumFormPage />) },
           { path: 'kurikulum/data/:id/edit', element: gate('update', 'Kurikulum', <KurikulumFormPage />) },

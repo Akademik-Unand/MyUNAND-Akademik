@@ -15,6 +15,7 @@ import {
 import { Can } from '../../components/auth/Can';
 import { mkKode, mkLabel } from '../../helpers/mkSemester';
 import { bobotMelebihiMaks, MAX_MK_BOBOT } from '../../helpers/cpmkBobot';
+import { useCpmkPeriodOpen } from '../../hooks/usePeriodes';
 
 export const AturCPMKSemesterPage = () => {
   const { id } = useParams();
@@ -26,6 +27,7 @@ export const AturCPMKSemesterPage = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [saving, setSaving] = useState(false);
+  const cpmkOpen = useCpmkPeriodOpen().open;
   const back = `/perkuliahan/mk-semester/${id}`;
 
   useEffect(() => {
@@ -96,11 +98,13 @@ export const AturCPMKSemesterPage = () => {
           >
             Reset
           </Button>
-          <Can I="update" a="Cpmk">
-            <Button size="sm" onClick={save} isLoading={saving} disabled={bobotMelebihiMaks(items)}>
-              Simpan
-            </Button>
-          </Can>
+          {cpmkOpen && (
+            <Can I="update" a="Cpmk">
+              <Button size="sm" onClick={save} isLoading={saving} disabled={bobotMelebihiMaks(items)}>
+                Simpan
+              </Button>
+            </Can>
+          )}
         </div>
       </Card>
     </div>

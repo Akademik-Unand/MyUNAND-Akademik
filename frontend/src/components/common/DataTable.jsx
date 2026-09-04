@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronsUpDown, Inbox } from 'lucide-react';
 import { useTableParams } from '../../hooks/table/useTableParams';
 import { useTableQuery } from '../../hooks/useTableQuery';
 import { applyQuery } from '../../utils/queryRows';
+import { consecutiveRowSpans } from '../../helpers/tableSpans';
 import { DataTablePagination } from './DataTablePagination';
 import { DataTableToolbar } from './DataTableToolbar';
 import { Select } from '../ui/Select';
@@ -74,6 +75,9 @@ export const DataTable = ({
 }) => {
   const table = useTableParams({ prefix: tableKey || paramPrefix, defaultLimit });
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [hoveredRow, setHoveredRow] = useState(null);
+  const wrapRef = useRef(null);
+  const [scrollX, setScrollX] = useState(false);
 
   const sourceRows = data ?? staticRows;
   const isServerMode = Boolean(resource);
@@ -99,6 +103,28 @@ export const DataTable = ({
   const filterableColumns = columns.filter((column) => column.filter);
   const hasFilters = filterableColumns.length > 0;
   const start = (meta.page - 1) * meta.limit;
+  const groupSpans = useMemo(() => {
+    const cache = new Map();
+    for (const column of columns) {
+      if (!column.groupBy || cache.has(column.groupBy)) continue;
+      cache.set(column.groupBy, consecutiveRowSpans(rows, column.groupBy));
+    }
+    return cache;
+  }, [columns, rows]);
+
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current;
+    const tableEl = wrap?.querySelector('table');
+    if (!wrap || !tableEl) return undefined;
+    const update = () => {
+      setScrollX(tableEl.scrollWidth > wrap.clientWidth + 2);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(wrap);
+    observer.observe(tableEl);
+    return () => observer.disconnect();
+  }, [rows, columns, isLoading]);
 
   return (
     <div className={`w-full ${className}`}>
@@ -111,8 +137,11 @@ export const DataTable = ({
         actions={toolbarActions}
       />
 
-      <div className={`overflow-x-auto ${isFetching ? 'opacity-60' : ''}`}>
-        <table className={`table table-sm w-full border-collapse ${striped ? 'table-zebra' : ''}`}>
+      <div
+        ref={wrapRef}
+        className={`min-w-0 max-w-full ${scrollX ? 'overflow-x-auto' : ''} ${isFetching ? 'opacity-60' : ''}`}
+      >
+        <table className={`table table-sm w-full ${striped ? 'table-zebra' : ''}`}>
           <thead>
             <tr className="text-xs uppercase text-base-content/60">
               {columns.map((column, idx) => {
@@ -151,7 +180,10 @@ export const DataTable = ({
             )}
           </thead>
 
-          <tbody className="text-sm text-base-content">
+          <tbody
+            className="text-sm text-base-content"
+            onMouseLeave={() => setHoveredRow(null)}
+          >
             {isLoading &&
               Array.from({ length: Math.min(meta.limit, 8) }).map((_, rowIdx) => (
                 <tr key={`skeleton-${rowIdx}`}>
@@ -188,12 +220,23 @@ export const DataTable = ({
 
             {!isLoading &&
               rows.map((row, idx) => (
-                <tr key={rowKey(row, start + idx)}>
-                  {columns.map((column, colIdx) => (
-                    <td key={colIdx} className={column.cellClassName}>
-                      {column.render ? column.render(row, start + idx) : row[column.key]}
-                    </td>
-                  ))}
+                <tr key={rowKey(row, start + idx)} onMouseEnter={() => setHoveredRow(idx)}>
+                  {columns.map((column, colIdx) => {
+                    const spans = column.groupBy ? groupSpans.get(column.groupBy) : null;
+                    const span = spans ? spans[idx] : 1;
+                    if (!span) return null;
+                    const coversHover =
+                      hoveredRow != null && hoveredRow >= idx && hoveredRow < idx + span;
+                    return (
+                      <td
+                        key={colIdx}
+                        rowSpan={span > 1 ? span : undefined}
+                        className={`${column.cellClassName || ''} ${coversHover ? 'bg-primary/15' : ''}`}
+                      >
+                        {column.render ? column.render(row, start + idx) : row[column.key]}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
           </tbody>

@@ -7,9 +7,10 @@ import {
   kelasDosenNames,
   kurikulumLabel,
   matakuliahKurikulumId,
-  periodeInputNilai,
   pickKurikulum,
 } from '../../helpers/kelasInfo';
+import { bolehCpmk, periodeInputNilai } from '../../helpers/academicPeriod';
+import { usePeriodes } from '../../hooks/usePeriodes';
 
 const Field = ({ label, children }) => (
   <div>
@@ -19,8 +20,10 @@ const Field = ({ label, children }) => (
 );
 
 export const KelasInfoCard = ({ kelas }) => {
+  const periodes = usePeriodes();
   const mkId = matakuliahKurikulumId(kelas);
-  const periode = periodeInputNilai(kelas);
+  const periode = periodeInputNilai(kelas, periodes.data);
+  const cpmkOpen = bolehCpmk(periodes.data);
   const peserta = kelas?.jumlah_peserta;
 
   return (
@@ -33,11 +36,13 @@ export const KelasInfoCard = ({ kelas }) => {
             <div className="mt-2 flex flex-wrap gap-2">
               {mkId && (
                 <>
-                  <Can I="update" a="Cpmk">
-                    <Link to={`/perkuliahan/mk-semester/${mkId}/atur`} className="btn btn-success btn-xs">
-                      CPMK Semester
-                    </Link>
-                  </Can>
+                  {cpmkOpen && (
+                    <Can I="update" a="Cpmk">
+                      <Link to={`/perkuliahan/mk-semester/${mkId}/atur`} className="btn btn-success btn-xs">
+                        CPMK Semester
+                      </Link>
+                    </Can>
+                  )}
                   <Can I="read" a="EvaluasiCpmk">
                     <Link to={`/perkuliahan/mk-semester/${mkId}/evaluasi`} className="btn btn-success btn-xs">
                       Evaluasi Semester

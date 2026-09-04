@@ -76,6 +76,7 @@ export const RekapCPPage = () => {
             extraFilter={extraFilter}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari BP, nama, atau mata kuliah..."
+            striped={false}
           />
         </Card>
       ) : (

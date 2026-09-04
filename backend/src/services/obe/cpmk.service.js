@@ -5,6 +5,7 @@ const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
 const { orgFiltersOnMatakuliahViaKurikulum, ORG_FILTER_FIELDS } = require('../../helpers/academicFilters');
+const { assertCpmkPeriod } = require('../../helpers/academicPeriod');
 
 const scpInclude = {
   model: Scp,
@@ -84,6 +85,7 @@ const createChildren = async (parent, children, transaction) => {
 };
 
 const createOne = async (payload, transaction) => {
+  await assertCpmkPeriod();
   const { scp_ids = [], sub_cpmk, ...attrs } = payload;
   const children = Array.isArray(sub_cpmk) ? sub_cpmk : [];
   if (attrs.parent_cpmk_id && children.length) {
@@ -110,6 +112,7 @@ const create = (payload) => sequelize.transaction((transaction) => createOne(pay
 
 const createBulk = (items) =>
   sequelize.transaction(async (transaction) => {
+    await assertCpmkPeriod();
     const mkIds = new Set(items.map((item) => item.matakuliah_id));
     if (mkIds.size > 1) {
       throw new AppError('Semua CPMK harus pada mata kuliah yang sama', 422);
@@ -124,6 +127,7 @@ const createBulk = (items) =>
 const update = async (id, payload) => {
   const { scp_ids, ...attrs } = payload;
   return sequelize.transaction(async (transaction) => {
+    await assertCpmkPeriod();
     const item = await Cpmk.findByPk(id, { transaction });
     if (!item) {
       throw new AppError('CPMK dengan ID tersebut tidak ditemukan', 404);
@@ -147,6 +151,7 @@ const update = async (id, payload) => {
 
 const remove = async (id) => {
   return sequelize.transaction(async (transaction) => {
+    await assertCpmkPeriod();
     const item = await Cpmk.findByPk(id, { transaction });
     if (!item) {
       throw new AppError('CPMK dengan ID tersebut tidak ditemukan', 404);
@@ -160,6 +165,9 @@ const remove = async (id) => {
   });
 };
 
-const restore = (id) => restoreRecord(Cpmk, id, 'CPMK');
+const restore = async (id) => {
+  await assertCpmkPeriod();
+  return restoreRecord(Cpmk, id, 'CPMK');
+};
 
 module.exports = { list, getById, create, createBulk, update, remove, restore };

@@ -12,6 +12,7 @@ import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useResourceItem, useResourceQuery } from '../../hooks/useResourceQuery';
 import { bulkCreateResourceItems } from '../../services/api';
 import { cpmkBulkError, emptyCpmkRow, toCpmkPayload } from '../../helpers/cpmkForm';
+import { useCpmkPeriodOpen } from '../../hooks/usePeriodes';
 
 const querySuffix = (kurikulumId) => (kurikulumId ? `?kurikulum_id=${kurikulumId}` : '');
 
@@ -52,6 +53,7 @@ export const CpmkFormPage = () => {
   const hasChildren = Boolean(existing.data?.subCpmk?.length);
   const scpRequired = isChild || (isEdit && !isChild && !hasChildren);
   const showScp = isChild || (isEdit && !isChild && !hasChildren);
+  const cpmkOpen = useCpmkPeriodOpen().open;
 
   // Muat nilai awal form edit begitu detail CPMK tersedia (guard biar hanya sekali).
   if (isEdit && existing.data && existing.data.id !== syncedEditId) {
@@ -135,6 +137,9 @@ export const CpmkFormPage = () => {
         ]}
       />
       <Card title="Form">
+        {!cpmkOpen ? (
+          <p className="text-sm text-base-content/70">Di luar periode CPMK. Form tidak tersedia.</p>
+        ) : (
         <form onSubmit={isRootCreate ? submitBulk : handleSubmit}>
           {isRootCreate ? (
             <BulkCpmkFields rows={rows} onChange={setRows} kurikulumId={kurikulumId} />
@@ -156,6 +161,7 @@ export const CpmkFormPage = () => {
             />
           </div>
         </form>
+        )}
       </Card>
     </div>
   );

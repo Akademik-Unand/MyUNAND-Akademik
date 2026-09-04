@@ -15,6 +15,7 @@ const SUBJECTS = {
   'jenis-semester': { casl: 'JenisSemester', group: 'semester', master: true, label: 'Jenis Semester' },
   semester: { casl: 'Semester', group: 'semester', master: true, label: 'Semester' },
   'semester-prodi': { casl: 'SemesterProdi', group: 'semester', master: false, label: 'Semester Prodi' },
+  periode: { casl: 'Periode', group: 'semester', master: true, label: 'Periode' },
   kurikulum: { casl: 'Kurikulum', group: 'kurikulum', master: true, label: 'Kurikulum' },
   'sifat-matakuliah': { casl: 'SifatMatakuliah', group: 'kurikulum', master: false, label: 'Sifat Matakuliah' },
   'tipe-matakuliah': { casl: 'TipeMatakuliah', group: 'kurikulum', master: false, label: 'Tipe Matakuliah' },
@@ -101,6 +102,7 @@ const MASTER_TABLES = [
   'mahasiswa',
   'jenis_semester',
   'semester',
+  'periode',
   'kurikulum',
   'matakuliah',
   'cp',
@@ -122,6 +124,7 @@ const isAdminAllowed = (item) => {
 };
 
 const isDosenAllowed = (item) => {
+  if (item.key === 'periode' && item.action === 'read') return true;
   if (item.group === 'krs' && ['read', 'approve'].includes(item.action)) return true;
   if (item.group === 'nilai') return true;
   if (item.group === 'evaluasi') return true;

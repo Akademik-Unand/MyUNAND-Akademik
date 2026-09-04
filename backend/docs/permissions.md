@@ -10,7 +10,7 @@ Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`,
 ## Subject
 
 - institusi: universitas, fakultas, departemen, jenjang-akademik, model-kurikulum, program-studi, dosen, mahasiswa, bimbingan-akademik
-- semester: jenis-semester, semester, semester-prodi
+- semester: jenis-semester, semester, semester-prodi, periode
 - kurikulum: kurikulum, sifat-matakuliah, tipe-matakuliah, matakuliah, matakuliah-kurikulum
 - obe: cp, scp, cpmk, sumber-penilaian, cpmk-scp
 - perkuliahan: ruang, kelas, dosen-kelas, jadwal-kelas, dosen-jadwal

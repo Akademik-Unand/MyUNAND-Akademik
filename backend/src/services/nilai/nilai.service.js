@@ -15,6 +15,7 @@ const {
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const logger = require('../../utils/logger');
+const { assertNilaiPeriodForKelas, assertNilaiPeriodForKrsDetil } = require('../../helpers/academicPeriod');
 
 const LIST_OPTIONS = {
   searchFields: [],
@@ -56,18 +57,21 @@ const getById = async (id) => {
 };
 
 const create = async (payload) => {
+  await assertNilaiPeriodForKrsDetil(payload.krs_detil_id);
   const item = await NilaiMahasiswa.create(payload);
   return NilaiMahasiswa.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude });
 };
 
 const update = async (id, payload) => {
   const item = await getById(id);
+  await assertNilaiPeriodForKrsDetil(item.krs_detil_id);
   await item.update(payload);
   return NilaiMahasiswa.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude });
 };
 
 const remove = async (id) => {
   const item = await getById(id);
+  await assertNilaiPeriodForKrsDetil(item.krs_detil_id);
   await item.destroy();
   return { id };
 };
@@ -76,6 +80,11 @@ const uploadBulk = async (payload, userId) => {
   const { kelas_id, items, keterangan, file_name } = payload;
 
   return sequelize.transaction(async (transaction) => {
+    if (kelas_id) {
+      await assertNilaiPeriodForKelas(kelas_id);
+    } else {
+      await assertNilaiPeriodForKrsDetil(items[0].krs_detil_id);
+    }
     const savedNilai = [];
 
     for (const item of items) {

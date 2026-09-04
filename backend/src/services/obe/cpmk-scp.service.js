@@ -3,6 +3,7 @@
 const { CpmkScp, Scp, Cpmk } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
+const { assertCpmkPeriod } = require('../../helpers/academicPeriod');
 
 const LIST_OPTIONS = {
   searchFields: [],
@@ -25,17 +26,20 @@ const getById = async (id) => {
 };
 
 const create = async (payload) => {
+  await assertCpmkPeriod();
   const item = await CpmkScp.create(payload);
   return CpmkScp.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude });
 };
 
 const update = async (id, payload) => {
+  await assertCpmkPeriod();
   const item = await getById(id);
   await item.update(payload);
   return CpmkScp.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude });
 };
 
 const remove = async (id) => {
+  await assertCpmkPeriod();
   const item = await getById(id);
   await item.destroy();
   return { id };

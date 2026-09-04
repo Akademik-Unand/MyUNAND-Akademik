@@ -17,7 +17,7 @@ const ScpBadges = ({ items }) => {
   );
 };
 
-export const CpmkKelolaTable = ({ roots, childrenByParent, mkId, suffix, onDelete }) => {
+export const CpmkKelolaTable = ({ roots, childrenByParent, mkId, suffix, onDelete, canMutate = true }) => {
   const [openIds, setOpenIds] = useState(() => new Set());
 
   const toggle = (id) => {
@@ -68,7 +68,7 @@ export const CpmkKelolaTable = ({ roots, childrenByParent, mkId, suffix, onDelet
                   </td>
                   <td>
                     <div className="flex items-center gap-1">
-                      {children.length > 0 && (
+                      {canMutate && children.length > 0 && (
                         <Can I="create" a="Cpmk">
                           <IconLink
                             label="Tambah Sub-CPMK"
@@ -77,23 +77,27 @@ export const CpmkKelolaTable = ({ roots, childrenByParent, mkId, suffix, onDelet
                           />
                         </Can>
                       )}
-                      <Can I="update" a="Cpmk">
-                        <IconLink
-                          label="Ubah CPMK"
-                          icon={Pencil}
-                          tone="text-warning"
-                          to={`/kurikulum/cpmk/${mkId}/${item.id}/edit${suffix}`}
-                        />
-                      </Can>
-                      <Can I="delete" a="Cpmk">
-                        <IconButton
-                          label="Hapus CPMK"
-                          icon={Trash2}
-                          tone="text-error"
-                          tooltipPosition="tooltip-left"
-                          onClick={() => onDelete(item)}
-                        />
-                      </Can>
+                      {canMutate && (
+                        <>
+                          <Can I="update" a="Cpmk">
+                            <IconLink
+                              label="Ubah CPMK"
+                              icon={Pencil}
+                              tone="text-warning"
+                              to={`/kurikulum/cpmk/${mkId}/${item.id}/edit${suffix}`}
+                            />
+                          </Can>
+                          <Can I="delete" a="Cpmk">
+                            <IconButton
+                              label="Hapus CPMK"
+                              icon={Trash2}
+                              tone="text-error"
+                              tooltipPosition="tooltip-left"
+                              onClick={() => onDelete(item)}
+                            />
+                          </Can>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -107,23 +111,27 @@ export const CpmkKelolaTable = ({ roots, childrenByParent, mkId, suffix, onDelet
                       </td>
                       <td>
                         <div className="flex items-center gap-1">
-                          <Can I="update" a="Cpmk">
-                            <IconLink
-                              label="Ubah Sub-CPMK"
-                              icon={Pencil}
-                              tone="text-warning"
-                              to={`/kurikulum/cpmk/${mkId}/${child.id}/edit${suffix}`}
-                            />
-                          </Can>
-                          <Can I="delete" a="Cpmk">
-                            <IconButton
-                              label="Hapus Sub-CPMK"
-                              icon={Trash2}
-                              tone="text-error"
-                              tooltipPosition="tooltip-left"
-                              onClick={() => onDelete(child)}
-                            />
-                          </Can>
+                          {canMutate && (
+                            <>
+                              <Can I="update" a="Cpmk">
+                                <IconLink
+                                  label="Ubah Sub-CPMK"
+                                  icon={Pencil}
+                                  tone="text-warning"
+                                  to={`/kurikulum/cpmk/${mkId}/${child.id}/edit${suffix}`}
+                                />
+                              </Can>
+                              <Can I="delete" a="Cpmk">
+                                <IconButton
+                                  label="Hapus Sub-CPMK"
+                                  icon={Trash2}
+                                  tone="text-error"
+                                  tooltipPosition="tooltip-left"
+                                  onClick={() => onDelete(child)}
+                                />
+                              </Can>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

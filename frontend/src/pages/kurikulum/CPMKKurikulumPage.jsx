@@ -10,6 +10,7 @@ import { Can } from '../../components/auth/Can';
 import { PageSkeleton } from '../../components/common/PageSkeleton';
 import { useAcademicFilter } from '../../hooks/useAcademicFilter';
 import { useResourceQuery } from '../../hooks/useResourceQuery';
+import { useCpmkPeriodOpen } from '../../hooks/usePeriodes';
 import { buildCpmkScpMatrix } from '../../helpers/cpmkMapping';
 
 const CPMK_ACTIONS = [
@@ -23,6 +24,7 @@ const cpmkCount = (row) => Number(row.cpmk_count ?? row.matakuliah?.cpmk_count ?
 
 export const CPMKKurikulumPage = () => {
   const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const cpmkOpen = useCpmkPeriodOpen().open;
   const [tab, setTab] = useState('mk');
   const kurikulumId = academic.applied.kurikulumId;
   const extraFilter = academic.extraFilter;
@@ -86,7 +88,7 @@ export const CPMKKurikulumPage = () => {
       cellClassName: 'text-right',
       render: (row) => {
         const mkId = row.matakuliah_id || row.matakuliah?.id;
-        if (!mkId) return null;
+        if (!mkId || !cpmkOpen) return null;
         return (
           <Can any={CPMK_ACTIONS}>
             <IconLink

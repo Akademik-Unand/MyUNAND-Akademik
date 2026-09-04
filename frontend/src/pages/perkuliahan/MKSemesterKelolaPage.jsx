@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/Button';
 import { PageSkeleton } from '../../components/common/PageSkeleton';
 import { Can } from '../../components/auth/Can';
 import { useResourceQuery } from '../../hooks/useResourceQuery';
+import { useCpmkPeriodOpen } from '../../hooks/usePeriodes';
 
 export const MKSemesterKelolaPage = () => {
   const { id } = useParams();
@@ -15,6 +16,7 @@ export const MKSemesterKelolaPage = () => {
     params: id ? { filter: { matakuliah_id: id } } : {},
     enabled: Boolean(id),
   });
+  const cpmkOpen = useCpmkPeriodOpen().open;
 
   if (query.isPending) return <PageSkeleton showFilter={false} tableCols={4} />;
 
@@ -31,11 +33,13 @@ export const MKSemesterKelolaPage = () => {
                 </Button>
               </Link>
             </Can>
-            <Can I="update" a="Cpmk">
-              <Link to={`/perkuliahan/mk-semester/${id}/atur`}>
-                <Button size="sm">Atur CPMK Semester ini</Button>
-              </Link>
-            </Can>
+            {cpmkOpen && (
+              <Can I="update" a="Cpmk">
+                <Link to={`/perkuliahan/mk-semester/${id}/atur`}>
+                  <Button size="sm">Atur CPMK Semester ini</Button>
+                </Link>
+              </Can>
+            )}
           </div>
         }
       >

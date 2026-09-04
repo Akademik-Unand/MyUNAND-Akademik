@@ -1,5 +1,3 @@
-import { formatTanggalId } from '../utils/formatTanggal';
-
 const formatJam = (value) => {
   if (!value) return '';
   return String(value).slice(0, 5);
@@ -63,24 +61,4 @@ export const matakuliahKurikulumId = (kelas) => {
   const rows = kelas?.matakuliah?.matakuliahKurikulum || [];
   const match = rows.find((row) => row.kurikulum_id === kurikulum?.id) || rows[0];
   return match?.id || null;
-};
-
-export const periodeInputNilai = (kelas) => {
-  const start = formatTanggalId(kelas?.semesterProdi?.semester?.tanggal_mulai);
-  const end = formatTanggalId(kelas?.semesterProdi?.semester?.tanggal_selesai);
-  if (!start && !end) return { label: '—', boleh: false, hasRange: false };
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const from = kelas?.semesterProdi?.semester?.tanggal_mulai
-    ? new Date(kelas.semesterProdi.semester.tanggal_mulai)
-    : null;
-  const to = kelas?.semesterProdi?.semester?.tanggal_selesai
-    ? new Date(kelas.semesterProdi.semester.tanggal_selesai)
-    : null;
-  const boleh = Boolean(from && to && today >= from && today <= to);
-  return {
-    label: [start, end].filter(Boolean).join(' — '),
-    boleh,
-    hasRange: true,
-  };
 };

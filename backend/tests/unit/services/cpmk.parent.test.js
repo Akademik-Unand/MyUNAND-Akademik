@@ -1,5 +1,9 @@
 'use strict';
 
+jest.mock('../../../src/helpers/academicPeriod', () => ({
+  assertCpmkPeriod: jest.fn().mockResolvedValue(true),
+}));
+
 jest.mock('../../../src/models', () => ({
   sequelize: {
     transaction: jest.fn((fn) => fn({})),

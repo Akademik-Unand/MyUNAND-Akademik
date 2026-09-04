@@ -12,6 +12,7 @@ const SUBJECT_BY_KEY = {
   'bimbingan-akademik': 'BimbinganAkademik',
   'jenis-semester': 'JenisSemester',
   semester: 'Semester',
+  periode: 'Periode',
   'semester-prodi': 'SemesterProdi',
   kurikulum: 'Kurikulum',
   'sifat-matakuliah': 'SifatMatakuliah',
