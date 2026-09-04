@@ -1,6 +1,7 @@
 import { MasterListPage } from '../../components/master/MasterListPage';
 import { UserForm } from '../../components/iam/UserForm';
 import { assignUserRoles } from '../../services/api';
+import { roleLabel } from '../../constants/roles';
 
 export const UsersPage = () => (
   <MasterListPage
@@ -24,13 +25,13 @@ export const UsersPage = () => (
       {
         key: 'roles',
         header: 'Peran',
-        render: (row) => (row.roles || []).map((role) => role.name).join(', ') || row.role || '—',
+        render: (row) => (row.roles || []).map((role) => roleLabel(role.name)).join(', ') || roleLabel(row.role) || '—',
       },
     ]}
     detailItems={(row) => [
       { label: 'Nama', value: row.name },
       { label: 'Email', value: row.email },
-      { label: 'Peran', value: (row.roles || []).map((role) => role.name).join(', ') || row.role },
+      { label: 'Peran', value: (row.roles || []).map((role) => roleLabel(role.name)).join(', ') || roleLabel(row.role) },
     ]}
   />
 );

@@ -1,3 +1,5 @@
+import { isUniversityAdminRole } from '../constants/roles';
+
 const SUBJECT_BY_KEY = {
   universitas: 'Universitas',
   fakultas: 'Fakultas',
@@ -52,7 +54,7 @@ export const parsePermission = (name) => {
 export const can = (user, action, subject) => {
   if (!user) return false;
   const roleNames = (user.roles || []).map((role) => role.name || role);
-  if (user.role === 'superadmin' || roleNames.includes('superadmin')) return true;
+  if (isUniversityAdminRole(user.role) || roleNames.some(isUniversityAdminRole)) return true;
   return (user.permissions || []).some((name) => {
     const parsed = parsePermission(name);
     return parsed?.action === action && parsed?.subject === subject;

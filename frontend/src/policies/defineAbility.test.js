@@ -7,7 +7,13 @@ const mahasiswa = {
   permissions: ['krs.read', 'krs.create', 'krs.update', 'rekap-cp.read', 'laporan-cp.read'],
 };
 
-const superadmin = {
+const universityAdmin = {
+  role: 'admin-universitas',
+  roles: [{ name: 'admin-universitas' }],
+  permissions: [],
+};
+
+const legacySuperadmin = {
   role: 'superadmin',
   roles: [{ name: 'superadmin' }],
   permissions: [],
@@ -30,9 +36,10 @@ describe('can', () => {
     expect(can({ permissions: [] }, 'read', 'Fakultas')).toBe(false);
   });
 
-  it('lets superadmin do everything', () => {
-    expect(can(superadmin, 'delete', 'Fakultas')).toBe(true);
-    expect(can(superadmin, 'read', 'Role')).toBe(true);
+  it('lets admin-universitas do everything', () => {
+    expect(can(universityAdmin, 'delete', 'Fakultas')).toBe(true);
+    expect(can(universityAdmin, 'read', 'Role')).toBe(true);
+    expect(can(legacySuperadmin, 'create', 'Cpmk')).toBe(true);
   });
 
   it('limits mahasiswa to laporan and krs', () => {

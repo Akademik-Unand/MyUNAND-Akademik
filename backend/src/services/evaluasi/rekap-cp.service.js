@@ -1,13 +1,15 @@
 'use strict';
 
-const { RekapCp, Mahasiswa, Cp } = require('../../models');
+const { sequelize, RekapCp, Mahasiswa, Cp } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
+const { rekapCpFilters, ORG_FILTER_FIELDS } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: [],
   sortableFields: ["createdAt"],
-  filterableFields: ["mahasiswa_id","cp_id"],
+  filterableFields: ["mahasiswa_id", "cp_id", "semester_prodi_id", ...ORG_FILTER_FIELDS],
+  virtualFilters: rekapCpFilters(sequelize),
   defaultInclude: [
     { model: Mahasiswa, as: 'mahasiswa' },
     { model: Cp, as: 'cp' },

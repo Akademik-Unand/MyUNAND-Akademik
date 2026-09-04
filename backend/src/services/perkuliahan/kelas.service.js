@@ -1,14 +1,16 @@
 'use strict';
 
-const { Kelas, Matakuliah, SemesterProdi, DosenKelas, Dosen, JadwalKelas, Ruang } = require('../../models');
+const { sequelize, Kelas, Matakuliah, SemesterProdi, DosenKelas, Dosen, JadwalKelas, Ruang } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
+const { kelasFilters, ORG_FILTER_FIELDS } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["nama"],
   sortableFields: ["nama","createdAt"],
-  filterableFields: ["matakuliah_id","semester_prodi_id"],
+  filterableFields: ["matakuliah_id", "semester_prodi_id", ...ORG_FILTER_FIELDS],
+  virtualFilters: kelasFilters(sequelize),
   defaultInclude: [
     { model: Matakuliah, as: 'matakuliah' },
     { model: SemesterProdi, as: 'semesterProdi' },

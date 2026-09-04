@@ -1,48 +1,50 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Fragment } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { IconButton } from '../../components/common/IconButton';
+import { IconButton, IconLink } from '../../components/common/IconButton';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Modal } from '../../components/ui/Modal';
-import { FormActions } from '../../components/common/FormActions';
+import { Badge } from '../../components/ui/Badge';
 import { ConfirmDeleteModal } from '../../components/common/ConfirmDeleteModal';
-import { CPMKItemForm } from '../../components/kurikulum/CPForms';
 import { useResourceItem, useResourceQuery } from '../../hooks/useResourceQuery';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useConfirmDelete } from '../../hooks/useConfirmDelete';
 import { PageSkeleton } from '../../components/common/PageSkeleton';
 import { Can } from '../../components/auth/Can';
 
+const querySuffix = (kurikulumId) => (kurikulumId ? `?kurikulum_id=${kurikulumId}` : '');
+
+const ScpBadges = ({ items }) => {
+  if (!items?.length) return '—';
+  return (
+    <div className="flex flex-wrap gap-1">
+      {items.map((scp) => (
+        <Badge key={scp.id} variant="ghost" wrap>
+          {scp.nama_scp}
+        </Badge>
+      ))}
+    </div>
+  );
+};
+
 export const AturCPMKPage = () => {
   const { id } = useParams();
+  const [params] = useSearchParams();
+  const kurikulumId = params.get('kurikulum_id') || '';
+  const suffix = querySuffix(kurikulumId);
   const mk = useResourceItem('matakuliah', id);
   const query = useResourceQuery('cpmk-detail', {
     params: id ? { filter: { matakuliah_id: id } } : {},
     enabled: Boolean(id),
   });
-  const mutations = useResourceMutations('cpmk-detail');
+  const mutations = useResourceMutations('cpmk-detail', {
+    remove: 'CPMK berhasil dihapus.',
+  });
   const del = useConfirmDelete();
-  const [modal, setModal] = useState({ open: false, mode: 'create', values: {} });
   const data = query.data ?? [];
-  const saving = mutations.create.isPending || mutations.update.isPending;
-
-  const save = async (e) => {
-    e.preventDefault();
-    if (saving) return;
-    const payload = {
-      matakuliah_id: id,
-      nama_cpmk: modal.values.nama_cpmk,
-      deskripsi: modal.values.deskripsi || null,
-    };
-    if (modal.mode === 'edit') {
-      await mutations.update.mutateAsync({ id: modal.values.id, payload });
-    } else {
-      await mutations.create.mutateAsync(payload);
-    }
-    setModal({ open: false, mode: 'create', values: {} });
-  };
+  const byId = new Map(data.map((item) => [item.id, item]));
+  const roots = data.filter((item) => !item.parent_cpmk_id || !byId.has(item.parent_cpmk_id));
 
   if (mk.isPending || query.isPending) return <PageSkeleton showFilter={false} tableCols={4} />;
 
@@ -66,9 +68,11 @@ export const AturCPMKPage = () => {
               </Link>
             </Can>
             <Can I="create" a="Cpmk">
-              <Button size="sm" className="gap-1.5" onClick={() => setModal({ open: true, mode: 'create', values: {} })}>
-                <Plus size={15} /> Tambah CPMK
-              </Button>
+              <Link to={`/kurikulum/cpmk/${id}/baru${suffix}`}>
+                <Button size="sm" className="gap-1.5">
+                  <Plus size={15} /> Tambah CPMK
+                </Button>
+              </Link>
             </Can>
           </div>
         }
@@ -81,37 +85,90 @@ export const AturCPMKPage = () => {
               <tr>
                 <th>Nama</th>
                 <th>Deskripsi</th>
+                <th>SCP terkait</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {data.map((item) => (
-                <tr key={item.id}>
-                  <td className="font-semibold">{item.nama_cpmk}</td>
-                  <td>{item.deskripsi}</td>
-                  <td>
-                    <div className="flex items-center gap-1">
-                      <Can I="update" a="Cpmk">
-                        <IconButton
-                          label="Ubah CPMK"
-                          icon={Pencil}
-                          tone="text-warning"
-                          onClick={() => setModal({ open: true, mode: 'edit', values: item })}
-                        />
-                      </Can>
-                      <Can I="delete" a="Cpmk">
-                        <IconButton
-                          label="Hapus CPMK"
-                          icon={Trash2}
-                          tone="text-error"
-                          tooltipPosition="tooltip-left"
-                          onClick={() => del.askDelete(item)}
-                        />
-                      </Can>
-                    </div>
+              {roots.map((item) => {
+                const children = data.filter((row) => row.parent_cpmk_id === item.id);
+                return (
+                  <Fragment key={item.id}>
+                    <tr>
+                      <td className="font-semibold">{item.nama_cpmk}</td>
+                      <td>{item.deskripsi || '—'}</td>
+                      <td>
+                        <ScpBadges items={item.scp} />
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1">
+                          <Can I="create" a="Cpmk">
+                            <IconLink
+                              label="Tambah Sub-CPMK"
+                              icon={Plus}
+                              to={`/kurikulum/cpmk/${id}/${item.id}/sub/baru${suffix}`}
+                            />
+                          </Can>
+                          <Can I="update" a="Cpmk">
+                            <IconLink
+                              label="Ubah CPMK"
+                              icon={Pencil}
+                              tone="text-warning"
+                              to={`/kurikulum/cpmk/${id}/${item.id}/edit${suffix}`}
+                            />
+                          </Can>
+                          <Can I="delete" a="Cpmk">
+                            <IconButton
+                              label="Hapus CPMK"
+                              icon={Trash2}
+                              tone="text-error"
+                              tooltipPosition="tooltip-left"
+                              onClick={() => del.askDelete(item)}
+                            />
+                          </Can>
+                        </div>
+                      </td>
+                    </tr>
+                    {children.map((child) => (
+                      <tr key={child.id}>
+                        <td className="pl-8">{child.nama_cpmk}</td>
+                        <td>{child.deskripsi || '—'}</td>
+                        <td>
+                          <ScpBadges items={child.scp} />
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-1">
+                            <Can I="update" a="Cpmk">
+                              <IconLink
+                                label="Ubah Sub-CPMK"
+                                icon={Pencil}
+                                tone="text-warning"
+                                to={`/kurikulum/cpmk/${id}/${child.id}/edit${suffix}`}
+                              />
+                            </Can>
+                            <Can I="delete" a="Cpmk">
+                              <IconButton
+                                label="Hapus Sub-CPMK"
+                                icon={Trash2}
+                                tone="text-error"
+                                tooltipPosition="tooltip-left"
+                                onClick={() => del.askDelete(child)}
+                              />
+                            </Can>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </Fragment>
+                );
+              })}
+              {roots.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-sm text-base-content/60">
+                    Belum ada CPMK. Tambah CPMK, pilih apakah punya Sub-CPMK, lalu petakan ke CP/SCP.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -121,24 +178,6 @@ export const AturCPMKPage = () => {
           </Link>
         </div>
       </Card>
-
-      <Modal
-        open={modal.open}
-        onClose={() => setModal({ open: false, mode: 'create', values: {} })}
-        title={modal.mode === 'edit' ? 'Ubah CPMK' : 'Tambah CPMK'}
-        closeOnBackdrop={!saving}
-        footer={
-          <FormActions
-            onCancel={() => setModal({ open: false, mode: 'create', values: {} })}
-            isLoading={saving}
-            onSubmitClick={() => document.getElementById('cpmk-item-form')?.requestSubmit()}
-          />
-        }
-      >
-        <form id="cpmk-item-form" onSubmit={save}>
-          <CPMKItemForm values={modal.values} onChange={(values) => setModal((m) => ({ ...m, values }))} />
-        </form>
-      </Modal>
 
       <ConfirmDeleteModal
         open={del.isOpen}

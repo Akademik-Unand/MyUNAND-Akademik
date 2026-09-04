@@ -72,10 +72,10 @@ export const Sidebar = () => {
   const renderMenu = (expanded) => (
     <div className="flex flex-col h-full bg-base-100 border-r border-base-300 select-none">
       {/* Sidebar Header / Brand */}
-      <div className="relative h-16 flex items-center justify-center bg-base-100 px-3 border-b border-base-300">
+      <div className="relative h-16 flex items-center justify-start bg-base-100 px-3 border-b border-base-300">
         <NavLink
           to="/"
-          className="flex h-full items-center justify-center"
+          className="flex h-full items-center justify-start"
           onClick={() => setMobileSidebarOpen(false)}
           title="myUNAND"
         >

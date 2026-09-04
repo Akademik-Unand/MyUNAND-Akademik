@@ -9,14 +9,17 @@ import { DataTable } from '../../components/common/DataTable';
 import { ConfirmDeleteModal } from '../../components/common/ConfirmDeleteModal';
 import { Drawer } from '../../components/ui/Drawer';
 import { DetailList } from '../../components/common/DetailList';
-import { ResourceSelect } from '../../components/common/ResourceSelect';
+import { FilterBar } from '../../components/common/FilterBar';
 import { Can } from '../../components/auth/Can';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
+import { useAcademicFilter } from '../../hooks/useAcademicFilter';
+
+const FILTER_KEYS = ['fakultas', 'departemen', 'prodi'];
 
 export const KurikulumDataPage = () => {
   const mutations = useResourceMutations('kurikulum', { remove: 'Kurikulum berhasil dihapus.' });
-  const [prodiId, setProdiId] = useState('');
-  const [opened, setOpened] = useState('');
+  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const extraFilter = academic.extraFilter;
   const [detail, setDetail] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -54,51 +57,43 @@ export const KurikulumDataPage = () => {
     <div className="space-y-6">
       <PageHeader
         title="Data Kurikulum"
-        subtitle="Pilih program studi untuk melihat data kurikulum"
+        subtitle="Pilih fakultas, departemen, lalu prodi, kemudian terapkan untuk melihat kurikulum"
         breadcrumbs={[{ label: 'Kurikulum' }, { label: 'Data Kurikulum' }]}
       />
 
-      <Card title="Data Kurikulum">
-        <div className="max-w-xl">
-          <ResourceSelect
-            resource="prodi"
-            label="Pilih Program Studi"
-            placeholder="Pilih Program Studi"
-            value={prodiId}
-            onChange={(e) => setProdiId(e.target.value)}
-          />
-          <div className="mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="font-semibold"
-              disabled={!prodiId}
-              onClick={() => setOpened(prodiId)}
-            >
-              BUKA &raquo;
-            </Button>
-          </div>
-        </div>
+      <Card title="Filter">
+        <FilterBar
+          fields={academic.fields}
+          onApply={academic.apply}
+          onReset={academic.reset}
+          applyDisabled={!academic.canApply}
+        />
       </Card>
 
-      {opened && (
+      {!extraFilter && (
+        <p className="text-sm text-base-content/60">Pilih fakultas, departemen, lalu prodi, kemudian klik Terapkan.</p>
+      )}
+
+      {extraFilter && (
         <Card
           title="Kurikulum"
           actions={
-            <Can I="create" a="Kurikulum">
-              <Link to={`/kurikulum/data/baru?prodi=${encodeURIComponent(opened)}`}>
-                <Button size="sm" className="gap-1.5">
-                  <Plus size={14} /> Tambahkan Data
-                </Button>
-              </Link>
-            </Can>
+            academic.applied.prodiId ? (
+              <Can I="create" a="Kurikulum">
+                <Link to={`/kurikulum/data/baru?prodi=${encodeURIComponent(academic.applied.prodiId)}`}>
+                  <Button size="sm" className="gap-1.5">
+                    <Plus size={14} /> Tambahkan Data
+                  </Button>
+                </Link>
+              </Can>
+            ) : null
           }
         >
           <DataTable
             resource="kurikulum"
             columns={columns}
             rowKey={(row) => row.id}
-            extraFilter={{ program_studi_id: opened }}
+            extraFilter={extraFilter}
             searchPlaceholder="Cari nama kurikulum atau tahun..."
           />
         </Card>

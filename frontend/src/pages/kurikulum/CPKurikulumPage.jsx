@@ -17,13 +17,17 @@ import { useResourceQuery } from '../../hooks/useResourceQuery';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useConfirmDelete } from '../../hooks/useConfirmDelete';
 import { Can } from '../../components/auth/Can';
-import { useFilterOptions } from '../../hooks/useFilterOptions';
+import { useAcademicFilter } from '../../hooks/useAcademicFilter';
+
+const FILTER_KEYS = ['fakultas', 'departemen', 'prodi', 'kurikulum'];
 
 export const CPKurikulumPage = () => {
-  const filters = useFilterOptions();
-  const [kurikulumId, setKurikulumId] = useState('');
+  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const kurikulumId = academic.applied.kurikulumId;
+  const extraFilter = academic.extraFilter;
   const query = useResourceQuery('kurikulum-cp', {
-    params: kurikulumId ? { filter: { kurikulum_id: kurikulumId } } : {},
+    params: extraFilter ? { filter: extraFilter } : {},
+    enabled: Boolean(extraFilter),
   });
   const cpMutations = useResourceMutations('kurikulum-cp', {
     create: 'CP berhasil ditambahkan.',
@@ -78,8 +82,6 @@ export const CPKurikulumPage = () => {
     setScpModal({ open: false, parent: null, values: {} });
   };
 
-  if (query.isPending) return <PageSkeleton showFilter cards={3} />;
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -92,6 +94,7 @@ export const CPKurikulumPage = () => {
               size="sm"
               className="gap-1.5 font-semibold"
               disabled={!kurikulumId}
+              title={!kurikulumId ? 'Pilih kurikulum dulu' : undefined}
               onClick={() => setCpModal({ open: true, mode: 'create', values: { kurikulum_id: kurikulumId } })}
             >
               <Plus size={15} /> Tambah CP
@@ -102,27 +105,25 @@ export const CPKurikulumPage = () => {
 
       <Card title="Filter">
         <FilterBar
-          fields={[
-            { label: 'Departemen', placeholder: 'Pilih Departemen', options: filters.departemen },
-            { label: 'Prodi', placeholder: 'Pilih', options: filters.prodi },
-            {
-              label: 'Kurikulum',
-              placeholder: 'Pilih Kurikulum',
-              options: filters.kurikulum,
-              value: kurikulumId,
-              onChange: (e) => setKurikulumId(e.target.value),
-            },
-          ]}
+          fields={academic.fields}
+          onApply={academic.apply}
+          onReset={academic.reset}
+          applyDisabled={!academic.canApply}
         />
       </Card>
 
       <div className="space-y-4">
+        {extraFilter && query.isPending && <PageSkeleton showFilter={false} cards={3} />}
         {data.map((so) => (
           <Card key={so.id}>
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-3">
-              <button type="button" className="text-left flex items-start gap-3" onClick={() => setDetail(so)}>
-                <Badge variant="primary">{so.nama_cp}</Badge>
-                <p className="text-sm text-base-content/80 leading-relaxed">{so.deskripsi}</p>
+              <button type="button" className="text-left flex flex-col items-start gap-2 min-w-0 flex-1" onClick={() => setDetail(so)}>
+                <Badge variant="primary" wrap>
+                  {so.nama_cp}
+                </Badge>
+                {so.deskripsi && (
+                  <p className="text-sm text-base-content/80 leading-relaxed">{so.deskripsi}</p>
+                )}
               </button>
               <div className="flex items-center gap-2 shrink-0">
                 <Can I="update" a="Cp">
@@ -204,8 +205,12 @@ export const CPKurikulumPage = () => {
             </div>
           </Card>
         ))}
-        {data.length === 0 && (
-          <p className="text-sm text-base-content/60">Pilih kurikulum, lalu tambah CP.</p>
+        {!query.isPending && data.length === 0 && (
+          <p className="text-sm text-base-content/60">
+            {extraFilter
+              ? 'Belum ada CP pada filter ini. Tambah CP setelah kurikulum dipilih.'
+              : 'Pilih fakultas hingga kurikulum, lalu klik Terapkan.'}
+          </p>
         )}
       </div>
 

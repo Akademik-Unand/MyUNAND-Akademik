@@ -7,20 +7,24 @@ import { Button } from '../../components/ui/Button';
 import { FilterBar } from '../../components/common/FilterBar';
 import { PageSkeleton } from '../../components/common/PageSkeleton';
 import { useResourceQuery } from '../../hooks/useResourceQuery';
-import { useFilterOptions } from '../../hooks/useFilterOptions';
+import { useAcademicFilter } from '../../hooks/useAcademicFilter';
 import { Can } from '../../components/auth/Can';
 import { updateResourceItem } from '../../services/api';
 
+const FILTER_KEYS = ['fakultas', 'departemen', 'prodi', 'kurikulum'];
+
 export const MKTranskripAturPage = () => {
   const navigate = useNavigate();
-  const query = useResourceQuery('mk-transkrip');
-  const filters = useFilterOptions();
+  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const extraFilter = academic.extraFilter;
+  const query = useResourceQuery('mk-transkrip', {
+    params: extraFilter ? { filter: extraFilter } : {},
+    enabled: Boolean(extraFilter),
+  });
   const [selected, setSelected] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  if (query.isPending) return <PageSkeleton tableCols={2} />;
-
-  const rows = query.data ?? [];
+  const rows = extraFilter ? (query.data ?? []) : [];
   const defaultSelected = rows.filter((row) => row.status === 'transkrip').map((row) => row.id);
   const checked = selected ?? defaultSelected;
   const allSelected = rows.length > 0 && checked.length === rows.length;
@@ -66,18 +70,28 @@ export const MKTranskripAturPage = () => {
         ]}
       />
 
-      <Card>
+      <Card title="Filter">
         <FilterBar
-          fields={[
-            { label: 'Departemen', placeholder: 'Pilih Departemen', options: filters.departemen },
-            { label: 'Prodi', placeholder: 'Pilih', options: filters.prodi },
-            { label: 'Kurikulum', placeholder: 'Pilih Kurikulum', options: filters.kurikulum },
-            { label: 'Semester', placeholder: 'Pilih Semester', options: filters.semester },
-          ]}
+          fields={academic.fields}
+          onApply={() => {
+            setSelected(null);
+            academic.apply();
+          }}
+          onReset={() => {
+            setSelected(null);
+            academic.reset();
+          }}
+          applyDisabled={!academic.canApply}
         />
       </Card>
 
       <Card title="Daftar Mata Kuliah">
+        {!extraFilter && (
+          <p className="text-sm text-base-content/60">Pilih fakultas hingga kurikulum, lalu klik Terapkan.</p>
+        )}
+        {extraFilter && query.isPending && <PageSkeleton tableCols={2} />}
+        {extraFilter && !query.isPending && (
+          <>
         <label className="mb-4 flex cursor-pointer items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -121,6 +135,8 @@ export const MKTranskripAturPage = () => {
             </Button>
           </Can>
         </div>
+          </>
+        )}
       </Card>
     </div>
   );

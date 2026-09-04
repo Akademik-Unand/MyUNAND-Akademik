@@ -22,6 +22,7 @@ import { KurikulumFormPage } from '../pages/kurikulum/KurikulumFormPage';
 import { CPKurikulumPage } from '../pages/kurikulum/CPKurikulumPage';
 import { CPMKKurikulumPage } from '../pages/kurikulum/CPMKKurikulumPage';
 import { AturCPMKPage } from '../pages/kurikulum/AturCPMKPage';
+import { CpmkFormPage } from '../pages/kurikulum/CpmkFormPage';
 import { MKSemesterPage } from '../pages/perkuliahan/MKSemesterPage';
 import { MKSemesterKelolaPage } from '../pages/perkuliahan/MKSemesterKelolaPage';
 import { MKTranskripAturPage } from '../pages/perkuliahan/MKTranskripAturPage';
@@ -70,7 +71,10 @@ export const router = createBrowserRouter([
           { path: 'kurikulum/data/:id/edit', element: gate('update', 'Kurikulum', <KurikulumFormPage />) },
           { path: 'kurikulum/data', element: gate('read', 'Kurikulum', <KurikulumDataPage />) },
           { path: 'kurikulum/cp', element: gate('read', 'Cp', <CPKurikulumPage />) },
-          { path: 'kurikulum/cpmk/:id', element: gate('update', 'Cpmk', <AturCPMKPage />) },
+          { path: 'kurikulum/cpmk/:id/:cpmkId/sub/baru', element: gateAny([{ I: 'create', a: 'Cpmk' }, { I: 'update', a: 'Cpmk' }], <CpmkFormPage />) },
+          { path: 'kurikulum/cpmk/:id/:cpmkId/edit', element: gateAny([{ I: 'create', a: 'Cpmk' }, { I: 'update', a: 'Cpmk' }], <CpmkFormPage />) },
+          { path: 'kurikulum/cpmk/:id/baru', element: gateAny([{ I: 'create', a: 'Cpmk' }, { I: 'update', a: 'Cpmk' }], <CpmkFormPage />) },
+          { path: 'kurikulum/cpmk/:id', element: gateAny([{ I: 'create', a: 'Cpmk' }, { I: 'update', a: 'Cpmk' }], <AturCPMKPage />) },
           { path: 'kurikulum/cpmk', element: gate('read', 'Cpmk', <CPMKKurikulumPage />) },
 
           { path: 'perkuliahan/mk-semester/transkrip/atur', element: gate('update', 'MatakuliahKurikulum', <MKTranskripAturPage />) },

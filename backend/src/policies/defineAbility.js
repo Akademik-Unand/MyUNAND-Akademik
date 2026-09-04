@@ -2,6 +2,7 @@
 
 const { AbilityBuilder, createMongoAbility } = require('@casl/ability');
 const { SUBJECT_BY_KEY } = require('../constants/permissions');
+const { isUniversityAdminRole } = require('../constants/roles');
 
 const parsePermission = (name) => {
   const [key, ...rest] = String(name).split('.');
@@ -16,7 +17,7 @@ const defineAbility = (user, permissions = [], roleNames = []) => {
   const names = new Set(roleNames);
   if (user?.role) names.add(user.role);
 
-  if (names.has('superadmin')) {
+  if ([...names].some(isUniversityAdminRole)) {
     can('manage', 'all');
     return build();
   }

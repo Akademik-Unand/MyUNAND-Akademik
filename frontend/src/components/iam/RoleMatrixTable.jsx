@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { roleLabel } from '../../constants/roles';
 
 export const RoleMatrixTable = ({ roles, groups, draft, onToggle, readOnly = false }) => {
   if (!roles.length) {
@@ -15,7 +16,7 @@ export const RoleMatrixTable = ({ roles, groups, draft, onToggle, readOnly = fal
         <tr>
           <th>Permission</th>
           {roles.map((role) => (
-            <th key={role.id} className="text-center">{role.name}</th>
+            <th key={role.id} className="text-center">{roleLabel(role.name)}</th>
           ))}
         </tr>
       </thead>

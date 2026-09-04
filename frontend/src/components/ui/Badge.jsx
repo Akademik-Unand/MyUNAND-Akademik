@@ -3,12 +3,14 @@
  * @param {Object} props
  * @param {'primary'|'secondary'|'accent'|'ghost'|'info'|'success'|'warning'|'error'|'neutral'} [props.variant='primary']
  * @param {'xs'|'sm'|'md'|'lg'} [props.size='sm']
+ * @param {boolean} [props.wrap=false] — izinkan teks panjang membungkus di dalam badge
  */
 export const Badge = ({
   children,
   variant = 'primary',
   size = 'sm',
   outline = false,
+  wrap = false,
   className = '',
   ...props
 }) => {
@@ -32,9 +34,10 @@ export const Badge = ({
   }[size] || 'badge-sm';
 
   const outlineClass = outline ? 'badge-outline' : '';
+  const wrapClass = wrap ? '!h-auto max-w-full whitespace-normal py-1 text-left leading-snug' : '';
 
   return (
-    <span className={`badge ${variantClass} ${sizeClass} ${outlineClass} font-medium ${className}`} {...props}>
+    <span className={`badge ${variantClass} ${sizeClass} ${outlineClass} font-medium ${wrapClass} ${className}`} {...props}>
       {children}
     </span>
   );

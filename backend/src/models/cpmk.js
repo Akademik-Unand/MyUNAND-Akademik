@@ -13,11 +13,14 @@ module.exports = (sequelize) => {
         as: 'scp',
       });
       Cpmk.hasMany(models.CpmkScp, { foreignKey: 'cpmk_id', as: 'cpmkScp' });
+      Cpmk.belongsTo(models.Cpmk, { foreignKey: 'parent_cpmk_id', as: 'parent' });
+      Cpmk.hasMany(models.Cpmk, { foreignKey: 'parent_cpmk_id', as: 'subCpmk' });
     }
   }
   Cpmk.init({
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     matakuliah_id: { type: DataTypes.UUID, allowNull: false },
+    parent_cpmk_id: { type: DataTypes.UUID, allowNull: true },
     nama_cpmk: { type: DataTypes.STRING(255), allowNull: false },
     deskripsi: { type: DataTypes.TEXT, allowNull: true },
   }, { sequelize, modelName: 'Cpmk', tableName: 'cpmk', timestamps: true, paranoid: true });

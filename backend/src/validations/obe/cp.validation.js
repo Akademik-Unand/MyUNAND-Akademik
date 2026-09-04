@@ -1,9 +1,9 @@
 'use strict';
 
 const Joi = require('joi');
-const { idParam, listQuery } = require('../common');
+const { idParam, listQuery, ORG_FILTER_FIELDS, uniqueFields } = require('../common');
 
-const list = listQuery(["nama_cp","createdAt"], ["kurikulum_id"]);
+const list = listQuery(["nama_cp","createdAt"], uniqueFields(["kurikulum_id"], ORG_FILTER_FIELDS));
 const create = Joi.object({
     kurikulum_id: Joi.string().uuid().required(),
     nama_cp: Joi.string().max(255).required(),

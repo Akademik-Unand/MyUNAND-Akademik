@@ -8,12 +8,14 @@ import { Button } from '../../components/ui/Button';
 import { FilterBar } from '../../components/common/FilterBar';
 import { DataTable } from '../../components/common/DataTable';
 import { Can } from '../../components/auth/Can';
-import { useFilterOptions } from '../../hooks/useFilterOptions';
+import { useAcademicFilter } from '../../hooks/useAcademicFilter';
+
+const FILTER_KEYS = ['fakultas', 'departemen', 'prodi', 'kurikulum', 'semester'];
 
 export const MKSemesterPage = () => {
   const [tab, setTab] = useState('mk');
-  const [kurikulumId, setKurikulumId] = useState('');
-  const filters = useFilterOptions();
+  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const extraFilter = academic.extraFilter;
 
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
@@ -88,20 +90,12 @@ export const MKSemesterPage = () => {
         }
       />
 
-      <Card>
+      <Card title="Filter">
         <FilterBar
-          fields={[
-            { label: 'Departemen', placeholder: 'Pilih Departemen', options: filters.departemen },
-            { label: 'Prodi', placeholder: 'Pilih', options: filters.prodi },
-            {
-              label: 'Kurikulum',
-              placeholder: 'Pilih Kurikulum',
-              options: filters.kurikulum,
-              value: kurikulumId,
-              onChange: (e) => setKurikulumId(e.target.value),
-            },
-            { label: 'Semester', placeholder: 'Pilih Semester', options: filters.semester },
-          ]}
+          fields={academic.fields}
+          onApply={academic.apply}
+          onReset={academic.reset}
+          applyDisabled={!academic.canApply}
         />
       </Card>
 
@@ -124,7 +118,7 @@ export const MKSemesterPage = () => {
             resource="mk-semester"
             tableKey="mk_"
             columns={columns}
-            extraFilter={kurikulumId ? { kurikulum_id: kurikulumId } : undefined}
+            extraFilter={extraFilter}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari kode atau nama mata kuliah..."
           />
@@ -136,7 +130,7 @@ export const MKSemesterPage = () => {
             resource="mk-transkrip"
             tableKey="tr_"
             columns={columns}
-            extraFilter={{ status: 'transkrip', ...(kurikulumId ? { kurikulum_id: kurikulumId } : {}) }}
+            extraFilter={{ status: 'transkrip', ...(extraFilter || {}) }}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari mata kuliah transkrip..."
           />

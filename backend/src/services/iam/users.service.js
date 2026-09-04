@@ -27,7 +27,7 @@ const getById = async (id) => toAccessPayload(await getUserAccessById(id, { requ
 
 const syncPrimaryRole = async (user, roles, transaction) => {
   const primary = roles[0];
-  if (primary && ['superadmin', 'admin', 'dosen', 'mahasiswa'].includes(primary.name)) {
+  if (primary?.name) {
     await user.update({ role: primary.name }, { transaction });
   }
 };

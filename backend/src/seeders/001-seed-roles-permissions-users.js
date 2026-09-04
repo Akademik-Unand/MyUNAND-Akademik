@@ -14,7 +14,7 @@ module.exports = {
     const roleMahasiswaId = uuidv4();
 
     await queryInterface.bulkInsert('roles', [
-      { id: roleSuperadminId, name: 'superadmin', guard_name: 'api', createdAt: now, updatedAt: now },
+      { id: roleSuperadminId, name: 'admin-universitas', guard_name: 'api', createdAt: now, updatedAt: now },
       { id: roleAdminId, name: 'admin', guard_name: 'api', createdAt: now, updatedAt: now },
       { id: roleDosenId, name: 'dosen', guard_name: 'api', createdAt: now, updatedAt: now },
       { id: roleMahasiswaId, name: 'mahasiswa', guard_name: 'api', createdAt: now, updatedAt: now },
@@ -31,7 +31,7 @@ module.exports = {
     ];
     await queryInterface.bulkInsert('permissions', permissions);
 
-    // 3. Role Permissions (Superadmin gets all)
+    // 3. Role Permissions (Admin Universitas gets all legacy grants)
     const rolePerms = permissions.map(p => ({
       id: uuidv4(),
       role_id: roleSuperadminId,
@@ -50,10 +50,10 @@ module.exports = {
     await queryInterface.bulkInsert('users', [
       {
         id: userSuperadminId,
-        name: 'Super Administrator',
+        name: 'Admin Universitas',
         email: 'superadmin@email.com',
         password: passwordHash,
-        role: 'superadmin',
+        role: 'admin-universitas',
         createdAt: now,
         updatedAt: now,
       },

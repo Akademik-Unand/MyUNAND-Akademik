@@ -1,14 +1,16 @@
 'use strict';
 
-const { Kurikulum, ProgramStudi, Cp } = require('../../models');
+const { sequelize, Kurikulum, ProgramStudi, Cp } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
+const { orgFiltersOnProgramStudiId } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["nama"],
   sortableFields: ["nama","tahun","masa_studi_ideal","masa_studi_maksimal","createdAt"],
-  filterableFields: ["program_studi_id","tahun"],
+  filterableFields: ["program_studi_id", "tahun", "fakultas_id", "departemen_id"],
+  virtualFilters: orgFiltersOnProgramStudiId(sequelize),
   defaultInclude: [
     { model: ProgramStudi, as: 'programStudi' },
     { model: Cp, as: 'cp' },

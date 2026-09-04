@@ -22,10 +22,16 @@ Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`.
 
 ## Grant default
 
-- superadmin: `manage` all (via nama role)
-- admin: semua kecuali `role.delete` dan `permission.delete`
+- admin-universitas (Admin Universitas): `manage` all (via nama role; slug lama `superadmin` masih dikenali)
+- admin: semua kecuali `role.delete` dan `permission.delete` (akun lama)
+- admin-fakultas: seperti admin, tanpa ubah universitas dan tanpa `role.sync-permissions`
+- admin-departemen: seperti admin-fakultas, fakultas hanya read
+- admin-prodi: seperti admin-departemen, departemen hanya read
 - dosen: `krs.read`, `krs.approve`, seluruh nilai/evaluasi, laporan read
+- dosen-pa: grant dosen + bimbingan akademik + `mahasiswa.read`
 - mahasiswa: `krs.read` / `krs.create` / `krs.update`, laporan read
+- orang-tua: laporan read
+- pimpinan-prodi / pimpinan-departemen / pimpinan-fakultas: read akademik (bukan IAM)
 
 Grant diubah lewat `GET /api/v1/roles/matrix` dan `PUT /api/v1/roles/:id/permissions`.
 

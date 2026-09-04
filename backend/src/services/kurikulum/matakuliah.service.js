@@ -1,6 +1,6 @@
 'use strict';
 
-const { Matakuliah, JenisSemester, TipeMatakuliah, SifatMatakuliah, Cpmk } = require('../../models');
+const { Matakuliah, JenisSemester, TipeMatakuliah, SifatMatakuliah, Cpmk, Kurikulum } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
@@ -14,6 +14,7 @@ const LIST_OPTIONS = {
     { model: TipeMatakuliah, as: 'tipeMatakuliah' },
     { model: SifatMatakuliah, as: 'sifatMatakuliah' },
     { model: Cpmk, as: 'cpmk' },
+    { model: Kurikulum, as: 'kurikulum' },
   ],
 };
 

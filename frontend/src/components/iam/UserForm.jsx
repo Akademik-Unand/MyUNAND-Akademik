@@ -1,4 +1,5 @@
 import { Input } from '../ui/Input';
+import { roleLabel } from '../../constants/roles';
 import { useResourceQuery } from '../../hooks/useResourceQuery';
 
 export const UserForm = ({ values, onChange }) => {
@@ -35,7 +36,7 @@ export const UserForm = ({ values, onChange }) => {
                 checked={selected.includes(role.id)}
                 onChange={() => toggleRole(role.id)}
               />
-              {role.name}
+              {roleLabel(role.name)}
             </label>
           ))}
         </div>

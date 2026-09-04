@@ -14,6 +14,7 @@ const buildListQuery = (Model, query = {}, options = {}) => {
     searchFields = [],
     sortableFields = [],
     filterableFields = [],
+    virtualFilters = {},
     defaultOrder = [['createdAt', 'DESC']],
   } = options;
 
@@ -36,8 +37,15 @@ const buildListQuery = (Model, query = {}, options = {}) => {
     }));
   }
 
+  const virtualClauses = [];
+
   const applyFilter = (key, val) => {
-    if (val === undefined || val === '' || !allowedFilter.includes(key) || !Model.rawAttributes[key]) {
+    if (val === undefined || val === '') return;
+    if (typeof virtualFilters[key] === 'function') {
+      virtualClauses.push(virtualFilters[key](val));
+      return;
+    }
+    if (!allowedFilter.includes(key) || !Model.rawAttributes[key]) {
       return;
     }
     where[key] = isTextType(Model.rawAttributes[key])
@@ -56,6 +64,10 @@ const buildListQuery = (Model, query = {}, options = {}) => {
     if (!RESERVED_PARAMS.includes(key)) {
       applyFilter(key, val);
     }
+  }
+
+  if (virtualClauses.length) {
+    where[Op.and] = virtualClauses;
   }
 
   const order =

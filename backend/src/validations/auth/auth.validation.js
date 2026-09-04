@@ -11,7 +11,7 @@ const register = Joi.object({
   name: Joi.string().max(255).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  role: Joi.string().valid('superadmin', 'admin', 'dosen', 'mahasiswa'),
+  role: Joi.string().max(64),
   dosen_id: Joi.string().uuid().allow(null),
   mahasiswa_id: Joi.string().uuid().allow(null),
 });

@@ -1,13 +1,15 @@
 'use strict';
 
-const { HistoryUploadNilai, Kelas, Matakuliah, User } = require('../../models');
+const { sequelize, HistoryUploadNilai, Kelas, Matakuliah, User } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
+const { historyUploadFilters, ORG_FILTER_FIELDS } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["file_name","keterangan"],
   sortableFields: ["createdAt"],
-  filterableFields: ["kelas_id","user_id"],
+  filterableFields: ["kelas_id", "user_id", ...ORG_FILTER_FIELDS],
+  virtualFilters: historyUploadFilters(sequelize),
   defaultInclude: [
     { model: Kelas, as: 'kelas',
       include: [

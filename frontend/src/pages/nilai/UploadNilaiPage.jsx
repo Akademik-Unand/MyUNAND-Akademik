@@ -8,12 +8,15 @@ import { DataTable } from '../../components/common/DataTable';
 import { Drawer } from '../../components/ui/Drawer';
 import { DetailList } from '../../components/common/DetailList';
 import { useCan } from '../../hooks/useCan';
-import { useFilterOptions } from '../../hooks/useFilterOptions';
+import { useAcademicFilter } from '../../hooks/useAcademicFilter';
+
+const FILTER_KEYS = ['fakultas', 'departemen', 'prodi', 'kurikulum', 'semester'];
 
 export const UploadNilaiPage = () => {
   const [tab, setTab] = useState('kelas');
   const [historyItem, setHistoryItem] = useState(null);
-  const filters = useFilterOptions();
+  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const extraFilter = academic.extraFilter;
   const can = useCan();
   const canKelola = can('upload', 'NilaiMahasiswa') || can('update', 'NilaiMahasiswa');
 
@@ -94,12 +97,10 @@ export const UploadNilaiPage = () => {
       />
       <Card title="Filter">
         <FilterBar
-          fields={[
-            { label: 'Departemen', placeholder: 'Pilih Departemen', options: filters.departemen },
-            { label: 'Prodi', placeholder: 'Pilih', options: filters.prodi },
-            { label: 'Kurikulum', placeholder: 'Pilih Kurikulum', options: filters.kurikulum },
-            { label: 'Semester', placeholder: 'Pilih Semester', options: filters.semester },
-          ]}
+          fields={academic.fields}
+          onApply={academic.apply}
+          onReset={academic.reset}
+          applyDisabled={!academic.canApply}
         />
       </Card>
       <div className="tabs tabs-box bg-base-200 w-fit">
@@ -116,6 +117,7 @@ export const UploadNilaiPage = () => {
             resource="upload-nilai"
             paramPrefix="kelas_"
             columns={columns}
+            extraFilter={extraFilter}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari kelas atau mata kuliah..."
           />
@@ -126,6 +128,7 @@ export const UploadNilaiPage = () => {
             resource="upload-history"
             paramPrefix="history_"
             columns={historyColumns}
+            extraFilter={extraFilter}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari kelas atau pengunggah..."
           />

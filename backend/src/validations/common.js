@@ -1,10 +1,13 @@
 'use strict';
 
 const Joi = require('joi');
+const { ORG_FILTER_FIELDS } = require('../helpers/academicFilters');
 
 const idParam = Joi.object({
   id: Joi.string().uuid().required(),
 });
+
+const uniqueFields = (...groups) => [...new Set(groups.flat())];
 
 const listQuery = (sortableFields = [], filterableFields = []) => {
   const sortBy = sortableFields.length
@@ -29,4 +32,4 @@ const listQuery = (sortableFields = [], filterableFields = []) => {
   });
 };
 
-module.exports = { idParam, listQuery };
+module.exports = { idParam, listQuery, ORG_FILTER_FIELDS, uniqueFields };

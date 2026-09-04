@@ -1,14 +1,16 @@
 'use strict';
 
-const { Cp, Kurikulum, Scp } = require('../../models');
+const { sequelize, Cp, Kurikulum, Scp } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
+const { orgFiltersOnKurikulumId, ORG_FILTER_FIELDS } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: ["nama_cp","deskripsi"],
   sortableFields: ["nama_cp","createdAt"],
-  filterableFields: ["kurikulum_id"],
+  filterableFields: ["kurikulum_id", ...ORG_FILTER_FIELDS],
+  virtualFilters: orgFiltersOnKurikulumId(sequelize),
   defaultInclude: [
     { model: Kurikulum, as: 'kurikulum' },
     { model: Scp, as: 'scp' },

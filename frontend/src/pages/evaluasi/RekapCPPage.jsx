@@ -7,11 +7,14 @@ import { FilterBar } from '../../components/common/FilterBar';
 import { DataTable } from '../../components/common/DataTable';
 import { Drawer } from '../../components/ui/Drawer';
 import { DetailList } from '../../components/common/DetailList';
-import { useFilterOptions } from '../../hooks/useFilterOptions';
+import { useAcademicFilter } from '../../hooks/useAcademicFilter';
+
+const FILTER_KEYS = ['fakultas', 'departemen', 'prodi', 'kurikulum', 'semester'];
 
 export const RekapCPPage = () => {
   const [detail, setDetail] = useState(null);
-  const filters = useFilterOptions();
+  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const extraFilter = academic.extraFilter;
 
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
@@ -56,12 +59,10 @@ export const RekapCPPage = () => {
 
       <Card title="Filter">
         <FilterBar
-          fields={[
-            { label: 'Departemen', placeholder: 'Pilih Departemen', options: filters.departemen },
-            { label: 'Prodi', placeholder: 'Pilih', options: filters.prodi },
-            { label: 'Kurikulum', placeholder: 'Pilih Kurikulum', options: filters.kurikulum },
-            { label: 'Semester', placeholder: 'Pilih Semester', options: filters.semester },
-          ]}
+          fields={academic.fields}
+          onApply={academic.apply}
+          onReset={academic.reset}
+          applyDisabled={!academic.canApply}
         />
       </Card>
 
@@ -69,6 +70,7 @@ export const RekapCPPage = () => {
         <DataTable
           resource="rekap-cp"
           columns={columns}
+          extraFilter={extraFilter}
           rowKey={(row) => row.id}
           searchPlaceholder="Cari mahasiswa atau CP..."
         />

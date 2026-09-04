@@ -15,7 +15,7 @@ module.exports = (sequelize) => {
     email: { type: DataTypes.STRING(255), allowNull: false, unique: true },
     email_verified_at: { type: DataTypes.DATE, allowNull: true },
     password: { type: DataTypes.STRING(255), allowNull: false },
-    role: { type: DataTypes.ENUM('superadmin', 'admin', 'dosen', 'mahasiswa'), defaultValue: 'admin' },
+    role: { type: DataTypes.STRING(64), allowNull: false, defaultValue: 'admin' },
     dosen_id: { type: DataTypes.UUID, allowNull: true },
     mahasiswa_id: { type: DataTypes.UUID, allowNull: true },
     remember_token: { type: DataTypes.STRING(100), allowNull: true },

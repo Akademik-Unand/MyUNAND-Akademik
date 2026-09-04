@@ -3,9 +3,14 @@
 const { defineAbility, parsePermission } = require('../../../src/policies/defineAbility');
 
 describe('defineAbility', () => {
-  it('gives superadmin manage all', () => {
-    const ability = defineAbility({ role: 'superadmin' }, []);
+  it('gives admin-universitas manage all', () => {
+    const ability = defineAbility({ role: 'admin-universitas' }, []);
     expect(ability.can('delete', 'Fakultas')).toBe(true);
+    expect(ability.can('manage', 'all')).toBe(true);
+  });
+
+  it('still treats legacy superadmin as university admin', () => {
+    const ability = defineAbility({ role: 'superadmin' }, []);
     expect(ability.can('manage', 'all')).toBe(true);
   });
 

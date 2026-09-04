@@ -4,6 +4,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { updateProfile } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
+import { roleLabel } from '../../constants/roles';
 
 export const ProfileAccountForm = ({ user }) => {
   const setUser = useAuthStore((state) => state.setUser);
@@ -38,7 +39,7 @@ export const ProfileAccountForm = ({ user }) => {
       <Input label="Email" type="email" value={user?.email || ''} disabled />
       <Input
         label="Peran"
-        value={(user?.roles || []).map((role) => role.name).join(', ') || user?.role || '—'}
+        value={(user?.roles || []).map((role) => roleLabel(role.name)).join(', ') || roleLabel(user?.role) || '—'}
         disabled
       />
       {error && <p className="text-sm text-error">{error}</p>}

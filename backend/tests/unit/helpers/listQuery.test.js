@@ -57,4 +57,34 @@ describe('buildListQuery', () => {
     expect(result.where.createdAt).toBeUndefined();
     expect(result.where.nama_resmi).toBeUndefined();
   });
+
+  it('applies virtualFilters even when the key is not a model column', () => {
+    const result = buildListQuery(Model, {
+      filter: { program_studi_id: 'abc' },
+    }, {
+      ...options,
+      virtualFilters: {
+        program_studi_id: (val) => ({ universitas_id: val }),
+      },
+    });
+
+    expect(result.where[Op.and]).toEqual([{ universitas_id: 'abc' }]);
+  });
+
+  it('combines multiple virtualFilters with Op.and', () => {
+    const result = buildListQuery(Model, {
+      filter: { fakultas_id: 'f1', semester_id: 's1' },
+    }, {
+      ...options,
+      virtualFilters: {
+        fakultas_id: (val) => ({ universitas_id: val }),
+        semester_id: (val) => ({ kode_fakultas: val }),
+      },
+    });
+
+    expect(result.where[Op.and]).toEqual([
+      { universitas_id: 'f1' },
+      { kode_fakultas: 's1' },
+    ]);
+  });
 });

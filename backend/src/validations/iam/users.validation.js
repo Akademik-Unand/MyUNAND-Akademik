@@ -9,7 +9,7 @@ const create = Joi.object({
   name: Joi.string().max(255).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  role: Joi.string().valid('superadmin', 'admin', 'dosen', 'mahasiswa'),
+  role: Joi.string().max(64),
   dosen_id: Joi.string().uuid().allow(null),
   mahasiswa_id: Joi.string().uuid().allow(null),
 });
@@ -18,7 +18,7 @@ const update = Joi.object({
   name: Joi.string().max(255).allow(null),
   email: Joi.string().email().allow(null),
   password: Joi.string().min(6).allow(null, ''),
-  role: Joi.string().valid('superadmin', 'admin', 'dosen', 'mahasiswa').allow(null),
+  role: Joi.string().max(64).allow(null),
   dosen_id: Joi.string().uuid().allow(null),
   mahasiswa_id: Joi.string().uuid().allow(null),
 });

@@ -22,9 +22,9 @@ const mahasiswa = {
   permissions: ['krs.read', 'krs.create', 'krs.update', 'rekap-cp.read', 'laporan-cp.read'],
 };
 
-const superadmin = {
-  role: 'superadmin',
-  roles: [{ name: 'superadmin' }],
+const universityAdmin = {
+  role: 'admin-universitas',
+  roles: [{ name: 'admin-universitas' }],
   permissions: [],
 };
 
@@ -37,8 +37,8 @@ describe('filterNavigation', () => {
     ]);
   });
 
-  it('keeps the full menu for superadmin', () => {
-    expect(pathsOf(filterNavigation(NAVIGATION_MENU, superadmin))).toEqual(
+  it('keeps the full menu for admin-universitas', () => {
+    expect(pathsOf(filterNavigation(NAVIGATION_MENU, universityAdmin))).toEqual(
       pathsOf(NAVIGATION_MENU),
     );
   });

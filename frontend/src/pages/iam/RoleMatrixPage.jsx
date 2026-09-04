@@ -11,6 +11,7 @@ import { getRolePermissionMatrix, syncRolePermissions } from '../../services/api
 import { Can } from '../../components/auth/Can';
 import { useCan } from '../../hooks/useCan';
 import { useBusyAction } from '../../hooks/useBusyAction';
+import { isUniversityAdminRole, roleLabel } from '../../constants/roles';
 
 const matchesQuery = (permission, query) => {
   const haystack = [permission.name, permission.description, permission.group, permission.subject]
@@ -63,11 +64,11 @@ export const RoleMatrixPage = () => {
   const saveRole = (role) =>
     run(async () => {
       await syncRolePermissions(role.id, draft[role.id] || []);
-      toast.success(`Permission ${role.name} tersimpan.`);
+      toast.success(`Permission ${roleLabel(role.name)} tersimpan.`);
       await refetch();
     });
 
-  const roles = (data?.roles || []).filter((role) => role.name !== 'superadmin');
+  const roles = (data?.roles || []).filter((role) => !isUniversityAdminRole(role.name));
 
   if (isLoading) return <PageSkeleton />;
 
@@ -75,7 +76,7 @@ export const RoleMatrixPage = () => {
     <div className="space-y-4">
       <PageHeader
         title="Peran & Permission"
-        subtitle="Centang aksi yang boleh dilakukan tiap peran. Superadmin selalu punya semua akses."
+        subtitle="Centang aksi yang boleh dilakukan tiap peran. Admin Universitas selalu punya semua akses."
         breadcrumbs={[{ label: 'Pengguna & Akses' }, { label: 'Peran' }]}
       />
       <Card className="overflow-x-auto">
@@ -110,7 +111,7 @@ export const RoleMatrixPage = () => {
             <div className="flex flex-wrap gap-2 p-4 border-t border-base-300">
               {roles.map((role) => (
                 <Button key={role.id} size="sm" onClick={() => saveRole(role)} isLoading={Boolean(busy)} disabled={Boolean(busy)}>
-                  Simpan {role.name}
+                  Simpan {roleLabel(role.name)}
                 </Button>
               ))}
             </div>

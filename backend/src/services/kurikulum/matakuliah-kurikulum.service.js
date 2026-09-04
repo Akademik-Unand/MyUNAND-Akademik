@@ -1,17 +1,24 @@
 'use strict';
 
-const { MatakuliahKurikulum, Kurikulum, Matakuliah } = require('../../models');
+const { sequelize, MatakuliahKurikulum, Kurikulum, Matakuliah } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
+const { mkKurikulumFilters, ROOT_CPMK_COUNT_SQL, ORG_FILTER_FIELDS } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: [],
   sortableFields: ["status","createdAt"],
-  filterableFields: ["kurikulum_id","matakuliah_id","status"],
+  filterableFields: ["kurikulum_id", "matakuliah_id", "status", ...ORG_FILTER_FIELDS],
+  virtualFilters: mkKurikulumFilters(sequelize),
   defaultInclude: [
     { model: Kurikulum, as: 'kurikulum' },
     { model: Matakuliah, as: 'matakuliah' },
   ],
+  findOptions: {
+    attributes: {
+      include: [[sequelize.literal(ROOT_CPMK_COUNT_SQL), 'cpmk_count']],
+    },
+  },
 };
 
 const list = (query) => paginate(MatakuliahKurikulum, query, LIST_OPTIONS);

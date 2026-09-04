@@ -1,5 +1,9 @@
+import { Link } from 'react-router-dom';
+
 export const MappingMatrix = ({ matrix }) => {
-  const flatHeaders = matrix.headers.flatMap((h) => h.pis.map((pi) => ({ so: h.so, pi, key: `${h.so}|${pi}` })));
+  const flatHeaders = (matrix.headers || []).flatMap((h) =>
+    (h.pis || []).map((pi) => ({ so: h.so, pi, key: `${h.so}|${pi}` }))
+  );
 
   return (
     <div className="overflow-x-auto">
@@ -10,8 +14,8 @@ export const MappingMatrix = ({ matrix }) => {
             <th rowSpan={2} className="align-middle">Kode</th>
             <th rowSpan={2} className="align-middle">Mata Kuliah</th>
             <th rowSpan={2} className="align-middle">SKS</th>
-            {matrix.headers.map((h) => (
-              <th key={h.so} colSpan={h.pis.length} className="text-center">
+            {(matrix.headers || []).map((h) => (
+              <th key={h.so} colSpan={Math.max(h.pis?.length || 0, 1)} className="text-center">
                 {h.so}
               </th>
             ))}
@@ -23,14 +27,22 @@ export const MappingMatrix = ({ matrix }) => {
           </tr>
         </thead>
         <tbody>
-          {matrix.rows.map((row, idx) => (
-            <tr key={row.kode}>
+          {(matrix.rows || []).map((row, idx) => (
+            <tr key={row.kode || idx}>
               <td>{idx + 1}</td>
-              <td className="font-semibold whitespace-nowrap">{row.kode}</td>
+              <td className="font-semibold whitespace-nowrap">
+                {row.to ? (
+                  <Link to={row.to} className="link link-hover">
+                    {row.kode}
+                  </Link>
+                ) : (
+                  row.kode
+                )}
+              </td>
               <td className="whitespace-nowrap">{row.nama}</td>
               <td>{row.sks ?? '—'}</td>
               {flatHeaders.map((h) => {
-                const items = row.cells[h.key] || [];
+                const items = row.cells?.[h.key] || [];
                 return (
                   <td
                     key={h.key}
@@ -44,6 +56,13 @@ export const MappingMatrix = ({ matrix }) => {
               })}
             </tr>
           ))}
+          {!(matrix.rows || []).length && (
+            <tr>
+              <td colSpan={4 + flatHeaders.length} className="text-sm text-base-content/60">
+                Belum ada data mapping.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

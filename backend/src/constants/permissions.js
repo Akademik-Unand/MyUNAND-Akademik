@@ -113,8 +113,10 @@ const MASTER_TABLES = [
   'users',
 ];
 
+const IAM_DANGER = new Set(['role.delete', 'permission.delete']);
+
 const isAdminAllowed = (item) => {
-  if (item.name === 'role.delete' || item.name === 'permission.delete') return false;
+  if (IAM_DANGER.has(item.name)) return false;
   return true;
 };
 
@@ -132,6 +134,53 @@ const isMahasiswaAllowed = (item) => {
   return false;
 };
 
+const isDosenPaAllowed = (item) => {
+  if (isDosenAllowed(item)) return true;
+  if (item.key === 'bimbingan-akademik') return true;
+  if (item.key === 'mahasiswa' && item.action === 'read') return true;
+  return false;
+};
+
+const isOrangTuaAllowed = (item) => item.group === 'laporan' && item.action === 'read';
+
+const isPimpinanAllowed = (item) => {
+  if (item.group === 'iam') return false;
+  return item.action === 'read';
+};
+
+const isAdminFakultasAllowed = (item) => {
+  if (IAM_DANGER.has(item.name) || item.name === 'role.sync-permissions') return false;
+  if (item.key === 'universitas' && item.action !== 'read') return false;
+  return true;
+};
+
+const isAdminDepartemenAllowed = (item) => {
+  if (!isAdminFakultasAllowed(item)) return false;
+  if (item.key === 'fakultas' && item.action !== 'read') return false;
+  return true;
+};
+
+const isAdminProdiAllowed = (item) => {
+  if (!isAdminDepartemenAllowed(item)) return false;
+  if (item.key === 'departemen' && item.action !== 'read') return false;
+  return true;
+};
+
+const ROLE_GRANT_PREDICATES = {
+  'admin-universitas': () => true,
+  admin: isAdminAllowed,
+  dosen: isDosenAllowed,
+  mahasiswa: isMahasiswaAllowed,
+  'dosen-pa': isDosenPaAllowed,
+  'orang-tua': isOrangTuaAllowed,
+  'admin-prodi': isAdminProdiAllowed,
+  'admin-departemen': isAdminDepartemenAllowed,
+  'admin-fakultas': isAdminFakultasAllowed,
+  'pimpinan-prodi': isPimpinanAllowed,
+  'pimpinan-departemen': isPimpinanAllowed,
+  'pimpinan-fakultas': isPimpinanAllowed,
+};
+
 module.exports = {
   CRUD,
   SUBJECTS,
@@ -142,4 +191,11 @@ module.exports = {
   isAdminAllowed,
   isDosenAllowed,
   isMahasiswaAllowed,
+  isDosenPaAllowed,
+  isOrangTuaAllowed,
+  isPimpinanAllowed,
+  isAdminProdiAllowed,
+  isAdminDepartemenAllowed,
+  isAdminFakultasAllowed,
+  ROLE_GRANT_PREDICATES,
 };
