@@ -1,0 +1,49 @@
+# MySQL/MariaDB tidak di-container. Pakai database host (Laragon).
+# Dari container backend, host MySQL dijangkau lewat host.docker.internal.
+# Redis-only (dev lokal): docker compose up -d redis
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      DB_HOST: host.docker.internal
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      CORS_ORIGIN: http://localhost:5173,http://localhost:4173,http://localhost:8080
+      APP_URL: http://localhost:3000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  redis_data:

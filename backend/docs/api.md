@@ -8,6 +8,8 @@ Response list: `data` (array) + `pagination` `{ page, limit, total, totalPages }
 Auth publik: `POST /api/v1/auth/login`. Endpoint lain memakai JWT + CASL.
 Health: `GET /up`.
 
+Redis opsional (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`). Backend tetap boot jika Redis down. Cache JSON: `helpers/cache.js` (`get` / `set` / `del`).
+
 Auth terautentikasi:
 - `GET /api/v1/auth/me`, `GET /api/v1/auth/profile`
 - `PUT /api/v1/auth/profile` `{ name }`
