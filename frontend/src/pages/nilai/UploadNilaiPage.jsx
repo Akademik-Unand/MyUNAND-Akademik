@@ -31,7 +31,7 @@ export const UploadNilaiPage = () => {
   const can = useCan();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Kelola Upload Nilai oleh Departemen"
         subtitle="Unggah dan kelola nilai perkuliahan per kelas"

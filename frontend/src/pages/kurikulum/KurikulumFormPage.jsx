@@ -58,7 +58,7 @@ export const KurikulumFormPage = () => {
   if (isEdit && existing.isPending) return <PageSkeleton cards={1} />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={isEdit ? 'Ubah Kurikulum' : 'Tambah Kurikulum'}
         breadcrumbs={[

@@ -49,7 +49,7 @@ export const AturCPMKPage = () => {
   if (mk.isPending || query.isPending) return <PageSkeleton showFilter={false} tableCols={4} />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Kelola CPMK"
         subtitle={`${mk.data?.nama_resmi || ''} | ${mk.data?.kode_matakuliah || ''} | ${mk.data?.jumlah_sks_kurikulum || 0} sks`}

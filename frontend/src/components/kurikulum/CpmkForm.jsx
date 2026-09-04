@@ -31,7 +31,7 @@ export const CpmkForm = ({
       <Textarea label="Deskripsi *" value={values.deskripsi || ''} onChange={set('deskripsi')} required />
       {showHasSub && (
         <fieldset className="fieldset p-0 gap-1">
-          <legend className="fieldset-legend text-xs font-medium text-base-content/80">
+          <legend className="text-xs font-medium text-base-content/80">
             Punya Sub-CPMK? *
           </legend>
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">

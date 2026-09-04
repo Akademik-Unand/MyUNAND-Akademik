@@ -11,7 +11,7 @@ export const FilterBar = ({
   applyDisabled = false,
 }) => {
   return (
-    <div className={`flex flex-wrap items-end gap-3 ${className}`}>
+    <div className={`flex flex-wrap items-end gap-2 ${className}`}>
       {fields.map((field) => (
         <Select
           key={field.name || field.label}

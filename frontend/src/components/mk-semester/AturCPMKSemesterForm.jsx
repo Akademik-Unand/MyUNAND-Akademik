@@ -30,7 +30,7 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
   const overMax = totalBobot > MAX_MK_BOBOT;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {items.map((cpmk) => {
         const leaf = isLeafCpmk(cpmk, items);
         return (

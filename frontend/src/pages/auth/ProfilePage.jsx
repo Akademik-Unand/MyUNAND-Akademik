@@ -9,7 +9,7 @@ export const ProfilePage = () => {
   const user = useAuthStore((state) => state.user);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Profil"
         subtitle="Data akun yang dipakai di sistem kurikulum"

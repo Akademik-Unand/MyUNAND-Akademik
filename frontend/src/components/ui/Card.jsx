@@ -19,9 +19,9 @@ export const Card = ({
       className={`card bg-base-100 shadow-xs ${className}`}
       {...props}
     >
-      <div className={`card-body p-5 md:p-6 ${bodyClassName}`}>
+      <div className={`card-body p-3.5 md:p-4 ${bodyClassName}`}>
         {hasHeader && (
-          <div className="flex items-center justify-between gap-2 mb-3 border-b border-base-200 pb-3">
+          <div className="flex items-center justify-between gap-2 mb-0 border-b border-base-200 pb-1">
             <div className="flex items-center gap-2.5">
               {Icon && (
                 <div className="w-8 h-8 shrink-0 rounded-full bg-base-200 text-base-content/60 flex items-center justify-center">
@@ -29,7 +29,7 @@ export const Card = ({
                 </div>
               )}
               <div>
-                {title && <h3 className="card-title text-base md:text-lg font-medium text-base-content">{title}</h3>}
+                {title && <h3 className="card-title text-sm md:text-base font-medium text-base-content">{title}</h3>}
                 {subtitle && <p className="text-xs text-base-content/60 mt-0.5">{subtitle}</p>}
               </div>
             </div>

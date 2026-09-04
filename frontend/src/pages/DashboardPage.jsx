@@ -24,7 +24,7 @@ export const DashboardPage = () => {
   if (isPending) return <DashboardSkeleton />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Dashboard Admin"
         subtitle="Ringkasan capaian kurikulum dan perkuliahan semester berjalan"

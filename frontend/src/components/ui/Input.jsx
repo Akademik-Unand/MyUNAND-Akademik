@@ -31,7 +31,7 @@ export const Input = ({
   return (
     <fieldset className={`fieldset w-full gap-1 p-0 ${className}`}>
       {label && (
-        <legend className="fieldset-legend text-xs font-medium text-base-content/80">{label}</legend>
+        <legend className="text-xs font-medium text-base-content/80">{label}</legend>
       )}
       {control}
       {error && <p className="label text-error text-xs">{error}</p>}

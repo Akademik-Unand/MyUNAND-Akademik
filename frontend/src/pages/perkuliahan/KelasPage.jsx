@@ -12,7 +12,7 @@ export const KelasPage = () => {
   const extraFilter = academic.extraFilter;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Daftar Kelas"
         subtitle="Daftar kelas perkuliahan per semester"

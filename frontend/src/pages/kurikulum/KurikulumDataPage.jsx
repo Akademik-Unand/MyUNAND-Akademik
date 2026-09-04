@@ -54,7 +54,7 @@ export const KurikulumDataPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Data Kurikulum"
         subtitle="Pilih fakultas, departemen, lalu prodi, kemudian terapkan untuk melihat kurikulum"

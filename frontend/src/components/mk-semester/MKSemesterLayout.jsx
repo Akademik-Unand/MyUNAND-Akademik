@@ -21,7 +21,7 @@ export const MKSemesterLayout = ({ children, action, semester, onSemesterChange 
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Kelola MK Semester"
         subtitle={`${mkLabel(mk)} (${mkKode(mk)})`}

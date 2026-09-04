@@ -3,7 +3,7 @@ import { Card } from '../ui/Card';
 
 export const DashboardSkeleton = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex justify-between gap-3">
         <div className="space-y-2">
           <Skeleton className="h-3 w-32" />

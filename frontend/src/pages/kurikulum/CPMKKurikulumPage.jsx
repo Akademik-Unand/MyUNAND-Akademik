@@ -107,7 +107,7 @@ export const CPMKKurikulumPage = () => {
   const mappingPending = tab === 'mapping' && kurikulumId && (cps.isPending || mkLinks.isPending || cpmkRows.isPending);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Kelola CPMK"
         subtitle="Kelola capaian pembelajaran mata kuliah (CPMK) pada kurikulum"

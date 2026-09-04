@@ -58,7 +58,7 @@ export const LaporanCPPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Laporan CP"
         subtitle="Kumpulkan dan tinjau laporan capaian pembelajaran"

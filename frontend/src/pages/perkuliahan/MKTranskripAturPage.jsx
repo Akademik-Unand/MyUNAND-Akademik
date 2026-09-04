@@ -59,7 +59,7 @@ export const MKTranskripAturPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Atur Matakuliah Transkrip"
         subtitle="Pilih mata kuliah yang masuk ke transkrip capaian pembelajaran"

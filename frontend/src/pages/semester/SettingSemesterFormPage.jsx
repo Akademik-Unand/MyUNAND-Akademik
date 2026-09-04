@@ -55,7 +55,7 @@ export const SettingSemesterFormPage = () => {
   if (isEdit && existing.isPending) return <PageSkeleton cards={1} />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={isEdit ? 'Ubah Setting Semester' : 'Tambah Setting Semester'}
         subtitle="Atur tahun, jenis, dan periode semester"

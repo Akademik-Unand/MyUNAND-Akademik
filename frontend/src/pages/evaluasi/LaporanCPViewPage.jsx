@@ -25,7 +25,7 @@ export const LaporanCPViewPage = () => {
   if (query.isPending) return <PageSkeleton cards={2} />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={laporan?.nama_laporan || 'Laporan CP'}
         subtitle="Pratinjau laporan capaian pembelajaran"

@@ -15,7 +15,7 @@ export const UploadNilaiKelolaPage = () => {
   if (kelas.isPending) return <PageSkeleton cards={2} />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={display}
         subtitle={title}

@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 
 export const PlaceholderPage = ({ title, group = 'Master Data', description }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={title}
         subtitle={description || `Modul ${title} pada ${group} SIAKAD Kurikulum`}

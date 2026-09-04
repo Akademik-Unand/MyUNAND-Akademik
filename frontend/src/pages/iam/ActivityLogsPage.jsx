@@ -17,7 +17,7 @@ export const ActivityLogsPage = () => {
   const [detail, setDetail] = useState(null);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Jejak Aktivitas"
         subtitle="Pantau siapa yang menambah, mengubah, atau mengarsipkan data"

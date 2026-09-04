@@ -36,7 +36,7 @@ export const ScpPicker = ({ kurikulumId, value = [], onChange, required = false 
 
   return (
     <fieldset className="fieldset p-0 gap-2">
-      <legend className="fieldset-legend text-xs font-medium text-base-content/80">
+      <legend className="text-xs font-medium text-base-content/80">
         CP / SCP terkait{required ? ' *' : ' (opsional)'}
       </legend>
       <p className="text-xs text-base-content/60">

@@ -8,10 +8,10 @@ export const PageHeader = ({
   className = '',
 }) => {
   return (
-    <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 ${className}`}>
+    <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-1.5 mb-0 ${className}`}>
       <div className="min-w-0">
         {breadcrumbs.length > 0 && (
-          <div className={title ? 'mb-2' : ''}>
+          <div className={title ? 'mb-1' : ''}>
             <Breadcrumb items={breadcrumbs} />
           </div>
         )}
@@ -20,7 +20,7 @@ export const PageHeader = ({
             {title}
           </h1>
         )}
-        {subtitle && <p className="text-xs md:text-sm text-base-content/70 mt-1">{subtitle}</p>}
+        {subtitle && <p className="text-xs md:text-sm text-base-content/70 mt-0.5">{subtitle}</p>}
       </div>
 
       {action && <div className="flex items-center gap-2">{action}</div>}

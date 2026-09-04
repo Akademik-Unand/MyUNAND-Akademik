@@ -70,7 +70,7 @@ export const LaporanCPFormPage = () => {
   if (isEdit && existing.isPending) return <PageSkeleton cards={2} />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={isEdit ? 'Ubah Laporan CP' : 'Buat Laporan CP'}
         breadcrumbs={[

@@ -10,7 +10,7 @@ export const DataTableToolbar = ({
   actions,
 }) => {
   return (
-    <div className="flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 pb-2 sm:flex-row sm:items-center sm:justify-between">
       <label className="input input-sm w-full sm:max-w-xs">
         <Search size={15} className="opacity-50" />
         <input

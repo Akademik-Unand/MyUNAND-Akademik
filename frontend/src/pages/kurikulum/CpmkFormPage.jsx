@@ -123,7 +123,7 @@ export const CpmkFormPage = () => {
       : 'Tambah CPMK';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title={title}
         subtitle={`${mk.data?.nama_resmi || ''} | ${mk.data?.kode_matakuliah || ''}${

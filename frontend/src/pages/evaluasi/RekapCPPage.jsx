@@ -31,7 +31,7 @@ export const RekapCPPage = () => {
   const grafik = useRekapCpGrafik(extraFilter, { enabled: tab === 'grafik' });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Rekap Nilai CP"
         subtitle="Capaian CP/SCP per mahasiswa, mata kuliah, dan sumber penilaian"

@@ -100,7 +100,7 @@ export const SettingSemesterPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Setting Semester"
         subtitle="Kelola semester aktif pada SIAKAD Kurikulum"

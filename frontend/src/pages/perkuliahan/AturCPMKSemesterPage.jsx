@@ -72,7 +72,7 @@ export const AturCPMKSemesterPage = () => {
   if (mk.isPending || query.isPending) return <PageSkeleton showFilter={false} cards={3} />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Atur CPMK Semester"
         subtitle={`${mkLabel(mk.data)} · ${mkKode(mk.data)}`}

@@ -74,7 +74,7 @@ export const MKSemesterPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Kelola MK Semester"
         subtitle="Kelola mata kuliah per semester dan evaluasi capaian pembelajaran"
