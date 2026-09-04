@@ -15,6 +15,7 @@ module.exports = (sequelize) => {
       Cpmk.hasMany(models.CpmkScp, { foreignKey: 'cpmk_id', as: 'cpmkScp' });
       Cpmk.belongsTo(models.Cpmk, { foreignKey: 'parent_cpmk_id', as: 'parent' });
       Cpmk.hasMany(models.Cpmk, { foreignKey: 'parent_cpmk_id', as: 'subCpmk' });
+      Cpmk.hasMany(models.LaporanCpDetil, { foreignKey: 'cpmk_id', as: 'laporanCpDetil' });
     }
   }
   Cpmk.init({

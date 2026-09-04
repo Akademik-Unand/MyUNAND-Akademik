@@ -78,6 +78,11 @@ export const getKelasNilaiMatriks = (kelasId) =>
 
 export const getRekapCpGrafik = (params) => apiRequest('/rekap-cp/grafik', { params });
 
+export const getLaporanCpPreview = (params) => apiRequest('/laporan-cp/preview', { params });
+
+export const getLaporanCpMatakuliahDetail = (matakuliahId, params) =>
+  apiRequest(`/laporan-cp/matakuliah/${matakuliahId}`, { params });
+
 export const uploadNilaiBulk = (payload) =>
   apiRequest('/nilai/upload', { method: 'POST', body: payload });
 

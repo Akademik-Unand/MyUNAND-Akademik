@@ -23,6 +23,11 @@ Rekap CP:
 - `GET /api/v1/rekap-cp/detail` — baris per mahasiswa × MK × CPMK × sumber penilaian (filter org + `cp_id`, `scp_id`, `matakuliah_id`, `kelas_id`, `angkatan`, `transkrip_saja`).
 - `GET /api/v1/rekap-cp/grafik` — agregat capaian vs target per CP/SCP (filter sama; `pilihan_data=nilai_rata` atau persen target).
 
+Laporan CP:
+- `GET|POST /api/v1/laporan-cp`, `GET|PUT|DELETE /:id`
+- `GET /api/v1/laporan-cp/preview?kurikulum_id=&semester_id=` — baris CP × SCP × CPMK × MK (sumber + dosen digabung, capaian agregat). `semester_id` = semester terpilih **dan sebelumnya**. Body simpan `items` `{ cpmk_id, matakuliah_id, semester_id }`. Detail laporan menampilkan capaian CPMK/SCP/CP dari baris terpilih.
+- `GET /api/v1/laporan-cp/matakuliah/:matakuliahId?semester_id=&kurikulum_id=` — agregat evaluasi satu MK untuk modal di detail laporan: header MK (kode, SKS, prodi, kurikulum, semester, jumlah peserta), kelas penyelenggara + dosen, CPMK semester (target, CPL, sumber + bobot), rangkuman evaluasi CPMK (capaian, rata-rata, jumlah lulus), matriks nilai peserta (nilai per sumber + total), dan dokumen evaluasi. Permission `laporan-cp.read`.
+
 Master Periode (`jenis` STRING whitelist `cpmk` | `nilai`, bukan ENUM MySQL):
 - `GET|POST /api/v1/periode`, `GET|PUT|DELETE /:id`, `POST /:id/restore`
 - Unique hidup: satu baris per `(semester_id, jenis)`. Status buka dihitung dari tanggal (inklusif); tanpa baris = tertutup.

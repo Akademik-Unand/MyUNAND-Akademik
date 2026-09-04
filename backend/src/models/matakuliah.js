@@ -16,6 +16,7 @@ module.exports = (sequelize) => {
         as: 'kurikulum',
       });
       Matakuliah.hasMany(models.MatakuliahKurikulum, { foreignKey: 'matakuliah_id', as: 'matakuliahKurikulum' });
+      Matakuliah.hasMany(models.LaporanCpDetil, { foreignKey: 'matakuliah_id', as: 'laporanCpDetil' });
     }
   }
   Matakuliah.init({

@@ -31,6 +31,26 @@ router.post(
   laporanCpController.create
 );
 
+/** GET /laporan-cp/preview */
+router.get(
+  '/preview',
+  authenticate,
+  attachAbility,
+  checkPermission('read', subject),
+  validate({ query: laporanCpValidation.preview }),
+  laporanCpController.preview
+);
+
+/** GET /laporan-cp/matakuliah/:matakuliahId */
+router.get(
+  '/matakuliah/:matakuliahId',
+  authenticate,
+  attachAbility,
+  checkPermission('read', subject),
+  validate({ params: laporanCpValidation.matakuliahParam, query: laporanCpValidation.matakuliahQuery }),
+  laporanCpController.matakuliahDetail
+);
+
 /** GET /laporan-cp/:id */
 router.get(
   '/:id',

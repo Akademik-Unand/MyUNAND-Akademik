@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -7,48 +8,56 @@ import { Textarea } from '../../components/ui/Textarea';
 import { FormActions } from '../../components/common/FormActions';
 import { PageSkeleton } from '../../components/common/PageSkeleton';
 import { ResourceSelect } from '../../components/common/ResourceSelect';
+import { LaporanCpPickTable } from '../../components/laporan-cp/LaporanCpPickTable';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useResourceItem } from '../../hooks/useResourceQuery';
-import { useAuthStore } from '../../store/auth.store';
+import { useLaporanCpPreview } from '../../hooks/useLaporanCpPreview';
+import { itemsFromSelected, selectedFromItems } from '../../helpers/laporanCp';
+import { semesterDanSebelumnyaLabel } from '../../helpers/semesterProdi';
 
 const empty = {
   nama_laporan: '',
   keterangan: '',
-  program_studi_id: '',
   kurikulum_id: '',
-  file_path: '',
+  semester_id: '',
 };
 
 export const LaporanCPFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const existing = useResourceItem('laporan-cp', id);
-  const user = useAuthStore((state) => state.user);
   const [values, setValues] = useState(empty);
+  const [selected, setSelected] = useState(() => new Set());
   const isEdit = Boolean(id);
   const mutations = useResourceMutations('laporan-cp');
   const saving = mutations.create.isPending || mutations.update.isPending;
+  const preview = useLaporanCpPreview(values.kurikulum_id, values.semester_id);
+  const rows = preview.data || [];
 
   useEffect(() => {
-    if (existing.data) {
-      setValues({
-        nama_laporan: existing.data.nama_laporan || '',
-        keterangan: existing.data.keterangan || '',
-        program_studi_id: existing.data.program_studi_id || '',
-        kurikulum_id: existing.data.kurikulum_id || '',
-        file_path: existing.data.file_path || '',
-      });
-    }
+    if (!existing.data) return;
+    setValues({
+      nama_laporan: existing.data.nama_laporan || '',
+      keterangan: existing.data.keterangan || '',
+      kurikulum_id: existing.data.kurikulum_id || '',
+      semester_id: existing.data.semester_id || '',
+    });
+    setSelected(selectedFromItems(existing.data.items || []));
   }, [existing.data]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (saving) return;
+    if (!values.kurikulum_id) {
+      toast.error('Pilih kurikulum.');
+      return;
+    }
     const payload = {
-      ...values,
-      kurikulum_id: values.kurikulum_id || null,
-      file_path: values.file_path || null,
-      dibuat_oleh: user?.id || null,
+      nama_laporan: values.nama_laporan,
+      keterangan: values.keterangan || null,
+      kurikulum_id: values.kurikulum_id,
+      semester_id: values.semester_id || null,
+      items: itemsFromSelected(rows, selected),
     };
     if (isEdit) {
       await mutations.update.mutateAsync({ id, payload });
@@ -58,7 +67,7 @@ export const LaporanCPFormPage = () => {
     navigate('/perkuliahan/laporan-cp');
   };
 
-  if (isEdit && existing.isPending) return <PageSkeleton cards={1} />;
+  if (isEdit && existing.isPending) return <PageSkeleton cards={2} />;
 
   return (
     <div className="space-y-6">
@@ -70,10 +79,10 @@ export const LaporanCPFormPage = () => {
           { label: isEdit ? 'Ubah' : 'Tambah' },
         ]}
       />
-      <Card>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <Card title="Data Laporan">
+        <form id="laporan-cp-form" onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
           <Input
-            label="Judul Laporan CP"
+            label="Judul *"
             value={values.nama_laporan}
             onChange={(e) => setValues({ ...values, nama_laporan: e.target.value })}
             required
@@ -84,30 +93,46 @@ export const LaporanCPFormPage = () => {
             onChange={(e) => setValues({ ...values, keterangan: e.target.value })}
           />
           <ResourceSelect
-            resource="prodi"
-            label="Program Studi *"
-            value={values.program_studi_id}
-            onChange={(e) => setValues({ ...values, program_studi_id: e.target.value })}
+            resource="kurikulum"
+            label="Kurikulum *"
+            value={values.kurikulum_id}
+            onChange={(e) => {
+              setValues({ ...values, kurikulum_id: e.target.value });
+              setSelected(new Set());
+            }}
+            getLabel={(row) => row.nama || String(row.tahun || row.id)}
             required
           />
           <ResourceSelect
-            resource="kurikulum"
-            label="Kurikulum"
-            value={values.kurikulum_id}
-            onChange={(e) => setValues({ ...values, kurikulum_id: e.target.value })}
-            getLabel={(row) => row.nama || String(row.tahun || row.id)}
+            resource="setting-semester"
+            label="Semester"
+            value={values.semester_id}
+            onChange={(e) => setValues({ ...values, semester_id: e.target.value })}
+            getLabel={(row) => semesterDanSebelumnyaLabel(row)}
+            placeholder="Semua semester"
+            params={{ sortBy: 'tahun', sortOrder: 'desc' }}
           />
-          <Input
-            label="Path berkas"
-            value={values.file_path}
-            onChange={(e) => setValues({ ...values, file_path: e.target.value })}
-          />
+        </form>
+      </Card>
+
+      <Card title="Pilih mata kuliah yang memenuhi CP/SCP">
+        {!values.kurikulum_id ? (
+          <p className="text-sm text-base-content/60">Pilih kurikulum untuk menampilkan pemetaan CP, SCP, CPMK, dan mata kuliah.</p>
+        ) : preview.isPending ? (
+          <PageSkeleton showFilter={false} tableCols={8} />
+        ) : preview.isError ? (
+          <p className="text-sm text-error">{preview.error?.message || 'Gagal memuat pratinjau.'}</p>
+        ) : (
+          <LaporanCpPickTable rows={rows} selected={selected} onChange={setSelected} />
+        )}
+        <div className="mt-4">
           <FormActions
+            formId="laporan-cp-form"
             onCancel={() => navigate('/perkuliahan/laporan-cp')}
             submitLabel={isEdit ? 'Perbarui' : 'Simpan'}
             isLoading={saving}
           />
-        </form>
+        </div>
       </Card>
     </div>
   );

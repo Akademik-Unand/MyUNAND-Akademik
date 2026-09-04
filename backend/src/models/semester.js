@@ -7,6 +7,8 @@ module.exports = (sequelize) => {
       Semester.belongsTo(models.JenisSemester, { foreignKey: 'jenis_semester_id', as: 'jenisSemester' });
       Semester.hasMany(models.SemesterProdi, { foreignKey: 'semester_id', as: 'semesterProdi' });
       Semester.hasMany(models.Periode, { foreignKey: 'semester_id', as: 'periode' });
+      Semester.hasMany(models.LaporanCp, { foreignKey: 'semester_id', as: 'laporanCp' });
+      Semester.hasMany(models.LaporanCpDetil, { foreignKey: 'semester_id', as: 'laporanCpDetil' });
     }
   }
   Semester.init({

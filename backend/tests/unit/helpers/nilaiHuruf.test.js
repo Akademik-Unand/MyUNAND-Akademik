@@ -1,6 +1,11 @@
 'use strict';
 
-const { toNilaiHuruf, toNilaiAngka, scpLabel } = require('../../../src/helpers/nilaiHuruf');
+const {
+  toNilaiHuruf,
+  toNilaiAngka,
+  scpLabel,
+  NILAI_HURUF_BANDS_PORTAL,
+} = require('../../../src/helpers/nilaiHuruf');
 
 describe('nilaiHuruf', () => {
   it('maps numeric scores to letter grades', () => {
@@ -8,6 +13,14 @@ describe('nilaiHuruf', () => {
     expect(toNilaiHuruf(82)).toBe('A-');
     expect(toNilaiHuruf(40)).toBe('D');
     expect(toNilaiHuruf(null)).toBeNull();
+  });
+
+  it('maps scores with the old portal bands (80 = A, 75 = A-, 70 = B+, 50 = C)', () => {
+    expect(toNilaiHuruf(78, NILAI_HURUF_BANDS_PORTAL)).toBe('A-');
+    expect(toNilaiHuruf(72, NILAI_HURUF_BANDS_PORTAL)).toBe('B+');
+    expect(toNilaiHuruf(70.23, NILAI_HURUF_BANDS_PORTAL)).toBe('B+');
+    expect(toNilaiHuruf(53.47, NILAI_HURUF_BANDS_PORTAL)).toBe('C');
+    expect(toNilaiHuruf(38.17, NILAI_HURUF_BANDS_PORTAL)).toBe('E');
   });
 
   it('weights component scores by bobot percent', () => {

@@ -14,7 +14,7 @@ export const FormActions = ({
         Batal
       </Button>
       <Button
-        type={formId || onSubmitClick ? 'button' : 'submit'}
+        type={formId || !onSubmitClick ? 'submit' : 'button'}
         size="sm"
         isLoading={isLoading}
         form={formId}

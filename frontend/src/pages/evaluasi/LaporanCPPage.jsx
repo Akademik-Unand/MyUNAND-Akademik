@@ -27,7 +27,7 @@ export const LaporanCPPage = () => {
         </div>
       ),
     },
-    { key: 'keterangan', header: 'Keterangan', sortable: true },
+    { key: 'keterangan', header: 'Keterangan' },
     {
       key: 'dibuat_oleh',
       header: 'Dibuat Oleh',

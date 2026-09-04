@@ -1,18 +1,37 @@
 'use strict';
 
-const toNilaiHuruf = (raw) => {
+const DEFAULT_BANDS = [
+  { min: 85, letter: 'A' },
+  { min: 80, letter: 'A-' },
+  { min: 75, letter: 'B+' },
+  { min: 70, letter: 'B' },
+  { min: 65, letter: 'B-' },
+  { min: 60, letter: 'C+' },
+  { min: 55, letter: 'C' },
+  { min: 50, letter: 'C-' },
+  { min: 40, letter: 'D' },
+];
+
+/** Rentang nilai huruf portal lama (80 = A, 75 = A-, 70 = B+, dst). */
+const NILAI_HURUF_BANDS_PORTAL = [
+  { min: 80, letter: 'A' },
+  { min: 75, letter: 'A-' },
+  { min: 70, letter: 'B+' },
+  { min: 65, letter: 'B' },
+  { min: 60, letter: 'B-' },
+  { min: 55, letter: 'C+' },
+  { min: 50, letter: 'C' },
+  { min: 45, letter: 'C-' },
+  { min: 40, letter: 'D' },
+];
+
+const toNilaiHuruf = (raw, bands = DEFAULT_BANDS) => {
   if (raw === null || raw === undefined || raw === '') return null;
   const value = Number(raw);
   if (Number.isNaN(value)) return null;
-  if (value >= 85) return 'A';
-  if (value >= 80) return 'A-';
-  if (value >= 75) return 'B+';
-  if (value >= 70) return 'B';
-  if (value >= 65) return 'B-';
-  if (value >= 60) return 'C+';
-  if (value >= 55) return 'C';
-  if (value >= 50) return 'C-';
-  if (value >= 40) return 'D';
+  for (const band of bands) {
+    if (value >= band.min) return band.letter;
+  }
   return 'E';
 };
 
@@ -38,4 +57,4 @@ const scpLabel = (cpmk) => {
   return [cp, scp.nama_scp].filter(Boolean).join(' · ');
 };
 
-module.exports = { toNilaiHuruf, toNilaiAngka, scpLabel };
+module.exports = { toNilaiHuruf, toNilaiAngka, scpLabel, NILAI_HURUF_BANDS_PORTAL };

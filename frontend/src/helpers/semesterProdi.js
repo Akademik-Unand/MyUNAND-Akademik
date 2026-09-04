@@ -7,6 +7,11 @@ export const semesterAkademikLabel = (semester) => {
   return term || '—';
 };
 
+export const semesterDanSebelumnyaLabel = (semester) => {
+  const label = semesterAkademikLabel(semester);
+  return label === '—' ? label : `${label} dan sebelumnya`;
+};
+
 export const prodiDepartemenLabel = (prodi) => {
   if (!prodi) return '—';
   const nama = prodi.nama_resmi || prodi.nama_singkat;
