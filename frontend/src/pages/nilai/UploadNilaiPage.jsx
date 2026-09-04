@@ -7,12 +7,15 @@ import { FilterBar } from '../../components/common/FilterBar';
 import { DataTable } from '../../components/common/DataTable';
 import { Drawer } from '../../components/ui/Drawer';
 import { DetailList } from '../../components/common/DetailList';
+import { useCan } from '../../hooks/useCan';
 import { useFilterOptions } from '../../hooks/useFilterOptions';
 
 export const UploadNilaiPage = () => {
   const [tab, setTab] = useState('kelas');
   const [historyItem, setHistoryItem] = useState(null);
   const filters = useFilterOptions();
+  const can = useCan();
+  const canKelola = can('upload', 'NilaiMahasiswa') || can('update', 'NilaiMahasiswa');
 
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
@@ -33,15 +36,16 @@ export const UploadNilaiPage = () => {
       header: 'Aksi',
       className: 'text-right',
       cellClassName: 'text-right',
-      render: (row) => (
-        <IconLink
-          label="Kelola nilai"
-          icon={Settings2}
-          tone="text-success"
-          tooltipPosition="tooltip-left"
-          to={`/perkuliahan/upload-nilai/${row.id}`}
-        />
-      ),
+      render: (row) =>
+        canKelola ? (
+          <IconLink
+            label="Kelola nilai"
+            icon={Settings2}
+            tone="text-success"
+            tooltipPosition="tooltip-left"
+            to={`/perkuliahan/upload-nilai/${row.id}`}
+          />
+        ) : null,
     },
   ];
 

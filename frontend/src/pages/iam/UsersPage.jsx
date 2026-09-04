@@ -7,6 +7,7 @@ export const UsersPage = () => (
     title="Pengguna"
     subtitle="Kelola akun dan tetapkan lebih dari satu peran"
     breadcrumbs={[{ label: 'Pengguna & Akses' }, { label: 'Pengguna' }]}
+    subject="User"
     resource="users"
     idKey="id"
     FormComponent={UserForm}

@@ -5,6 +5,7 @@ import { CPMKSemesterTable } from '../../components/mk-semester/CPMKSemesterTabl
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { PageSkeleton } from '../../components/common/PageSkeleton';
+import { Can } from '../../components/auth/Can';
 import { useResourceQuery } from '../../hooks/useResourceQuery';
 
 export const MKSemesterKelolaPage = () => {
@@ -23,14 +24,18 @@ export const MKSemesterKelolaPage = () => {
         title="Pengaturan CPMK Semester"
         actions={
           <div className="flex flex-wrap gap-2">
-            <Link to={`/kurikulum/cpmk/${id}`}>
-              <Button variant="secondary" size="sm">
-                Lihat Master CPMK Kurikulum
-              </Button>
-            </Link>
-            <Link to={`/perkuliahan/mk-semester/${id}/atur`}>
-              <Button size="sm">Atur CPMK Semester ini</Button>
-            </Link>
+            <Can I="read" a="Cpmk">
+              <Link to={`/kurikulum/cpmk/${id}`}>
+                <Button variant="secondary" size="sm">
+                  Lihat Master CPMK Kurikulum
+                </Button>
+              </Link>
+            </Can>
+            <Can I="update" a="Cpmk">
+              <Link to={`/perkuliahan/mk-semester/${id}/atur`}>
+                <Button size="sm">Atur CPMK Semester ini</Button>
+              </Link>
+            </Can>
           </div>
         }
       >

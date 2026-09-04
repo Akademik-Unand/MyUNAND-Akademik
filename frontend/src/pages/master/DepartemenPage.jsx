@@ -6,6 +6,7 @@ export const DepartemenPage = () => (
     title="Departemen"
     subtitle="Kelola data departemen pada SIAKAD Kurikulum"
     breadcrumbs={[{ label: 'Master Data' }, { label: 'Departemen' }]}
+    subject="Departemen"
     resource="departemen"
     idKey="id"
     FormComponent={DepartemenForm}

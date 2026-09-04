@@ -1,10 +1,14 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import { ProtectedRoute, GuestRoute } from './ProtectedRoute';
+import { PermissionRoute } from './PermissionRoute';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { ProfilePage } from '../pages/auth/ProfilePage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+
+const gate = (I, a, element) => <PermissionRoute I={I} a={a}>{element}</PermissionRoute>;
+const gateAny = (any, element) => <PermissionRoute any={any}>{element}</PermissionRoute>;
 import { FakultasPage } from '../pages/master/FakultasPage';
 import { DepartemenPage } from '../pages/master/DepartemenPage';
 import { ProdiPage } from '../pages/master/ProdiPage';
@@ -51,42 +55,51 @@ export const router = createBrowserRouter([
           { index: true, element: <DashboardPage /> },
           { path: 'profil', element: <ProfilePage /> },
 
-          { path: 'master/fakultas', element: <FakultasPage /> },
-          { path: 'master/departemen', element: <DepartemenPage /> },
-          { path: 'master/prodi/baru', element: <ProdiFormPage /> },
-          { path: 'master/prodi/:id/edit', element: <ProdiFormPage /> },
-          { path: 'master/prodi', element: <ProdiPage /> },
-          { path: 'master/jenjang-akademik', element: <JenjangAkademikPage /> },
-          { path: 'master/semester/jenis', element: <JenisSemesterPage /> },
-          { path: 'master/semester/setting/baru', element: <SettingSemesterFormPage /> },
-          { path: 'master/semester/setting/:id/edit', element: <SettingSemesterFormPage /> },
-          { path: 'master/semester/setting', element: <SettingSemesterPage /> },
+          { path: 'master/fakultas', element: gate('read', 'Fakultas', <FakultasPage />) },
+          { path: 'master/departemen', element: gate('read', 'Departemen', <DepartemenPage />) },
+          { path: 'master/prodi/baru', element: gate('create', 'ProgramStudi', <ProdiFormPage />) },
+          { path: 'master/prodi/:id/edit', element: gate('update', 'ProgramStudi', <ProdiFormPage />) },
+          { path: 'master/prodi', element: gate('read', 'ProgramStudi', <ProdiPage />) },
+          { path: 'master/jenjang-akademik', element: gate('read', 'JenjangAkademik', <JenjangAkademikPage />) },
+          { path: 'master/semester/jenis', element: gate('read', 'JenisSemester', <JenisSemesterPage />) },
+          { path: 'master/semester/setting/baru', element: gate('create', 'Semester', <SettingSemesterFormPage />) },
+          { path: 'master/semester/setting/:id/edit', element: gate('update', 'Semester', <SettingSemesterFormPage />) },
+          { path: 'master/semester/setting', element: gate('read', 'Semester', <SettingSemesterPage />) },
 
-          { path: 'kurikulum/data/baru', element: <KurikulumFormPage /> },
-          { path: 'kurikulum/data/:id/edit', element: <KurikulumFormPage /> },
-          { path: 'kurikulum/data', element: <KurikulumDataPage /> },
-          { path: 'kurikulum/cp', element: <CPKurikulumPage /> },
-          { path: 'kurikulum/cpmk/:id', element: <AturCPMKPage /> },
-          { path: 'kurikulum/cpmk', element: <CPMKKurikulumPage /> },
+          { path: 'kurikulum/data/baru', element: gate('create', 'Kurikulum', <KurikulumFormPage />) },
+          { path: 'kurikulum/data/:id/edit', element: gate('update', 'Kurikulum', <KurikulumFormPage />) },
+          { path: 'kurikulum/data', element: gate('read', 'Kurikulum', <KurikulumDataPage />) },
+          { path: 'kurikulum/cp', element: gate('read', 'Cp', <CPKurikulumPage />) },
+          { path: 'kurikulum/cpmk/:id', element: gate('update', 'Cpmk', <AturCPMKPage />) },
+          { path: 'kurikulum/cpmk', element: gate('read', 'Cpmk', <CPMKKurikulumPage />) },
 
-          { path: 'perkuliahan/mk-semester/transkrip/atur', element: <MKTranskripAturPage /> },
-          { path: 'perkuliahan/mk-semester/:id/atur', element: <AturCPMKSemesterPage /> },
-          { path: 'perkuliahan/mk-semester/:id/evaluasi', element: <EvaluasiCPMKPage /> },
-          { path: 'perkuliahan/mk-semester/:id/dokumen', element: <DokumenEvaluasiPage /> },
-          { path: 'perkuliahan/mk-semester/:id', element: <MKSemesterKelolaPage /> },
-          { path: 'perkuliahan/mk-semester', element: <MKSemesterPage /> },
-          { path: 'perkuliahan/kelas/:id', element: <KelasKelolaPage /> },
-          { path: 'perkuliahan/kelas', element: <KelasPage /> },
-          { path: 'perkuliahan/upload-nilai/:id', element: <UploadNilaiKelolaPage /> },
-          { path: 'perkuliahan/upload-nilai', element: <UploadNilaiPage /> },
-          { path: 'perkuliahan/rekap-cp', element: <RekapCPPage /> },
-          { path: 'perkuliahan/laporan-cp/baru', element: <LaporanCPFormPage /> },
-          { path: 'perkuliahan/laporan-cp/:id/edit', element: <LaporanCPFormPage /> },
-          { path: 'perkuliahan/laporan-cp/:id', element: <LaporanCPViewPage /> },
-          { path: 'perkuliahan/laporan-cp', element: <LaporanCPPage /> },
-          { path: 'pengaturan/pengguna', element: <UsersPage /> },
-          { path: 'pengaturan/peran', element: <RoleMatrixPage /> },
-          { path: 'pengaturan/aktivitas', element: <ActivityLogsPage /> },
+          { path: 'perkuliahan/mk-semester/transkrip/atur', element: gate('update', 'MatakuliahKurikulum', <MKTranskripAturPage />) },
+          { path: 'perkuliahan/mk-semester/:id/atur', element: gate('update', 'Cpmk', <AturCPMKSemesterPage />) },
+          { path: 'perkuliahan/mk-semester/:id/evaluasi', element: gate('read', 'EvaluasiCpmk', <EvaluasiCPMKPage />) },
+          { path: 'perkuliahan/mk-semester/:id/dokumen', element: gate('read', 'DokumenEvaluasi', <DokumenEvaluasiPage />) },
+          { path: 'perkuliahan/mk-semester/:id', element: gate('read', 'MatakuliahKurikulum', <MKSemesterKelolaPage />) },
+          { path: 'perkuliahan/mk-semester', element: gate('read', 'MatakuliahKurikulum', <MKSemesterPage />) },
+          { path: 'perkuliahan/kelas/:id', element: gate('read', 'Kelas', <KelasKelolaPage />) },
+          { path: 'perkuliahan/kelas', element: gate('read', 'Kelas', <KelasPage />) },
+          {
+            path: 'perkuliahan/upload-nilai/:id',
+            element: gateAny(
+              [
+                { I: 'upload', a: 'NilaiMahasiswa' },
+                { I: 'update', a: 'NilaiMahasiswa' },
+              ],
+              <UploadNilaiKelolaPage />,
+            ),
+          },
+          { path: 'perkuliahan/upload-nilai', element: gate('read', 'NilaiMahasiswa', <UploadNilaiPage />) },
+          { path: 'perkuliahan/rekap-cp', element: gate('read', 'RekapCp', <RekapCPPage />) },
+          { path: 'perkuliahan/laporan-cp/baru', element: gate('create', 'LaporanCp', <LaporanCPFormPage />) },
+          { path: 'perkuliahan/laporan-cp/:id/edit', element: gate('update', 'LaporanCp', <LaporanCPFormPage />) },
+          { path: 'perkuliahan/laporan-cp/:id', element: gate('read', 'LaporanCp', <LaporanCPViewPage />) },
+          { path: 'perkuliahan/laporan-cp', element: gate('read', 'LaporanCp', <LaporanCPPage />) },
+          { path: 'pengaturan/pengguna', element: gate('read', 'User', <UsersPage />) },
+          { path: 'pengaturan/peran', element: gate('read', 'Role', <RoleMatrixPage />) },
+          { path: 'pengaturan/aktivitas', element: gate('read', 'ActivityLog', <ActivityLogsPage />) },
 
           { path: '*', element: <NotFoundPage /> },
         ],

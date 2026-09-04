@@ -8,6 +8,8 @@ import { RoleMatrixTable } from '../../components/iam/RoleMatrixTable';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { getRolePermissionMatrix, syncRolePermissions } from '../../services/api';
+import { Can } from '../../components/auth/Can';
+import { useCan } from '../../hooks/useCan';
 import { useBusyAction } from '../../hooks/useBusyAction';
 
 const matchesQuery = (permission, query) => {
@@ -26,6 +28,8 @@ export const RoleMatrixPage = () => {
   const [draft, setDraft] = useState({});
   const [search, setSearch] = useState('');
   const { busy, run } = useBusyAction();
+  const can = useCan();
+  const canSync = can('sync-permissions', 'Role');
 
   useEffect(() => {
     if (data?.grants) setDraft(data.grants);
@@ -94,15 +98,23 @@ export const RoleMatrixPage = () => {
             </label>
           </div>
         )}
-        <RoleMatrixTable roles={roles} groups={groups} draft={draft} onToggle={toggle} />
+        <RoleMatrixTable
+          roles={roles}
+          groups={groups}
+          draft={draft}
+          onToggle={toggle}
+          readOnly={!canSync}
+        />
         {roles.length > 0 && (
-          <div className="flex flex-wrap gap-2 p-4 border-t border-base-300">
-            {roles.map((role) => (
-              <Button key={role.id} size="sm" onClick={() => saveRole(role)} isLoading={Boolean(busy)} disabled={Boolean(busy)}>
-                Simpan {role.name}
-              </Button>
-            ))}
-          </div>
+          <Can I="sync-permissions" a="Role">
+            <div className="flex flex-wrap gap-2 p-4 border-t border-base-300">
+              {roles.map((role) => (
+                <Button key={role.id} size="sm" onClick={() => saveRole(role)} isLoading={Boolean(busy)} disabled={Boolean(busy)}>
+                  Simpan {role.name}
+                </Button>
+              ))}
+            </div>
+          </Can>
         )}
       </Card>
     </div>

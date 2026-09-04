@@ -10,6 +10,8 @@ import { Drawer } from '../ui/Drawer';
 import { DetailList } from '../common/DetailList';
 import { RowActions } from '../common/RowActions';
 import { FormActions } from '../common/FormActions';
+import { Can } from '../auth/Can';
+import { useCan } from '../../hooks/useCan';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useBusyAction } from '../../hooks/useBusyAction';
 
@@ -30,7 +32,9 @@ export const MasterListPage = ({
   detailItems,
   searchPlaceholder,
   afterSave,
+  subject,
 }) => {
+  const can = useCan();
   const mutations = useResourceMutations(resource, {
     create: `${title} berhasil ditambahkan.`,
     update: `${title} berhasil diperbarui.`,
@@ -83,8 +87,8 @@ export const MasterListPage = ({
       render: (row) => (
         <RowActions
           onDetail={() => setDetail(row)}
-          onEdit={() => openEdit(row)}
-          onDelete={() => setDeleteTarget(row)}
+          onEdit={subject && can('update', subject) ? () => openEdit(row) : undefined}
+          onDelete={subject && can('delete', subject) ? () => setDeleteTarget(row) : undefined}
         />
       ),
     },
@@ -97,9 +101,17 @@ export const MasterListPage = ({
         subtitle={subtitle}
         breadcrumbs={breadcrumbs}
         action={
-          <Button size="sm" className="gap-1.5 font-semibold" onClick={openCreate}>
-            <Plus size={15} /> Tambahkan Data
-          </Button>
+          subject ? (
+            <Can I="create" a={subject}>
+              <Button size="sm" className="gap-1.5 font-semibold" onClick={openCreate}>
+                <Plus size={15} /> Tambahkan Data
+              </Button>
+            </Can>
+          ) : (
+            <Button size="sm" className="gap-1.5 font-semibold" onClick={openCreate}>
+              <Plus size={15} /> Tambahkan Data
+            </Button>
+          )
         }
       />
 

@@ -12,6 +12,7 @@ import {
   deleteResourceItem,
   updateResourceItem,
 } from '../../services/api';
+import { Can } from '../../components/auth/Can';
 import { mkKode, mkLabel } from '../../helpers/mkSemester';
 
 export const AturCPMKSemesterPage = () => {
@@ -90,9 +91,11 @@ export const AturCPMKSemesterPage = () => {
           >
             Reset
           </Button>
-          <Button size="sm" onClick={save} isLoading={saving}>
-            Simpan
-          </Button>
+          <Can I="update" a="Cpmk">
+            <Button size="sm" onClick={save} isLoading={saving}>
+              Simpan
+            </Button>
+          </Can>
         </div>
       </Card>
     </div>

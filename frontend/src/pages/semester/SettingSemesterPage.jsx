@@ -10,6 +10,7 @@ import { DataTable } from '../../components/common/DataTable';
 import { ConfirmDeleteModal } from '../../components/common/ConfirmDeleteModal';
 import { Drawer } from '../../components/ui/Drawer';
 import { DetailList } from '../../components/common/DetailList';
+import { Can } from '../../components/auth/Can';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useResourceQuery } from '../../hooks/useResourceQuery';
 
@@ -68,27 +69,31 @@ export const SettingSemesterPage = () => {
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
           <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
-          {!row.is_aktif && (
-            <IconButton
-              label="Aktifkan semester"
-              icon={Power}
-              tone="text-success"
-              onClick={() => activate(row)}
+          <Can I="update" a="Semester">
+            {!row.is_aktif && (
+              <IconButton
+                label="Aktifkan semester"
+                icon={Power}
+                tone="text-success"
+                onClick={() => activate(row)}
+              />
+            )}
+            <IconLink
+              label="Ubah setting"
+              icon={Pencil}
+              tone="text-warning"
+              to={`/master/semester/setting/${row.id}/edit`}
             />
-          )}
-          <IconLink
-            label="Ubah setting"
-            icon={Pencil}
-            tone="text-warning"
-            to={`/master/semester/setting/${row.id}/edit`}
-          />
-          <IconButton
-            label="Hapus setting"
-            icon={Trash2}
-            tone="text-error"
-            tooltipPosition="tooltip-left"
-            onClick={() => setDeleteTarget(row)}
-          />
+          </Can>
+          <Can I="delete" a="Semester">
+            <IconButton
+              label="Hapus setting"
+              icon={Trash2}
+              tone="text-error"
+              tooltipPosition="tooltip-left"
+              onClick={() => setDeleteTarget(row)}
+            />
+          </Can>
         </div>
       ),
     },
@@ -101,11 +106,13 @@ export const SettingSemesterPage = () => {
         subtitle="Kelola semester aktif pada SIAKAD Kurikulum"
         breadcrumbs={[{ label: 'Master Data' }, { label: 'Semester' }, { label: 'Setting Semester' }]}
         action={
-          <Link to="/master/semester/setting/baru">
-            <Button size="sm" className="gap-1.5 font-semibold">
-              <Plus size={15} /> Tambahkan Data
-            </Button>
-          </Link>
+          <Can I="create" a="Semester">
+            <Link to="/master/semester/setting/baru">
+              <Button size="sm" className="gap-1.5 font-semibold">
+                <Plus size={15} /> Tambahkan Data
+              </Button>
+            </Link>
+          </Can>
         }
       />
 

@@ -179,7 +179,11 @@ Empty state wajib (bukan tabel kosong). Master CRUD list: `MasterListPage` (moda
 
 ## 14. Otorisasi — CASL
 
-`<Can I="create" a="Fakultas">` dari `permissions[]` user (format `{subject}.{action}`), bukan `if (user.role === 'admin')`. User bisa **multi-role**; ability = gabungan permission. Route lewat `ProtectedRoute`.
+`<Can I="create" a="Fakultas">` dari `permissions[]` user (format `{subject}.{action}`), bukan `if (user.role === 'admin')`. User bisa **multi-role**; ability = gabungan permission.
+
+Tanpa izin: **sembunyikan** tombol/menu (`<Can>` return `null`), jangan `disabled`. Sidebar/NavSearch memakai `filterNavigation` dari `NAVIGATION_MENU[].permission`. Login saja tidak cukup: `ProtectedRoute` cek sesi, `PermissionRoute` cek `read`/`create`/`update` per halaman. URL tanpa izin → `ForbiddenPage` (403), bukan halaman kosong.
+
+Dashboard `/` dan `/profil` selalu boleh untuk user yang sudah login.
 
 Pengelolaan akses: halaman matriks role × permission (`/pengaturan/peran`, wajib kotak cari name/description/group/subject) dan list user dengan assign banyak role (`/pengaturan/pengguna`). Jejak aktivitas (`/pengaturan/aktivitas`) read-only — DataTable tanpa tambah/ubah/hapus. Data lewat `services/api.js`. Jangan hardcode grant di komponen.
 

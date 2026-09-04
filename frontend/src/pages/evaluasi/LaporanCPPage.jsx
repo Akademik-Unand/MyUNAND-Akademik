@@ -7,6 +7,7 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { DataTable } from '../../components/common/DataTable';
 import { ConfirmDeleteModal } from '../../components/common/ConfirmDeleteModal';
+import { Can } from '../../components/auth/Can';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 
 export const LaporanCPPage = () => {
@@ -39,14 +40,18 @@ export const LaporanCPPage = () => {
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
           <IconLink label="Lihat laporan" icon={Eye} tone="text-info" to={`/perkuliahan/laporan-cp/${row.id}`} />
-          <IconLink label="Ubah laporan" icon={Pencil} tone="text-warning" to={`/perkuliahan/laporan-cp/${row.id}/edit`} />
-          <IconButton
-            label="Hapus laporan"
-            icon={Trash2}
-            tone="text-error"
-            tooltipPosition="tooltip-left"
-            onClick={() => setDeleteTarget(row)}
-          />
+          <Can I="update" a="LaporanCp">
+            <IconLink label="Ubah laporan" icon={Pencil} tone="text-warning" to={`/perkuliahan/laporan-cp/${row.id}/edit`} />
+          </Can>
+          <Can I="delete" a="LaporanCp">
+            <IconButton
+              label="Hapus laporan"
+              icon={Trash2}
+              tone="text-error"
+              tooltipPosition="tooltip-left"
+              onClick={() => setDeleteTarget(row)}
+            />
+          </Can>
         </div>
       ),
     },
@@ -59,11 +64,13 @@ export const LaporanCPPage = () => {
         subtitle="Kumpulkan dan tinjau laporan capaian pembelajaran"
         breadcrumbs={[{ label: 'Semester & Perkuliahan' }, { label: 'Laporan CP' }]}
         action={
-          <Link to="/perkuliahan/laporan-cp/baru">
-            <Button size="sm" className="gap-1.5">
-              <Plus size={15} /> Tambah Laporan CP
-            </Button>
-          </Link>
+          <Can I="create" a="LaporanCp">
+            <Link to="/perkuliahan/laporan-cp/baru">
+              <Button size="sm" className="gap-1.5">
+                <Plus size={15} /> Tambah Laporan CP
+              </Button>
+            </Link>
+          </Can>
         }
       />
       <Card title="Daftar Laporan">

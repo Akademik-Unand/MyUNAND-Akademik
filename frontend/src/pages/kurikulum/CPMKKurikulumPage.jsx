@@ -4,6 +4,7 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { FilterBar } from '../../components/common/FilterBar';
 import { DataTable } from '../../components/common/DataTable';
+import { Can } from '../../components/auth/Can';
 import { useFilterOptions } from '../../hooks/useFilterOptions';
 
 export const CPMKKurikulumPage = () => {
@@ -24,13 +25,15 @@ export const CPMKKurikulumPage = () => {
       className: 'text-right',
       cellClassName: 'text-right',
       render: (row) => (
-        <IconLink
-          label="Atur CPMK"
-          icon={Settings2}
-          tone="text-info"
-          tooltipPosition="tooltip-left"
-          to={`/kurikulum/cpmk/${row.id}`}
-        />
+        <Can I="update" a="Cpmk">
+          <IconLink
+            label="Atur CPMK"
+            icon={Settings2}
+            tone="text-info"
+            tooltipPosition="tooltip-left"
+            to={`/kurikulum/cpmk/${row.id}`}
+          />
+        </Can>
       ),
     },
   ];

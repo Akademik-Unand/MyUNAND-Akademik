@@ -6,6 +6,7 @@ export const JenjangAkademikPage = () => (
     title="Jenjang Akademik"
     subtitle="Kelola data jenjang akademik pada SIAKAD Kurikulum"
     breadcrumbs={[{ label: 'Master Data' }, { label: 'Jenjang Akademik' }]}
+    subject="JenjangAkademik"
     resource="jenjang-akademik"
     idKey="id"
     FormComponent={JenjangForm}

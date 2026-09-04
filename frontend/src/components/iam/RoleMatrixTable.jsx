@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 
-export const RoleMatrixTable = ({ roles, groups, draft, onToggle }) => {
+export const RoleMatrixTable = ({ roles, groups, draft, onToggle, readOnly = false }) => {
   if (!roles.length) {
     return <p className="p-4 text-sm text-base-content/60">Belum ada peran untuk diatur.</p>;
   }
@@ -33,12 +33,18 @@ export const RoleMatrixTable = ({ roles, groups, draft, onToggle }) => {
                 </td>
                 {roles.map((role) => (
                   <td key={`${role.id}-${permission.id}`} className="text-center">
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-sm"
-                      checked={(draft[role.id] || []).includes(permission.id)}
-                      onChange={() => onToggle(role.id, permission.id)}
-                    />
+                    {readOnly ? (
+                      <span className="text-sm">
+                        {(draft[role.id] || []).includes(permission.id) ? 'Ya' : '—'}
+                      </span>
+                    ) : (
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-sm"
+                        checked={(draft[role.id] || []).includes(permission.id)}
+                        onChange={() => onToggle(role.id, permission.id)}
+                      />
+                    )}
                   </td>
                 ))}
               </tr>

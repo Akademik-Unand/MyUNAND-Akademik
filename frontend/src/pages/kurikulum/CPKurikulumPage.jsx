@@ -16,6 +16,7 @@ import { CPForm, SCPForm } from '../../components/kurikulum/CPForms';
 import { useResourceQuery } from '../../hooks/useResourceQuery';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useConfirmDelete } from '../../hooks/useConfirmDelete';
+import { Can } from '../../components/auth/Can';
 import { useFilterOptions } from '../../hooks/useFilterOptions';
 
 export const CPKurikulumPage = () => {
@@ -86,14 +87,16 @@ export const CPKurikulumPage = () => {
         subtitle="Kelola capaian pembelajaran (CP) dan sub-CP (SCP) pada kurikulum"
         breadcrumbs={[{ label: 'Kurikulum' }, { label: 'CP Kurikulum' }]}
         action={
-          <Button
-            size="sm"
-            className="gap-1.5 font-semibold"
-            disabled={!kurikulumId}
-            onClick={() => setCpModal({ open: true, mode: 'create', values: { kurikulum_id: kurikulumId } })}
-          >
-            <Plus size={15} /> Tambah CP
-          </Button>
+          <Can I="create" a="Cp">
+            <Button
+              size="sm"
+              className="gap-1.5 font-semibold"
+              disabled={!kurikulumId}
+              onClick={() => setCpModal({ open: true, mode: 'create', values: { kurikulum_id: kurikulumId } })}
+            >
+              <Plus size={15} /> Tambah CP
+            </Button>
+          </Can>
         }
       />
 
@@ -122,19 +125,23 @@ export const CPKurikulumPage = () => {
                 <p className="text-sm text-base-content/80 leading-relaxed">{so.deskripsi}</p>
               </button>
               <div className="flex items-center gap-2 shrink-0">
-                <IconButton
-                  label="Ubah CP"
-                  icon={Pencil}
-                  tone="text-warning"
-                  onClick={() => setCpModal({ open: true, mode: 'edit', values: so })}
-                />
-                <IconButton
-                  label="Hapus CP"
-                  icon={Trash2}
-                  tone="text-error"
-                  tooltipPosition="tooltip-left"
-                  onClick={() => del.askDelete(so)}
-                />
+                <Can I="update" a="Cp">
+                  <IconButton
+                    label="Ubah CP"
+                    icon={Pencil}
+                    tone="text-warning"
+                    onClick={() => setCpModal({ open: true, mode: 'edit', values: so })}
+                  />
+                </Can>
+                <Can I="delete" a="Cp">
+                  <IconButton
+                    label="Hapus CP"
+                    icon={Trash2}
+                    tone="text-error"
+                    tooltipPosition="tooltip-left"
+                    onClick={() => del.askDelete(so)}
+                  />
+                </Can>
               </div>
             </div>
             <p className="text-xs text-base-content/60 mb-3">
@@ -159,20 +166,24 @@ export const CPKurikulumPage = () => {
                     <td>{row.nilai_min}</td>
                     <td>
                       <div className="flex items-center gap-1">
-                        <IconButton
-                          label="Ubah SCP"
-                          icon={Pencil}
-                          tone="text-warning"
-                          onClick={() =>
-                            setScpModal({ open: true, parent: so.id, values: row, mode: 'edit' })
-                          }
-                        />
-                        <IconButton
-                          label="Hapus SCP"
-                          icon={Trash2}
-                          tone="text-error"
-                          onClick={() => scpMutations.remove.mutateAsync(row.id)}
-                        />
+                        <Can I="update" a="Scp">
+                          <IconButton
+                            label="Ubah SCP"
+                            icon={Pencil}
+                            tone="text-warning"
+                            onClick={() =>
+                              setScpModal({ open: true, parent: so.id, values: row, mode: 'edit' })
+                            }
+                          />
+                        </Can>
+                        <Can I="delete" a="Scp">
+                          <IconButton
+                            label="Hapus SCP"
+                            icon={Trash2}
+                            tone="text-error"
+                            onClick={() => scpMutations.remove.mutateAsync(row.id)}
+                          />
+                        </Can>
                       </div>
                     </td>
                   </tr>
@@ -180,14 +191,16 @@ export const CPKurikulumPage = () => {
               </tbody>
             </table>
             <div className="mt-3">
-              <Button
-                variant="secondary"
-                size="xs"
-                className="gap-1"
-                onClick={() => setScpModal({ open: true, parent: so.id, values: {}, mode: 'create' })}
-              >
-                <Plus size={13} /> Tambah SCP
-              </Button>
+              <Can I="create" a="Scp">
+                <Button
+                  variant="secondary"
+                  size="xs"
+                  className="gap-1"
+                  onClick={() => setScpModal({ open: true, parent: so.id, values: {}, mode: 'create' })}
+                >
+                  <Plus size={13} /> Tambah SCP
+                </Button>
+              </Can>
             </div>
           </Card>
         ))}

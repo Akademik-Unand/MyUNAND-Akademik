@@ -7,6 +7,7 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { FilterBar } from '../../components/common/FilterBar';
 import { DataTable } from '../../components/common/DataTable';
+import { Can } from '../../components/auth/Can';
 import { useFilterOptions } from '../../hooks/useFilterOptions';
 
 export const MKSemesterPage = () => {
@@ -47,9 +48,11 @@ export const MKSemesterPage = () => {
     {
       header: 'Dokumen Evaluasi',
       render: (row) => (
-        <Link to={`/perkuliahan/mk-semester/${row.matakuliah_id}/dokumen`} className="btn btn-xs btn-ghost">
-          Dokumen
-        </Link>
+        <Can I="read" a="DokumenEvaluasi">
+          <Link to={`/perkuliahan/mk-semester/${row.matakuliah_id}/dokumen`} className="btn btn-xs btn-ghost">
+            Dokumen
+          </Link>
+        </Can>
       ),
     },
     {
@@ -76,9 +79,11 @@ export const MKSemesterPage = () => {
         breadcrumbs={[{ label: 'Semester & Perkuliahan' }, { label: 'MK Semester' }]}
         action={
           tab === 'transkrip' ? (
-            <Link to="/perkuliahan/mk-semester/transkrip/atur">
-              <Button size="sm">Atur</Button>
-            </Link>
+            <Can I="update" a="MatakuliahKurikulum">
+              <Link to="/perkuliahan/mk-semester/transkrip/atur">
+                <Button size="sm">Atur</Button>
+              </Link>
+            </Can>
           ) : null
         }
       />

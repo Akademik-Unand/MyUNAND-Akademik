@@ -8,6 +8,7 @@ import { FilterBar } from '../../components/common/FilterBar';
 import { PageSkeleton } from '../../components/common/PageSkeleton';
 import { useResourceQuery } from '../../hooks/useResourceQuery';
 import { useFilterOptions } from '../../hooks/useFilterOptions';
+import { Can } from '../../components/auth/Can';
 import { updateResourceItem } from '../../services/api';
 
 export const MKTranskripAturPage = () => {
@@ -114,9 +115,11 @@ export const MKTranskripAturPage = () => {
           <Button variant="ghost" size="sm" onClick={reset} disabled={saving}>
             Reset
           </Button>
-          <Button size="sm" onClick={save} isLoading={saving}>
-            Simpan
-          </Button>
+          <Can I="update" a="MatakuliahKurikulum">
+            <Button size="sm" onClick={save} isLoading={saving}>
+              Simpan
+            </Button>
+          </Can>
         </div>
       </Card>
     </div>

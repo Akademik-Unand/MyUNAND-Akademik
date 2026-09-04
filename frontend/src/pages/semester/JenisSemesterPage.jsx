@@ -6,6 +6,7 @@ export const JenisSemesterPage = () => (
     title="Jenis Semester"
     subtitle="Kelola data jenis semester pada SIAKAD Kurikulum"
     breadcrumbs={[{ label: 'Master Data' }, { label: 'Semester' }, { label: 'Jenis Semester' }]}
+    subject="JenisSemester"
     resource="jenis-semester"
     idKey="id"
     FormComponent={JenisSemesterForm}

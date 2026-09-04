@@ -23,6 +23,8 @@ import {
   X,
 } from 'lucide-react';
 import { NAVIGATION_MENU } from '../constants/navigation';
+import { filterNavigation } from '../helpers/navigation';
+import { useAuthStore } from '../store/auth.store';
 import { useUIStore } from '../store/ui.store';
 
 // Map icon string to Lucide component
@@ -48,6 +50,8 @@ const ICON_MAP = {
 
 export const Sidebar = () => {
   const { isSidebarOpen, isMobileSidebarOpen, setMobileSidebarOpen } = useUIStore();
+  const user = useAuthStore((state) => state.user);
+  const menu = filterNavigation(NAVIGATION_MENU, user);
   const location = useLocation();
 
   // State to track open submenus (e.g. "Semester")
@@ -98,7 +102,7 @@ export const Sidebar = () => {
 
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto no-scrollbar px-3 py-4 space-y-4">
-        {NAVIGATION_MENU.map((item, idx) => {
+        {menu.map((item, idx) => {
           if (item.type === 'link') {
             const isActive = location.pathname === item.path;
             return (

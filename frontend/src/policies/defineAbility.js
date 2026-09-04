@@ -37,6 +37,8 @@ const SUBJECT_BY_KEY = {
   permission: 'Permission',
   user: 'User',
   'activity-log': 'ActivityLog',
+  'jenis-dokumen-evaluasi': 'JenisDokumenEvaluasi',
+  'dokumen-evaluasi': 'DokumenEvaluasi',
 };
 
 export const parsePermission = (name) => {

@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 import { NAVIGATION_MENU } from '../constants/navigation';
+import { filterNavigation } from '../helpers/navigation';
+import { useAuthStore } from '../store/auth.store';
 
-const buildIndex = () => {
+const buildIndex = (menu) => {
   const items = [];
-  const walk = (menu) => {
-    menu.forEach((item) => {
+  const walk = (nodes) => {
+    nodes.forEach((item) => {
       if (item.type === 'link') {
         items.push({ label: item.label, path: item.path, group: null });
       } else if (item.type === 'group') {
@@ -22,7 +24,7 @@ const buildIndex = () => {
       }
     });
   };
-  walk(NAVIGATION_MENU);
+  walk(menu);
   return items;
 };
 
@@ -32,6 +34,7 @@ export const NavSearchModal = ({ open, onClose }) => {
   const closedByProp = useRef(false);
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -57,7 +60,10 @@ export const NavSearchModal = ({ open, onClose }) => {
     onClose();
   };
 
-  const index = useMemo(() => buildIndex(), []);
+  const index = useMemo(
+    () => buildIndex(filterNavigation(NAVIGATION_MENU, user)),
+    [user],
+  );
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();

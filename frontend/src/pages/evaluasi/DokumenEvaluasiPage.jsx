@@ -10,6 +10,7 @@ import { DataTable } from '../../components/common/DataTable';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
 import { ResourceSelect } from '../../components/common/ResourceSelect';
+import { Can } from '../../components/auth/Can';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 
 export const DokumenEvaluasiPage = () => {
@@ -63,9 +64,11 @@ export const DokumenEvaluasiPage = () => {
       semester={semester}
       onSemesterChange={setSemester}
       action={
-        <Button size="sm" className="gap-1.5" onClick={() => setUploadOpen(true)}>
-          <Upload size={14} /> Simpan Dokumen
-        </Button>
+        <Can I="create" a="DokumenEvaluasi">
+          <Button size="sm" className="gap-1.5" onClick={() => setUploadOpen(true)}>
+            <Upload size={14} /> Simpan Dokumen
+          </Button>
+        </Can>
       }
     >
       <Card>

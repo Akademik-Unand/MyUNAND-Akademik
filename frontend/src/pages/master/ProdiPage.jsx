@@ -9,6 +9,7 @@ import { DataTable } from '../../components/common/DataTable';
 import { ConfirmDeleteModal } from '../../components/common/ConfirmDeleteModal';
 import { Drawer } from '../../components/ui/Drawer';
 import { DetailList } from '../../components/common/DetailList';
+import { Can } from '../../components/auth/Can';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 
 export const ProdiPage = () => {
@@ -45,14 +46,18 @@ export const ProdiPage = () => {
       render: (row) => (
         <div className="flex items-center gap-1 justify-end">
           <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
-          <IconLink label="Ubah prodi" icon={Pencil} tone="text-warning" to={`/master/prodi/${row.id}/edit`} />
-          <IconButton
-            label="Hapus prodi"
-            icon={Trash2}
-            tone="text-error"
-            tooltipPosition="tooltip-left"
-            onClick={() => setDeleteTarget(row)}
-          />
+          <Can I="update" a="ProgramStudi">
+            <IconLink label="Ubah prodi" icon={Pencil} tone="text-warning" to={`/master/prodi/${row.id}/edit`} />
+          </Can>
+          <Can I="delete" a="ProgramStudi">
+            <IconButton
+              label="Hapus prodi"
+              icon={Trash2}
+              tone="text-error"
+              tooltipPosition="tooltip-left"
+              onClick={() => setDeleteTarget(row)}
+            />
+          </Can>
         </div>
       ),
     },
@@ -65,11 +70,13 @@ export const ProdiPage = () => {
         subtitle="Kelola data program studi pada SIAKAD Kurikulum"
         breadcrumbs={[{ label: 'Master Data' }, { label: 'Program Studi' }]}
         action={
-          <Link to="/master/prodi/baru">
-            <Button size="sm" className="gap-1.5 font-semibold">
-              <Plus size={15} /> Tambahkan Data
-            </Button>
-          </Link>
+          <Can I="create" a="ProgramStudi">
+            <Link to="/master/prodi/baru">
+              <Button size="sm" className="gap-1.5 font-semibold">
+                <Plus size={15} /> Tambahkan Data
+              </Button>
+            </Link>
+          </Can>
         }
       />
 

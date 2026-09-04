@@ -10,6 +10,7 @@ import { ConfirmDeleteModal } from '../../components/common/ConfirmDeleteModal';
 import { Drawer } from '../../components/ui/Drawer';
 import { DetailList } from '../../components/common/DetailList';
 import { ResourceSelect } from '../../components/common/ResourceSelect';
+import { Can } from '../../components/auth/Can';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 
 export const KurikulumDataPage = () => {
@@ -32,14 +33,18 @@ export const KurikulumDataPage = () => {
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
           <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
-          <IconLink label="Ubah kurikulum" icon={Pencil} tone="text-warning" to={`/kurikulum/data/${row.id}/edit`} />
-          <IconButton
-            label="Hapus kurikulum"
-            icon={Trash2}
-            tone="text-error"
-            tooltipPosition="tooltip-left"
-            onClick={() => setDeleteTarget(row)}
-          />
+          <Can I="update" a="Kurikulum">
+            <IconLink label="Ubah kurikulum" icon={Pencil} tone="text-warning" to={`/kurikulum/data/${row.id}/edit`} />
+          </Can>
+          <Can I="delete" a="Kurikulum">
+            <IconButton
+              label="Hapus kurikulum"
+              icon={Trash2}
+              tone="text-error"
+              tooltipPosition="tooltip-left"
+              onClick={() => setDeleteTarget(row)}
+            />
+          </Can>
         </div>
       ),
     },
@@ -80,11 +85,13 @@ export const KurikulumDataPage = () => {
         <Card
           title="Kurikulum"
           actions={
-            <Link to={`/kurikulum/data/baru?prodi=${encodeURIComponent(opened)}`}>
-              <Button size="sm" className="gap-1.5">
-                <Plus size={14} /> Tambahkan Data
-              </Button>
-            </Link>
+            <Can I="create" a="Kurikulum">
+              <Link to={`/kurikulum/data/baru?prodi=${encodeURIComponent(opened)}`}>
+                <Button size="sm" className="gap-1.5">
+                  <Plus size={14} /> Tambahkan Data
+                </Button>
+              </Link>
+            </Can>
           }
         >
           <DataTable

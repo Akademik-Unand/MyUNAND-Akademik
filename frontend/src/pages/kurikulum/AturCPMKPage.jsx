@@ -13,6 +13,7 @@ import { useResourceItem, useResourceQuery } from '../../hooks/useResourceQuery'
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useConfirmDelete } from '../../hooks/useConfirmDelete';
 import { PageSkeleton } from '../../components/common/PageSkeleton';
+import { Can } from '../../components/auth/Can';
 
 export const AturCPMKPage = () => {
   const { id } = useParams();
@@ -57,14 +58,18 @@ export const AturCPMKPage = () => {
         ]}
         action={
           <div className="flex gap-2">
-            <Link to={`/perkuliahan/mk-semester/${id}`}>
-              <Button variant="secondary" size="sm">
-                Lihat MK Semester
+            <Can I="read" a="MatakuliahKurikulum">
+              <Link to={`/perkuliahan/mk-semester/${id}`}>
+                <Button variant="secondary" size="sm">
+                  Lihat MK Semester
+                </Button>
+              </Link>
+            </Can>
+            <Can I="create" a="Cpmk">
+              <Button size="sm" className="gap-1.5" onClick={() => setModal({ open: true, mode: 'create', values: {} })}>
+                <Plus size={15} /> Tambah CPMK
               </Button>
-            </Link>
-            <Button size="sm" className="gap-1.5" onClick={() => setModal({ open: true, mode: 'create', values: {} })}>
-              <Plus size={15} /> Tambah CPMK
-            </Button>
+            </Can>
           </div>
         }
       />
@@ -86,19 +91,23 @@ export const AturCPMKPage = () => {
                   <td>{item.deskripsi}</td>
                   <td>
                     <div className="flex items-center gap-1">
-                      <IconButton
-                        label="Ubah CPMK"
-                        icon={Pencil}
-                        tone="text-warning"
-                        onClick={() => setModal({ open: true, mode: 'edit', values: item })}
-                      />
-                      <IconButton
-                        label="Hapus CPMK"
-                        icon={Trash2}
-                        tone="text-error"
-                        tooltipPosition="tooltip-left"
-                        onClick={() => del.askDelete(item)}
-                      />
+                      <Can I="update" a="Cpmk">
+                        <IconButton
+                          label="Ubah CPMK"
+                          icon={Pencil}
+                          tone="text-warning"
+                          onClick={() => setModal({ open: true, mode: 'edit', values: item })}
+                        />
+                      </Can>
+                      <Can I="delete" a="Cpmk">
+                        <IconButton
+                          label="Hapus CPMK"
+                          icon={Trash2}
+                          tone="text-error"
+                          tooltipPosition="tooltip-left"
+                          onClick={() => del.askDelete(item)}
+                        />
+                      </Can>
                     </div>
                   </td>
                 </tr>
