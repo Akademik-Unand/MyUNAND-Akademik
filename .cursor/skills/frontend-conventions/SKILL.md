@@ -1,6 +1,6 @@
 ---
 name: frontend-conventions
-description: Aturan wajib frontend React + Vite (DaisyUI 5, DataTable, React Query, mock adapter). Gunakan SETIAP kali membuat, mengedit, atau meninjau kode frontend — halaman list/tabel, hook, service API, form, chart, modal, loading, atau permission. Jangan generate kode frontend tanpa membaca skill ini terlebih dahulu.
+description: Aturan wajib frontend React + Vite (DaisyUI 5, DataTable, React Query, API hidup). Gunakan SETIAP kali membuat, mengedit, atau meninjau kode frontend — halaman list/tabel, hook, service API, form, chart, modal, loading, atau permission. Jangan generate kode frontend tanpa membaca skill ini terlebih dahulu.
 ---
 
 # Frontend Conventions — React (Vite)
@@ -28,12 +28,12 @@ src/
 ├── layouts/
 ├── hooks/
 │   └── table/         # useTableParams, pagination/search/sort/filters (URL)
-├── services/          # api.js (pintu akses) + mockAdapter.js
+├── services/          # api.js (pintu akses ke /api/v1)
 ├── store/             # Zustand (bukan data server)
 ├── validations/
 ├── utils/             # queryRows.js, formatter murni
 ├── helpers/
-├── constants/         # mockData, navigation, theme
+├── constants/         # navigation, theme
 ├── config/            # env.js (VITE_*)
 ├── policies/
 ├── routes/
@@ -56,10 +56,9 @@ Hindari "AI slop": bold merata, radius `xl`+, hover di setiap card, border warna
 
 Baca lewat `src/config/env.js`, bukan `import.meta.env` tersebar.
 
-- `VITE_USE_MOCK` — default `true`. Data list/CRUD lewat mock adapter.
-- `VITE_API_BASE_URL` — untuk klien API asli nanti (default `/api`).
+- `VITE_API_BASE_URL` — URL backend, contoh `http://localhost:3000/api/v1`. Wajib di `frontend/.env` (lihat `.env.example`). Jangan andalkan proxy Vite untuk login.
 
-Sediakan `frontend/.env.example`. Jangan hardcode URL/key.
+Sediakan `frontend/.env.example`. Jangan hardcode URL/key. Jangan menambah `VITE_USE_MOCK` atau generate `mockAdapter`/`mockData`.
 
 ## 4. Service API
 
@@ -69,12 +68,10 @@ Satu pintu: `services/api.js`. Komponen/hook tidak boleh `fetch`/`axios` langsun
 |---|---|
 | `listResource(resource, params)` | halaman tabel (paginated) |
 | `getResourceRows(resource)` | tampilan non-tabel (matriks, form pilihan) |
+| `getResourceItem(resource, id)` | detail satu baris |
 | `createResourceItem` / `updateResourceItem` / `deleteResourceItem` | CRUD |
-| `replaceResourceRows` | ganti seluruh list (misal atur transkrip) |
 
-Selama `env.useMock`, semua itu di `services/mockAdapter.js`. Resource baru: daftarkan di adapter (`idKey`, `searchable`) + baris di `constants/mockData.js`.
-
-Saat API asli hidup: isi cabang non-mock di `api.js` saja. Halaman tidak berubah. Endpoint non-CRUD boleh punya `services/<fitur>/*.service.js`.
+Data selalu lewat API. Peta resource FE → path BE ada di `api.js` (`prodi` → `/program-studi`, `setting-semester` → `/semester`, dll). Field form/kolom = atribut model backend (`id` UUID, bukan `kode` mock). Dropdown lewat `getResourceRows` / `ResourceSelect`. Jangan `replaceResourceRows` / `replaceAll` — pakai create/update/delete per baris. Endpoint non-CRUD boleh punya `services/<fitur>/*.service.js`.
 
 ## 5. Data Fetching — React Query
 
@@ -137,7 +134,7 @@ Mode klien (tanpa resource): `data={rows}` + `searchableFields={['nama']}`. Jang
 
 DataTable sudah memanggil `useTableParams`. Jangan buat hook params per fitur.
 
-### Kontrak query (FE → mock/API)
+### Kontrak query (FE → API)
 
 ```
 { page, limit, search, sortBy, sortOrder, filter: { field: value } }
@@ -184,13 +181,13 @@ Empty state wajib (bukan tabel kosong). Master CRUD list: `MasterListPage` (moda
 
 `<Can I="create" a="Fakultas">` dari `permissions[]` user (format `{subject}.{action}`), bukan `if (user.role === 'admin')`. User bisa **multi-role**; ability = gabungan permission. Route lewat `ProtectedRoute`.
 
-Pengelolaan akses: halaman matriks role × permission (`/pengaturan/peran`, wajib kotak cari name/description/group/subject) dan list user dengan assign banyak role (`/pengaturan/pengguna`). Jejak aktivitas (`/pengaturan/aktivitas`) read-only — DataTable tanpa tambah/ubah/hapus. Data lewat `services/api.js` (mock atau API). Jangan hardcode grant di komponen.
+Pengelolaan akses: halaman matriks role × permission (`/pengaturan/peran`, wajib kotak cari name/description/group/subject) dan list user dengan assign banyak role (`/pengaturan/pengguna`). Jejak aktivitas (`/pengaturan/aktivitas`) read-only — DataTable tanpa tambah/ubah/hapus. Data lewat `services/api.js`. Jangan hardcode grant di komponen.
 
 Hapus data master di UI memanggil `delete` — backend yang soft-delete. Jangan janjikan hapus permanen di copy tombol.
 
 ## 15. Helper & Utils
 
-Formatter generik → `utils/`. Mapping domain/chart → `helpers/`. Logika query baris (search/filter/sort/page) → `utils/queryRows.js` (dipakai mock + mode klien).
+Formatter generik → `utils/`. Mapping domain/chart → `helpers/`. Logika query baris (search/filter/sort/page) → `utils/queryRows.js` (mode klien DataTable).
 
 ## 16. Kerapian
 
@@ -204,9 +201,9 @@ Logic non-trivial: `vitest` + Testing Library. Komponen `ui/`/`common/` punya JS
 
 - [ ] Tidak ada markup/logic besar menumpuk di `pages/`
 - [ ] URL/kredensial lewat `config/env.js`
-- [ ] Data lewat `services/api.js` (mock atau API), bukan fetch di komponen
+- [ ] Data lewat `services/api.js` ke backend hidup, bukan fetch di komponen dan bukan mock
 - [ ] List pakai `<DataTable resource="..." />`, state di URL, bukan Zustand
-- [ ] Resource baru terdaftar di `mockAdapter` + `mockData`
+- [ ] Resource baru dipetakan di `api.js` ke path BE; kolom/form memakai field model
 - [ ] Mutasi lewat `useResourceMutations`, hapus lewat `ConfirmDeleteModal`
 - [ ] Modal pakai `<dialog>` + `showModal()`, bukan checkbox
 - [ ] Icon lucide-react, toast Sonner, chart ApexCharts, loading skeleton

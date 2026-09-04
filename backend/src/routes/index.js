@@ -42,8 +42,12 @@ const historyUploadNilaiRoutes = require('./evaluasi/history-upload-nilai.routes
 const evaluasiCpmkRoutes = require('./evaluasi/evaluasi-cpmk.routes');
 const rekapCpRoutes = require('./evaluasi/rekap-cp.routes');
 const laporanCpRoutes = require('./evaluasi/laporan-cp.routes');
+const dashboardRoutes = require('./dashboard/dashboard.routes');
+const jenisDokumenEvaluasiRoutes = require('./evaluasi/jenis-dokumen-evaluasi.routes');
+const dokumenEvaluasiRoutes = require('./evaluasi/dokumen-evaluasi.routes');
 
 router.use('/auth', authRoutes);
+router.use('/dashboard', dashboardRoutes);
 router.use('/users', usersRoutes);
 router.use('/roles', rolesRoutes);
 router.use('/permissions', permissionsRoutes);
@@ -82,5 +86,7 @@ router.use('/history-upload-nilai', historyUploadNilaiRoutes);
 router.use('/evaluasi-cpmk', evaluasiCpmkRoutes);
 router.use('/rekap-cp', rekapCpRoutes);
 router.use('/laporan-cp', laporanCpRoutes);
+router.use('/jenis-dokumen-evaluasi', jenisDokumenEvaluasiRoutes);
+router.use('/dokumen-evaluasi', dokumenEvaluasiRoutes);
 
 module.exports = router;

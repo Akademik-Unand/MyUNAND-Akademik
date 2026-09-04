@@ -9,8 +9,10 @@ export const FilterBar = ({ fields = [], className = '' }) => {
           size="sm"
           label={field.label}
           placeholder={field.placeholder}
-          options={field.options}
-          defaultValue=""
+          options={field.options || []}
+          value={field.value}
+          defaultValue={field.value === undefined ? '' : undefined}
+          onChange={field.onChange}
         />
       ))}
     </div>

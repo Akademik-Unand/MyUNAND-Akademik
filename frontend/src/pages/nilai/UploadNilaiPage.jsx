@@ -7,42 +7,28 @@ import { FilterBar } from '../../components/common/FilterBar';
 import { DataTable } from '../../components/common/DataTable';
 import { Drawer } from '../../components/ui/Drawer';
 import { DetailList } from '../../components/common/DetailList';
-import {
-  FILTER_DEPARTEMEN,
-  FILTER_PRODI,
-  FILTER_KURIKULUM,
-  FILTER_SEMESTER,
-} from '../../constants/mockData';
-
-const filterFields = [
-  { label: 'Departemen', placeholder: 'Pilih Departemen', options: FILTER_DEPARTEMEN.map((d) => ({ value: d, label: d })) },
-  { label: 'Prodi', placeholder: 'Pilih', options: FILTER_PRODI.map((p) => ({ value: p, label: p })) },
-  { label: 'Kurikulum', placeholder: 'Pilih Kurikulum', options: FILTER_KURIKULUM.map((k) => ({ value: k, label: k })) },
-  { label: 'Semester', placeholder: 'Pilih Semester', options: FILTER_SEMESTER.map((s) => ({ value: s, label: s })) },
-];
+import { useFilterOptions } from '../../hooks/useFilterOptions';
 
 export const UploadNilaiPage = () => {
   const [tab, setTab] = useState('kelas');
   const [historyItem, setHistoryItem] = useState(null);
+  const filters = useFilterOptions();
 
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'kelas', header: 'Kelas', sortable: true, cellClassName: 'font-semibold' },
-    { key: 'mataKuliah', header: 'Mata Kuliah', sortable: true },
-    { key: 'sks', header: 'SKS', sortable: true },
+    { key: 'nama', header: 'Kelas', sortable: true, cellClassName: 'font-semibold' },
     {
-      key: 'prodi',
-      header: 'Prodi',
+      key: 'matakuliah_id',
+      header: 'Mata Kuliah',
       sortable: true,
-      filter: { type: 'select', options: FILTER_PRODI },
+      render: (row) => row.matakuliah?.nama_resmi || '—',
     },
     {
-      key: 'semester',
-      header: 'Semester',
-      sortable: true,
-      filter: { type: 'select', options: FILTER_SEMESTER },
+      key: 'sks',
+      header: 'SKS',
+      render: (row) => row.matakuliah?.jumlah_sks_kurikulum,
     },
-    { key: 'peserta', header: 'Jumlah Peserta', sortable: true },
+    { key: 'jumlah_peserta_max', header: 'Kuota', sortable: true },
     {
       header: 'Aksi',
       className: 'text-right',
@@ -53,7 +39,7 @@ export const UploadNilaiPage = () => {
           icon={Settings2}
           tone="text-success"
           tooltipPosition="tooltip-left"
-          to={`/perkuliahan/upload-nilai/${encodeURIComponent(row.kelas)}`}
+          to={`/perkuliahan/upload-nilai/${row.id}`}
         />
       ),
     },
@@ -61,19 +47,24 @@ export const UploadNilaiPage = () => {
 
   const historyColumns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'kelas', header: 'Kelas', sortable: true },
-    { key: 'mataKuliah', header: 'Mata Kuliah', sortable: true },
-    { key: 'pengunggah', header: 'Pengunggah', sortable: true },
-    { key: 'waktu', header: 'Waktu', sortable: true },
     {
-      key: 'status',
-      header: 'Status',
-      sortable: true,
-      filter: { type: 'select', options: ['Berhasil', 'Diproses', 'Gagal'] },
-      render: (row) => (
-        <span className={`badge badge-sm ${row.status === 'Berhasil' ? 'badge-success' : 'badge-warning'}`}>{row.status}</span>
-      ),
+      key: 'kelas_id',
+      header: 'Kelas',
+      render: (row) => row.kelas?.nama || '—',
     },
+    {
+      key: 'mataKuliah',
+      header: 'Mata Kuliah',
+      render: (row) => row.kelas?.matakuliah?.nama_resmi || '—',
+    },
+    {
+      key: 'user_id',
+      header: 'Pengunggah',
+      render: (row) => row.user?.name || '—',
+    },
+    { key: 'createdAt', header: 'Waktu', sortable: true },
+    { key: 'file_name', header: 'Berkas', sortable: true },
+    { key: 'tipe', header: 'Tipe', sortable: true },
     {
       header: 'Aksi',
       className: 'text-right',
@@ -98,7 +89,14 @@ export const UploadNilaiPage = () => {
         breadcrumbs={[{ label: 'Semester & Perkuliahan' }, { label: 'Upload Nilai' }]}
       />
       <Card title="Filter">
-        <FilterBar fields={filterFields} />
+        <FilterBar
+          fields={[
+            { label: 'Departemen', placeholder: 'Pilih Departemen', options: filters.departemen },
+            { label: 'Prodi', placeholder: 'Pilih', options: filters.prodi },
+            { label: 'Kurikulum', placeholder: 'Pilih Kurikulum', options: filters.kurikulum },
+            { label: 'Semester', placeholder: 'Pilih Semester', options: filters.semester },
+          ]}
+        />
       </Card>
       <div className="tabs tabs-box bg-base-200 w-fit">
         <button type="button" className={`tab ${tab === 'kelas' ? 'tab-active' : ''}`} onClick={() => setTab('kelas')}>
@@ -114,7 +112,7 @@ export const UploadNilaiPage = () => {
             resource="upload-nilai"
             paramPrefix="kelas_"
             columns={columns}
-            rowKey={(r) => r.kelas}
+            rowKey={(row) => row.id}
             searchPlaceholder="Cari kelas atau mata kuliah..."
           />
         </Card>
@@ -124,7 +122,7 @@ export const UploadNilaiPage = () => {
             resource="upload-history"
             paramPrefix="history_"
             columns={historyColumns}
-            rowKey={(r) => r.id}
+            rowKey={(row) => row.id}
             searchPlaceholder="Cari kelas atau pengunggah..."
           />
         </Card>
@@ -133,17 +131,17 @@ export const UploadNilaiPage = () => {
         open={Boolean(historyItem)}
         onClose={() => setHistoryItem(null)}
         title="Detail Upload"
-        subtitle={historyItem?.kelas}
+        subtitle={historyItem?.kelas?.nama}
       >
         {historyItem && (
           <DetailList
             items={[
-              { label: 'Kelas', value: historyItem.kelas },
-              { label: 'Mata kuliah', value: historyItem.mataKuliah },
-              { label: 'Pengunggah', value: historyItem.pengunggah },
-              { label: 'Waktu', value: historyItem.waktu },
-              { label: 'Status', value: historyItem.status },
-              { label: 'Peserta', value: historyItem.peserta },
+              { label: 'Kelas', value: historyItem.kelas?.nama },
+              { label: 'Mata kuliah', value: historyItem.kelas?.matakuliah?.nama_resmi },
+              { label: 'Pengunggah', value: historyItem.user?.name },
+              { label: 'Waktu', value: historyItem.createdAt },
+              { label: 'Berkas', value: historyItem.file_name },
+              { label: 'Keterangan', value: historyItem.keterangan },
             ]}
           />
         )}

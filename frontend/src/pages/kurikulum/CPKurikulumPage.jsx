@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { IconButton } from '../../components/common/IconButton';
 import { PageHeader } from '../../components/common/PageHeader';
@@ -17,62 +16,64 @@ import { CPForm, SCPForm } from '../../components/kurikulum/CPForms';
 import { useResourceQuery } from '../../hooks/useResourceQuery';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
 import { useConfirmDelete } from '../../hooks/useConfirmDelete';
-import { FILTER_DEPARTEMEN, FILTER_PRODI, FILTER_KURIKULUM } from '../../constants/mockData';
-
-const filterFields = [
-  { label: 'Departemen', placeholder: 'Pilih Departemen', options: FILTER_DEPARTEMEN.map((d) => ({ value: d, label: d })) },
-  { label: 'Prodi', placeholder: 'Pilih', options: FILTER_PRODI.map((p) => ({ value: p, label: p })) },
-  { label: 'Kurikulum', placeholder: 'Pilih Kurikulum', options: FILTER_KURIKULUM.map((k) => ({ value: k, label: k })) },
-];
+import { useFilterOptions } from '../../hooks/useFilterOptions';
 
 export const CPKurikulumPage = () => {
-  const query = useResourceQuery('kurikulum-cp');
-  const mutations = useResourceMutations('kurikulum-cp', {
+  const filters = useFilterOptions();
+  const [kurikulumId, setKurikulumId] = useState('');
+  const query = useResourceQuery('kurikulum-cp', {
+    params: kurikulumId ? { filter: { kurikulum_id: kurikulumId } } : {},
+  });
+  const cpMutations = useResourceMutations('kurikulum-cp', {
     create: 'CP berhasil ditambahkan.',
     update: 'CP berhasil diperbarui.',
     remove: 'CP berhasil dihapus.',
+  });
+  const scpMutations = useResourceMutations('kurikulum-scp', {
+    create: 'SCP berhasil ditambahkan.',
+    update: 'SCP berhasil diperbarui.',
+    remove: 'SCP berhasil dihapus.',
   });
   const del = useConfirmDelete();
   const [cpModal, setCpModal] = useState({ open: false, mode: 'create', values: {} });
   const [scpModal, setScpModal] = useState({ open: false, parent: null, values: {} });
   const [detail, setDetail] = useState(null);
   const data = query.data ?? [];
-
-  const replace = (next) => mutations.replaceAll.mutateAsync(next);
+  const saving = cpMutations.create.isPending || cpMutations.update.isPending || scpMutations.create.isPending || scpMutations.update.isPending;
 
   const saveCp = async (e) => {
     e.preventDefault();
-    if (mutations.replaceAll.isPending) return;
+    if (saving) return;
+    const payload = {
+      kurikulum_id: kurikulumId || cpModal.values.kurikulum_id,
+      nama_cp: cpModal.values.nama_cp,
+      deskripsi: cpModal.values.deskripsi || null,
+      nilai_max: Number(cpModal.values.nilai_max ?? 100),
+      nilai_min: Number(cpModal.values.nilai_min ?? 0),
+    };
     if (cpModal.mode === 'create') {
-      await replace([
-        { kode: cpModal.values.kode, deskripsi: cpModal.values.deskripsi, targetAktif: true, scp: [] },
-        ...data,
-      ]);
-      toast.success('CP berhasil ditambahkan');
+      await cpMutations.create.mutateAsync(payload);
     } else {
-      await replace(data.map((so) => (so.kode === cpModal.values.kode ? { ...so, ...cpModal.values } : so)));
-      toast.success('CP berhasil diperbarui');
+      await cpMutations.update.mutateAsync({ id: cpModal.values.id, payload });
     }
     setCpModal({ open: false, mode: 'create', values: {} });
   };
 
   const saveScp = async (e) => {
     e.preventDefault();
-    if (mutations.replaceAll.isPending) return;
-    const isEdit = scpModal.mode === 'edit';
-    await replace(
-      data.map((so) => {
-        if (so.kode !== scpModal.parent) return so;
-        if (isEdit) {
-          return {
-            ...so,
-            scp: so.scp.map((row) => (row.kode === scpModal.values.kode ? { ...row, ...scpModal.values } : row)),
-          };
-        }
-        return { ...so, scp: [...so.scp, { ...scpModal.values }] };
-      })
-    );
-    toast.success(isEdit ? 'SCP berhasil diperbarui' : 'SCP berhasil ditambahkan');
+    if (saving) return;
+    const payload = {
+      cp_id: scpModal.parent,
+      nama_scp: scpModal.values.nama_scp,
+      deskripsi: scpModal.values.deskripsi || null,
+      persen_capai_nilai_min: Number(scpModal.values.persen_capai_nilai_min ?? 0),
+      nilai_min: Number(scpModal.values.nilai_min ?? 0),
+    };
+    if (scpModal.mode === 'edit') {
+      await scpMutations.update.mutateAsync({ id: scpModal.values.id, payload });
+    } else {
+      await scpMutations.create.mutateAsync(payload);
+    }
     setScpModal({ open: false, parent: null, values: {} });
   };
 
@@ -85,26 +86,42 @@ export const CPKurikulumPage = () => {
         subtitle="Kelola capaian pembelajaran (CP) dan sub-CP (SCP) pada kurikulum"
         breadcrumbs={[{ label: 'Kurikulum' }, { label: 'CP Kurikulum' }]}
         action={
-          <Button size="sm" className="gap-1.5 font-semibold" onClick={() => setCpModal({ open: true, mode: 'create', values: {} })}>
+          <Button
+            size="sm"
+            className="gap-1.5 font-semibold"
+            disabled={!kurikulumId}
+            onClick={() => setCpModal({ open: true, mode: 'create', values: { kurikulum_id: kurikulumId } })}
+          >
             <Plus size={15} /> Tambah CP
           </Button>
         }
       />
 
       <Card title="Filter">
-        <FilterBar fields={filterFields} />
+        <FilterBar
+          fields={[
+            { label: 'Departemen', placeholder: 'Pilih Departemen', options: filters.departemen },
+            { label: 'Prodi', placeholder: 'Pilih', options: filters.prodi },
+            {
+              label: 'Kurikulum',
+              placeholder: 'Pilih Kurikulum',
+              options: filters.kurikulum,
+              value: kurikulumId,
+              onChange: (e) => setKurikulumId(e.target.value),
+            },
+          ]}
+        />
       </Card>
 
       <div className="space-y-4">
         {data.map((so) => (
-          <Card key={so.kode}>
+          <Card key={so.id}>
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-3">
               <button type="button" className="text-left flex items-start gap-3" onClick={() => setDetail(so)}>
-                <Badge variant="primary">{so.kode}</Badge>
+                <Badge variant="primary">{so.nama_cp}</Badge>
                 <p className="text-sm text-base-content/80 leading-relaxed">{so.deskripsi}</p>
               </button>
               <div className="flex items-center gap-2 shrink-0">
-                <Badge variant="success" outline>Aktif</Badge>
                 <IconButton
                   label="Ubah CP"
                   icon={Pencil}
@@ -121,7 +138,7 @@ export const CPKurikulumPage = () => {
               </div>
             </div>
             <p className="text-xs text-base-content/60 mb-3">
-              Target {so.kode}: <strong>60%</strong> — Nilai Minimal: <strong>55 dari skala 100</strong>
+              Nilai {so.nama_cp}: <strong>{so.nilai_min}</strong> — <strong>{so.nilai_max}</strong>
             </p>
             <table className="table table-sm w-full">
               <thead>
@@ -129,41 +146,32 @@ export const CPKurikulumPage = () => {
                   <th>SCP</th>
                   <th>Deskripsi</th>
                   <th>Target</th>
-                  <th>Nilai Minimal Target</th>
+                  <th>Nilai Minimal</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                {so.scp.map((row) => (
-                  <tr key={row.kode}>
-                    <td className="font-semibold">{row.kode}</td>
+                {(so.scp || []).map((row) => (
+                  <tr key={row.id}>
+                    <td className="font-semibold">{row.nama_scp}</td>
                     <td>{row.deskripsi}</td>
-                    <td>{row.target}</td>
-                    <td>{row.nilaiMinimal}</td>
+                    <td>{row.persen_capai_nilai_min}</td>
+                    <td>{row.nilai_min}</td>
                     <td>
                       <div className="flex items-center gap-1">
-                        <span className="badge badge-success badge-outline badge-sm">Aktif</span>
                         <IconButton
                           label="Ubah SCP"
                           icon={Pencil}
                           tone="text-warning"
                           onClick={() =>
-                            setScpModal({ open: true, parent: so.kode, values: row, mode: 'edit' })
+                            setScpModal({ open: true, parent: so.id, values: row, mode: 'edit' })
                           }
                         />
                         <IconButton
                           label="Hapus SCP"
                           icon={Trash2}
                           tone="text-error"
-                          onClick={() =>
-                            replace(
-                              data.map((item) =>
-                                item.kode === so.kode
-                                  ? { ...item, scp: item.scp.filter((scp) => scp.kode !== row.kode) }
-                                  : item
-                              )
-                            )
-                          }
+                          onClick={() => scpMutations.remove.mutateAsync(row.id)}
                         />
                       </div>
                     </td>
@@ -172,34 +180,66 @@ export const CPKurikulumPage = () => {
               </tbody>
             </table>
             <div className="mt-3">
-              <Button variant="secondary" size="xs" className="gap-1" onClick={() => setScpModal({ open: true, parent: so.kode, values: {} })}>
+              <Button
+                variant="secondary"
+                size="xs"
+                className="gap-1"
+                onClick={() => setScpModal({ open: true, parent: so.id, values: {}, mode: 'create' })}
+              >
                 <Plus size={13} /> Tambah SCP
               </Button>
             </div>
           </Card>
         ))}
+        {data.length === 0 && (
+          <p className="text-sm text-base-content/60">Pilih kurikulum, lalu tambah CP.</p>
+        )}
       </div>
 
-      <Modal open={cpModal.open} onClose={() => setCpModal({ open: false, mode: 'create', values: {} })} title={cpModal.mode === 'create' ? 'Tambah CP' : 'Ubah CP'} closeOnBackdrop={!mutations.replaceAll.isPending} footer={<FormActions onCancel={() => setCpModal({ open: false, mode: 'create', values: {} })} isLoading={mutations.replaceAll.isPending} onSubmitClick={() => document.getElementById('cp-form')?.requestSubmit()} />}>
+      <Modal
+        open={cpModal.open}
+        onClose={() => setCpModal({ open: false, mode: 'create', values: {} })}
+        title={cpModal.mode === 'create' ? 'Tambah CP' : 'Ubah CP'}
+        closeOnBackdrop={!saving}
+        footer={
+          <FormActions
+            onCancel={() => setCpModal({ open: false, mode: 'create', values: {} })}
+            isLoading={saving}
+            onSubmitClick={() => document.getElementById('cp-form')?.requestSubmit()}
+          />
+        }
+      >
         <form id="cp-form" onSubmit={saveCp}>
           <CPForm values={cpModal.values} onChange={(values) => setCpModal((m) => ({ ...m, values }))} />
         </form>
       </Modal>
 
-      <Modal open={scpModal.open} onClose={() => setScpModal({ open: false, parent: null, values: {} })} title={`${scpModal.mode === 'edit' ? 'Ubah' : 'Tambah'} SCP — ${scpModal.parent || ''}`} closeOnBackdrop={!mutations.replaceAll.isPending} footer={<FormActions onCancel={() => setScpModal({ open: false, parent: null, values: {} })} isLoading={mutations.replaceAll.isPending} onSubmitClick={() => document.getElementById('scp-form')?.requestSubmit()} />}>
+      <Modal
+        open={scpModal.open}
+        onClose={() => setScpModal({ open: false, parent: null, values: {} })}
+        title={`${scpModal.mode === 'edit' ? 'Ubah' : 'Tambah'} SCP`}
+        closeOnBackdrop={!saving}
+        footer={
+          <FormActions
+            onCancel={() => setScpModal({ open: false, parent: null, values: {} })}
+            isLoading={saving}
+            onSubmitClick={() => document.getElementById('scp-form')?.requestSubmit()}
+          />
+        }
+      >
         <form id="scp-form" onSubmit={saveScp}>
           <SCPForm values={scpModal.values} onChange={(values) => setScpModal((m) => ({ ...m, values }))} />
         </form>
       </Modal>
 
-      <Drawer open={Boolean(detail)} onClose={() => setDetail(null)} title={`Detail ${detail?.kode || 'CP'}`}>
+      <Drawer open={Boolean(detail)} onClose={() => setDetail(null)} title={`Detail ${detail?.nama_cp || 'CP'}`}>
         {detail && (
           <DetailList
             items={[
-              { label: 'Kode', value: detail.kode },
+              { label: 'Nama', value: detail.nama_cp },
               { label: 'Deskripsi', value: detail.deskripsi },
               { label: 'Jumlah SCP', value: detail.scp?.length },
-              { label: 'Target', value: '60%' },
+              { label: 'Nilai min / max', value: `${detail.nilai_min} / ${detail.nilai_max}` },
             ]}
           />
         )}
@@ -209,7 +249,7 @@ export const CPKurikulumPage = () => {
         open={del.isOpen}
         onClose={del.close}
         isLoading={del.pending}
-        onConfirm={() => del.confirm((item) => replace(data.filter((r) => r.kode !== item.kode)))}
+        onConfirm={() => del.confirm((item) => cpMutations.remove.mutateAsync(item.id))}
       />
     </div>
   );

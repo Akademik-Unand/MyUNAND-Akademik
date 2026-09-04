@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Upload } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import { MKSemesterLayout } from '../../components/mk-semester/MKSemesterLayout';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -8,75 +9,66 @@ import { FormActions } from '../../components/common/FormActions';
 import { DataTable } from '../../components/common/DataTable';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
+import { ResourceSelect } from '../../components/common/ResourceSelect';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
-import { FILTER_SEMESTER } from '../../constants/mockData';
 
 export const DokumenEvaluasiPage = () => {
-  const [semester, setSemester] = useState(FILTER_SEMESTER[0]);
+  const { id } = useParams();
+  const [semester, setSemester] = useState('');
   const [tab, setTab] = useState('daftar');
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [form, setForm] = useState({ nama: '', keterangan: '', berkas: '' });
-  const mutations = useResourceMutations('dokumen-evaluasi', { create: 'Dokumen berhasil diunggah.' });
+  const [form, setForm] = useState({
+    nama: '',
+    keterangan: '',
+    file_path: '',
+    jenis_dokumen_evaluasi_id: '',
+  });
+  const mutations = useResourceMutations('dokumen-evaluasi', { create: 'Dokumen berhasil disimpan.' });
 
   const daftarColumns = [
-    { key: 'no', header: 'No', sortable: true },
     { key: 'nama', header: 'Nama Dokumen', sortable: true },
     { key: 'keterangan', header: 'Keterangan', sortable: true },
-    { key: 'berkas', header: 'Nama Berkas', sortable: true },
-    { key: 'uploader', header: 'Uploader', sortable: true },
-    { key: 'waktu', header: 'Waktu', sortable: true },
+    { key: 'file_path', header: 'Berkas', sortable: true },
+    {
+      key: 'user_id',
+      header: 'Uploader',
+      render: (row) => row.uploader?.name || '—',
+    },
+    { key: 'createdAt', header: 'Waktu', sortable: true },
   ];
 
   const jenisColumns = [
-    { key: 'no', header: '#', sortable: true },
-    { key: 'nama', header: 'Nama File', sortable: true },
+    { key: 'nama', header: 'Nama', sortable: true },
     { key: 'tipe', header: 'Tipe', sortable: true },
-    { key: 'keharusan', header: 'Keharusan', sortable: true },
     { key: 'keterangan', header: 'Keterangan', sortable: true },
-    {
-      key: 'status',
-      header: 'Status',
-      sortable: true,
-      filter: { type: 'select', options: ['Sudah diunggah', 'Belum ada'] },
-      render: (row) => (
-        <span className={`badge badge-sm ${row.status === 'Sudah diunggah' ? 'badge-success' : 'badge-ghost'}`}>
-          {row.status}
-        </span>
-      ),
-    },
   ];
 
   const submitUpload = async (e) => {
     e.preventDefault();
     if (mutations.create.isPending) return;
     await mutations.create.mutateAsync({
-      ...form,
-      berkas: form.berkas || 'dokumen-evaluasi.pdf',
-      uploader: 'Ilhamdi',
-      waktu: '3 September 2026, 13:40',
+      nama: form.nama,
+      keterangan: form.keterangan || null,
+      file_path: form.file_path || null,
+      jenis_dokumen_evaluasi_id: form.jenis_dokumen_evaluasi_id || null,
+      matakuliah_id: id || null,
+      semester_id: semester || null,
     });
     setUploadOpen(false);
-    setForm({ nama: '', keterangan: '', berkas: '' });
+    setForm({ nama: '', keterangan: '', file_path: '', jenis_dokumen_evaluasi_id: '' });
   };
 
   return (
     <MKSemesterLayout
-      active="dokumen"
       semester={semester}
       onSemesterChange={setSemester}
       action={
         <Button size="sm" className="gap-1.5" onClick={() => setUploadOpen(true)}>
-          <Upload size={14} /> Upload Dokumen
+          <Upload size={14} /> Simpan Dokumen
         </Button>
       }
     >
       <Card>
-        <p className="mb-4 text-sm text-success">
-          Masa input nilai sedang dibuka.
-          <br />
-          Belum ada pengaturan jenis dokumen evaluasi yang harus diupload. Upload nilai mahasiswa di Kelas boleh dilakukan.
-        </p>
-
         <div className="tabs tabs-box mb-4 w-fit bg-base-200">
           <button type="button" className={`tab ${tab === 'daftar' ? 'tab-active' : ''}`} onClick={() => setTab('daftar')}>
             Daftar Dokumen Evaluasi
@@ -91,6 +83,7 @@ export const DokumenEvaluasiPage = () => {
             resource="dokumen-evaluasi"
             tableKey="doc_"
             columns={daftarColumns}
+            extraFilter={id ? { matakuliah_id: id } : undefined}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari dokumen..."
           />
@@ -99,7 +92,7 @@ export const DokumenEvaluasiPage = () => {
             resource="jenis-dokumen"
             tableKey="jenis_"
             columns={jenisColumns}
-            rowKey={(row) => row.no}
+            rowKey={(row) => row.id}
             searchPlaceholder="Cari jenis dokumen..."
           />
         )}
@@ -108,12 +101,12 @@ export const DokumenEvaluasiPage = () => {
       <Modal
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
-        title="Upload Dokumen Evaluasi"
+        title="Simpan Dokumen Evaluasi"
         closeOnBackdrop={!mutations.create.isPending}
         footer={
           <FormActions
             onCancel={() => setUploadOpen(false)}
-            submitLabel="Unggah"
+            submitLabel="Simpan"
             isLoading={mutations.create.isPending}
             onSubmitClick={() => document.getElementById('upload-dokumen-form')?.requestSubmit()}
           />
@@ -126,6 +119,13 @@ export const DokumenEvaluasiPage = () => {
             onChange={(e) => setForm((prev) => ({ ...prev, nama: e.target.value }))}
             required
           />
+          <ResourceSelect
+            resource="jenis-dokumen"
+            label="Jenis dokumen"
+            value={form.jenis_dokumen_evaluasi_id}
+            onChange={(e) => setForm((prev) => ({ ...prev, jenis_dokumen_evaluasi_id: e.target.value }))}
+            getLabel={(row) => row.nama}
+          />
           <Textarea
             label="Keterangan"
             rows={3}
@@ -133,10 +133,10 @@ export const DokumenEvaluasiPage = () => {
             onChange={(e) => setForm((prev) => ({ ...prev, keterangan: e.target.value }))}
           />
           <Input
-            label="Nama berkas"
+            label="Path berkas"
             placeholder="contoh: rps.pdf"
-            value={form.berkas}
-            onChange={(e) => setForm((prev) => ({ ...prev, berkas: e.target.value }))}
+            value={form.file_path}
+            onChange={(e) => setForm((prev) => ({ ...prev, file_path: e.target.value }))}
           />
         </form>
       </Modal>

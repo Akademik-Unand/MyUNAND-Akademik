@@ -5,10 +5,26 @@ export const CPForm = ({ values, onChange }) => {
   const set = (key) => (e) => onChange({ ...values, [key]: e.target.value });
   return (
     <div className="space-y-3">
-      <Input label="Nama CP *" value={values.kode || ''} onChange={set('kode')} placeholder="SO A" required />
-      <Textarea label="Deskripsi *" value={values.deskripsi || ''} onChange={set('deskripsi')} required />
-      <Input label="Target (%) *" value={values.target || '60'} onChange={set('target')} />
-      <Input label="Nilai Minimal *" value={values.nilaiMinimal || '55'} onChange={set('nilaiMinimal')} />
+      <Input
+        label="Nama CP *"
+        value={values.nama_cp || ''}
+        onChange={set('nama_cp')}
+        placeholder="CP 1"
+        required
+      />
+      <Textarea label="Deskripsi" value={values.deskripsi || ''} onChange={set('deskripsi')} />
+      <Input
+        label="Nilai maksimal"
+        type="number"
+        value={values.nilai_max ?? 100}
+        onChange={set('nilai_max')}
+      />
+      <Input
+        label="Nilai minimal"
+        type="number"
+        value={values.nilai_min ?? 0}
+        onChange={set('nilai_min')}
+      />
     </div>
   );
 };
@@ -17,10 +33,26 @@ export const SCPForm = ({ values, onChange }) => {
   const set = (key) => (e) => onChange({ ...values, [key]: e.target.value });
   return (
     <div className="space-y-3">
-      <Input label="Kode SCP *" value={values.kode || ''} onChange={set('kode')} placeholder="PI 1" required />
-      <Textarea label="Deskripsi *" value={values.deskripsi || ''} onChange={set('deskripsi')} required />
-      <Input label="Target *" value={values.target || '60%'} onChange={set('target')} />
-      <Input label="Nilai Minimal *" value={values.nilaiMinimal || '55 dari skala 100'} onChange={set('nilaiMinimal')} />
+      <Input
+        label="Nama SCP *"
+        value={values.nama_scp || ''}
+        onChange={set('nama_scp')}
+        placeholder="SCP 1"
+        required
+      />
+      <Textarea label="Deskripsi" value={values.deskripsi || ''} onChange={set('deskripsi')} />
+      <Input
+        label="Persen capai nilai min"
+        type="number"
+        value={values.persen_capai_nilai_min ?? 0}
+        onChange={set('persen_capai_nilai_min')}
+      />
+      <Input
+        label="Nilai minimal"
+        type="number"
+        value={values.nilai_min ?? 0}
+        onChange={set('nilai_min')}
+      />
     </div>
   );
 };
@@ -29,10 +61,14 @@ export const CPMKItemForm = ({ values, onChange }) => {
   const set = (key) => (e) => onChange({ ...values, [key]: e.target.value });
   return (
     <div className="space-y-3">
-      <Input label="Nama CPMK *" value={values.nama || ''} onChange={set('nama')} placeholder="CPMK 4" required />
-      <Textarea label="Deskripsi *" value={values.deskripsi || ''} onChange={set('deskripsi')} required />
-      <Input label="Kode CPL" value={values.cpl || ''} onChange={set('cpl')} placeholder="SO A" />
-      <Input label="Kode PI" value={values.pi || ''} onChange={set('pi')} placeholder="PI 1" />
+      <Input
+        label="Nama CPMK *"
+        value={values.nama_cpmk || ''}
+        onChange={set('nama_cpmk')}
+        placeholder="CPMK 1"
+        required
+      />
+      <Textarea label="Deskripsi" value={values.deskripsi || ''} onChange={set('deskripsi')} />
     </div>
   );
 };

@@ -1,4 +1,5 @@
-import { MK_SEMESTER } from '../constants/mockData';
+export const mkLabel = (row) =>
+  row?.matakuliah?.nama_resmi || row?.nama_resmi || row?.nama || 'Mata kuliah';
 
-export const findMataKuliah = (kode) =>
-  MK_SEMESTER.find((item) => item.kode === decodeURIComponent(kode || '')) || MK_SEMESTER[0];
+export const mkKode = (row) =>
+  row?.matakuliah?.kode_matakuliah || row?.kode_matakuliah || row?.kode || '';

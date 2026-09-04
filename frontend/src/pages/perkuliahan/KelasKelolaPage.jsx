@@ -2,49 +2,48 @@ import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { DataTable } from '../../components/common/DataTable';
-import { KELAS } from '../../constants/mockData';
+import { PageSkeleton } from '../../components/common/PageSkeleton';
+import { useResourceItem } from '../../hooks/useResourceQuery';
 
 export const KelasKelolaPage = () => {
-  const { kode } = useParams();
-  const kelas = KELAS.find((k) => k.kode === decodeURIComponent(kode || '')) || KELAS[0];
+  const { id } = useParams();
+  const kelas = useResourceItem('kelas', id);
 
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'bp', header: 'BP', sortable: true },
-    { key: 'nama', header: 'Nama', sortable: true },
-    { key: 'angkatan', header: 'Angkatan', sortable: true },
-    {
-      key: 'status',
-      header: 'Status',
-      sortable: true,
-      filter: { type: 'select', options: ['Aktif', 'Cuti'] },
-      render: (row) => (
-        <span className={`badge badge-sm ${row.status === 'Aktif' ? 'badge-success' : 'badge-ghost'}`}>{row.status}</span>
-      ),
-    },
-    { key: 'nilai', header: 'Nilai', sortable: true },
+    { key: 'krs_id', header: 'KRS', sortable: true },
+    { key: 'approved', header: 'Status', sortable: true },
   ];
+
+  if (kelas.isPending) return <PageSkeleton cards={2} />;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Kelola Kelas"
-        subtitle={kelas.kode}
+        subtitle={kelas.data?.nama}
         breadcrumbs={[
           { label: 'Semester & Perkuliahan' },
           { label: 'Kelas', path: '/perkuliahan/kelas' },
-          { label: kelas.kode },
+          { label: kelas.data?.nama || 'Kelas' },
         ]}
       />
 
       <Card title="Informasi Kelas">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-          <p><span className="text-base-content/60">Nama kelas:</span> <strong>{kelas.kode}</strong></p>
-          <p><span className="text-base-content/60">Mata kuliah:</span> <strong>{kelas.mataKuliah}</strong></p>
-          <p><span className="text-base-content/60">Semester:</span> {kelas.semester}</p>
-          <p><span className="text-base-content/60">Program Studi:</span> {kelas.prodi}</p>
-          <p><span className="text-base-content/60">SKS:</span> {kelas.sks}</p>
-          <p><span className="text-base-content/60">Jumlah peserta:</span> {kelas.peserta}</p>
+          <p>
+            <span className="text-base-content/60">Nama kelas:</span> <strong>{kelas.data?.nama}</strong>
+          </p>
+          <p>
+            <span className="text-base-content/60">Mata kuliah:</span>{' '}
+            <strong>{kelas.data?.matakuliah?.nama_resmi}</strong>
+          </p>
+          <p>
+            <span className="text-base-content/60">SKS:</span> {kelas.data?.matakuliah?.jumlah_sks_kurikulum}
+          </p>
+          <p>
+            <span className="text-base-content/60">Kuota:</span> {kelas.data?.jumlah_peserta_min} — {kelas.data?.jumlah_peserta_max}
+          </p>
         </div>
       </Card>
 
@@ -52,8 +51,9 @@ export const KelasKelolaPage = () => {
         <DataTable
           resource="kelas-peserta"
           columns={columns}
-          rowKey={(r) => r.bp}
-          searchPlaceholder="Cari BP atau nama mahasiswa..."
+          extraFilter={id ? { kelas_id: id } : undefined}
+          rowKey={(row) => row.id}
+          searchPlaceholder="Cari peserta..."
         />
         <Link to="/perkuliahan/kelas" className="btn btn-ghost btn-sm mt-4">
           Kembali

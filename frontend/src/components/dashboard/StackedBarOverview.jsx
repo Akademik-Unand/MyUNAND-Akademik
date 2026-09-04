@@ -2,44 +2,45 @@ import Chart from 'react-apexcharts';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { stackedDepartmentOptions, stackedDepartmentSeries } from '../../helpers/dashboardChart';
-
-const DEPARTMENTS_DATA = [
-  { name: 'Elektro', full: 'Departemen Teknik Elektro', completed: 88, inProgress: 10, pending: 2 },
-  { name: 'Mesin', full: 'Departemen Teknik Mesin', completed: 75, inProgress: 18, pending: 7 },
-  { name: 'Industri', full: 'Departemen Teknik Industri', completed: 92, inProgress: 6, pending: 2 },
-  { name: 'Sipil', full: 'Departemen Teknik Sipil', completed: 70, inProgress: 22, pending: 8 },
-  { name: 'Informatika', full: 'Departemen Teknologi Informasi', completed: 95, inProgress: 4, pending: 1 },
-];
+import { useQuery } from '@tanstack/react-query';
+import { getDashboardSummary } from '../../services/api';
 
 export const StackedBarOverview = () => {
-  const categories = DEPARTMENTS_DATA.map((d) => d.name);
-  const options = stackedDepartmentOptions(categories);
-  const series = stackedDepartmentSeries(DEPARTMENTS_DATA);
+  const { data } = useQuery({
+    queryKey: ['dashboard', 'summary'],
+    queryFn: getDashboardSummary,
+  });
+
+  const categories = ['Mahasiswa', 'Dosen', 'Matakuliah', 'Kelas'];
+  const counts = [data?.mahasiswa || 0, data?.dosen || 0, data?.matakuliah || 0, data?.kelas || 0];
+  const hasData = counts.some((value) => value > 0);
+  const series = hasData
+    ? stackedDepartmentSeries(
+        categories.map((name, idx) => ({
+          name,
+          completed: counts[idx],
+          inProgress: 0,
+          pending: 0,
+        }))
+      )
+    : stackedDepartmentSeries([]);
+  const options = stackedDepartmentOptions(hasData ? categories : []);
 
   return (
     <Card
-      title="Progres Pemenuhan CPMK & Nilai per Departemen"
-      subtitle="Evaluasi capaian pembelajaran mata kuliah semester berjalan"
+      title="Ringkasan Data Sistem"
+      subtitle="Jumlah entitas aktif dari API, menunggu rekap capaian sungguhan"
       actions={
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-3 text-xs">
-            <span className="flex items-center gap-1.5 text-base-content/70">
-              <span className="w-2.5 h-2.5 rounded-full bg-success"></span> Selesai (&ge;80%)
-            </span>
-            <span className="flex items-center gap-1.5 text-base-content/70">
-              <span className="w-2.5 h-2.5 rounded-full bg-warning"></span> Review
-            </span>
-            <span className="flex items-center gap-1.5 text-base-content/70">
-              <span className="w-2.5 h-2.5 rounded-full bg-error"></span> Belum Lengkap
-            </span>
-          </div>
-          <Badge variant="outline" size="sm">
-            5 Departemen
-          </Badge>
-        </div>
+        <Badge variant="outline" size="sm">
+          Live
+        </Badge>
       }
     >
-      <Chart options={options} series={series} type="bar" height={260} />
+      {hasData ? (
+        <Chart options={options} series={series} type="bar" height={260} />
+      ) : (
+        <p className="text-sm text-base-content/60">Belum ada data ringkasan untuk ditampilkan.</p>
+      )}
     </Card>
   );
 };

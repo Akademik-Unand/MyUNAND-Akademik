@@ -7,34 +7,20 @@ export const JenisSemesterPage = () => (
     subtitle="Kelola data jenis semester pada SIAKAD Kurikulum"
     breadcrumbs={[{ label: 'Master Data' }, { label: 'Semester' }, { label: 'Jenis Semester' }]}
     resource="jenis-semester"
-    idKey="no"
+    idKey="id"
     FormComponent={JenisSemesterForm}
-    emptyForm={{ no: '', kategori: 'Reguler', periode: '', label: '', singkat: '' }}
-    rowKey={(r) => String(r.no)}
-    searchPlaceholder="Cari periode atau label semester..."
+    emptyForm={{ nama: '', alias: '', urut: 0 }}
+    rowKey={(row) => row.id}
+    searchPlaceholder="Cari nama atau alias semester..."
     columns={[
-      { key: 'no', header: 'No', sortable: true },
-      {
-        key: 'kategori',
-        header: 'Kategori',
-        sortable: true,
-        filter: { type: 'select', options: ['Reguler', 'Non Reguler'] },
-      },
-      {
-        key: 'periode',
-        header: 'Periode',
-        sortable: true,
-        filter: { type: 'select', options: ['Semester I', 'Semester II'] },
-      },
-      { key: 'label', header: 'Label', sortable: true },
-      { key: 'singkat', header: 'Label Singkat', sortable: true },
+      { key: 'nama', header: 'Nama', sortable: true },
+      { key: 'alias', header: 'Alias', sortable: true },
+      { key: 'urut', header: 'Urutan', sortable: true },
     ]}
-    detailItems={(d) => [
-      { label: 'No', value: d.no },
-      { label: 'Kategori', value: d.kategori },
-      { label: 'Periode', value: d.periode },
-      { label: 'Label', value: d.label },
-      { label: 'Singkat', value: d.singkat },
+    detailItems={(row) => [
+      { label: 'Nama', value: row.nama },
+      { label: 'Alias', value: row.alias },
+      { label: 'Urutan', value: row.urut },
     ]}
   />
 );

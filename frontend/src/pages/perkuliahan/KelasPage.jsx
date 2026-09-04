@@ -3,33 +3,32 @@ import { IconLink } from '../../components/common/IconButton';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { DataTable } from '../../components/common/DataTable';
-import { FILTER_SEMESTER } from '../../constants/mockData';
 
 export const KelasPage = () => {
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'kode', header: 'Kelas', sortable: true, cellClassName: 'font-semibold' },
-    { key: 'mataKuliah', header: 'Nama Mata Kuliah', sortable: true },
-    { key: 'sks', header: 'SKS', sortable: true },
+    { key: 'nama', header: 'Kelas', sortable: true, cellClassName: 'font-semibold' },
     {
-      key: 'prodi',
-      header: 'Prodi',
+      key: 'matakuliah_id',
+      header: 'Nama Mata Kuliah',
       sortable: true,
-      filter: { type: 'select', options: ['S1', 'S2', 'S3'] },
-      render: (row) => (
-        <div>
-          <div className="text-sm">{row.prodi}</div>
-          <div className="text-xs text-base-content/50">JURUSAN TEKNIK MESIN</div>
-        </div>
-      ),
+      render: (row) => row.matakuliah?.nama_resmi || '—',
     },
     {
-      key: 'semester',
-      header: 'Semester',
-      sortable: true,
-      filter: { type: 'select', options: FILTER_SEMESTER },
+      key: 'sks',
+      header: 'SKS',
+      render: (row) => row.matakuliah?.jumlah_sks_kurikulum,
     },
-    { key: 'peserta', header: 'Jumlah Peserta', sortable: true },
+    {
+      key: 'semester_prodi_id',
+      header: 'Semester Prodi',
+      render: (row) => row.semesterProdi?.id || '—',
+    },
+    {
+      key: 'jumlah_peserta_max',
+      header: 'Kuota',
+      sortable: true,
+    },
     {
       header: 'Aksi',
       className: 'text-right',
@@ -40,7 +39,7 @@ export const KelasPage = () => {
           icon={Settings2}
           tone="text-info"
           tooltipPosition="tooltip-left"
-          to={`/perkuliahan/kelas/${encodeURIComponent(row.kode)}`}
+          to={`/perkuliahan/kelas/${row.id}`}
         />
       ),
     },
@@ -57,8 +56,8 @@ export const KelasPage = () => {
         <DataTable
           resource="kelas"
           columns={columns}
-          rowKey={(r) => r.kode}
-          searchPlaceholder="Cari kelas, mata kuliah, atau dosen..."
+          rowKey={(row) => row.id}
+          searchPlaceholder="Cari kelas atau mata kuliah..."
         />
       </Card>
     </div>

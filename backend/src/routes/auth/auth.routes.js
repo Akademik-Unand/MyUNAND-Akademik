@@ -28,6 +28,22 @@ router.get('/me', authenticate, authController.me);
 /** GET /auth/profile */
 router.get('/profile', authenticate, authController.profile);
 
+/** PUT /auth/profile */
+router.put(
+  '/profile',
+  authenticate,
+  validate({ body: authValidation.updateProfile }),
+  authController.updateProfile
+);
+
+/** PUT /auth/change-password */
+router.put(
+  '/change-password',
+  authenticate,
+  validate({ body: authValidation.changePassword }),
+  authController.changePassword
+);
+
 /** POST /auth/refresh */
 router.post('/refresh', authenticate, authController.refresh);
 

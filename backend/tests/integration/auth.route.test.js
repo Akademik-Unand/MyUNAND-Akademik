@@ -12,3 +12,19 @@ describe('POST /api/v1/auth/login', () => {
     expect(Array.isArray(res.body.error)).toBe(true);
   });
 });
+
+describe('PUT /api/v1/auth/profile', () => {
+  it('rejects request without token', async () => {
+    const res = await request(app).put('/api/v1/auth/profile').send({ name: 'Admin' });
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('PUT /api/v1/auth/change-password', () => {
+  it('rejects request without token', async () => {
+    const res = await request(app)
+      .put('/api/v1/auth/change-password')
+      .send({ current_password: 'x', new_password: '12345678' });
+    expect(res.status).toBe(401);
+  });
+});

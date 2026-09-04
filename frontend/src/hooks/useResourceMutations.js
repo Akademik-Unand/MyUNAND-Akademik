@@ -3,11 +3,8 @@ import { toast } from 'sonner';
 import {
   createResourceItem,
   deleteResourceItem,
-  replaceResourceRows,
   updateResourceItem,
 } from '../services/api';
-
-const MOCK_NOTE = { description: 'Perubahan hanya disimpan di sesi ini (data mock).' };
 
 /**
  * CRUD standar untuk satu resource. Setiap mutasi membatalkan cache tabel
@@ -25,7 +22,7 @@ export const useResourceMutations = (resource, labels = {}) => {
     mutationFn: (payload) => createResourceItem(resource, payload),
     onSuccess: () => {
       invalidate();
-      toast.success(labels.create || 'Data berhasil ditambahkan.', MOCK_NOTE);
+      toast.success(labels.create || 'Data berhasil ditambahkan.');
     },
     onError: (err) => toast.error(err.message || 'Gagal menambahkan data.'),
   });
@@ -34,7 +31,7 @@ export const useResourceMutations = (resource, labels = {}) => {
     mutationFn: ({ id, payload }) => updateResourceItem(resource, id, payload),
     onSuccess: () => {
       invalidate();
-      toast.success(labels.update || 'Data berhasil diperbarui.', MOCK_NOTE);
+      toast.success(labels.update || 'Data berhasil diperbarui.');
     },
     onError: (err) => toast.error(err.message || 'Gagal memperbarui data.'),
   });
@@ -43,16 +40,10 @@ export const useResourceMutations = (resource, labels = {}) => {
     mutationFn: (id) => deleteResourceItem(resource, id),
     onSuccess: () => {
       invalidate();
-      toast.success(labels.remove || 'Data berhasil dihapus.', MOCK_NOTE);
+      toast.success(labels.remove || 'Data berhasil dihapus.');
     },
     onError: (err) => toast.error(err.message || 'Gagal menghapus data.'),
   });
 
-  const replaceAll = useMutation({
-    mutationFn: (rows) => replaceResourceRows(resource, rows),
-    onSuccess: () => invalidate(),
-    onError: (err) => toast.error(err.message || 'Gagal menyimpan data.'),
-  });
-
-  return { create, update, remove, replaceAll, invalidate };
+  return { create, update, remove, invalidate };
 };

@@ -17,9 +17,20 @@ export const ProfilePasswordForm = () => {
     e.preventDefault();
     if (saving) return;
     setError('');
+    if (form.newPassword !== form.confirmPassword) {
+      setError('Ulangi kata sandi tidak sama.');
+      return;
+    }
+    if (form.newPassword.length < 6) {
+      setError('Kata sandi baru minimal 6 karakter.');
+      return;
+    }
     setSaving(true);
     try {
-      await changePassword(form);
+      await changePassword({
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword,
+      });
       setForm(empty);
       toast.success('Kata sandi diperbarui');
     } catch (err) {

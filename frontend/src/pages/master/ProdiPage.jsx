@@ -17,18 +17,27 @@ export const ProdiPage = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const columns = [
-    { key: 'kode', header: 'Kode Prodi', sortable: true },
+    { key: 'kode_prodi', header: 'Kode Prodi', sortable: true },
     {
-      key: 'jenjang',
+      key: 'jenjang_akademik_id',
       header: 'Jenjang',
       sortable: true,
-      filter: { type: 'select', options: ['S1', 'S2', 'S3', 'D3'] },
+      render: (row) => row.jenjangAkademik?.nama_jenjang || row.jenjangAkademik?.kode_jenjang || '—',
     },
-    { key: 'univ', header: 'Universitas ID', sortable: true },
-    { key: 'fakultas', header: 'Fakultas ID', sortable: true },
-    { key: 'departemen', header: 'Departemen ID', sortable: true },
-    { key: 'nama', header: 'Nama Resmi', sortable: true },
-    { key: 'singkat', header: 'Nama Singkat', sortable: true },
+    {
+      key: 'fakultas_id',
+      header: 'Fakultas',
+      sortable: true,
+      render: (row) => row.fakultas?.nama_resmi || '—',
+    },
+    {
+      key: 'departemen_id',
+      header: 'Departemen',
+      sortable: true,
+      render: (row) => row.departemen?.nama_resmi || '—',
+    },
+    { key: 'nama_resmi', header: 'Nama Resmi', sortable: true },
+    { key: 'nama_singkat', header: 'Nama Singkat', sortable: true },
     {
       header: 'Aksi',
       className: 'text-right',
@@ -36,12 +45,7 @@ export const ProdiPage = () => {
       render: (row) => (
         <div className="flex items-center gap-1 justify-end">
           <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
-          <IconLink
-            label="Ubah prodi"
-            icon={Pencil}
-            tone="text-warning"
-            to={`/master/prodi/${encodeURIComponent(row.kode)}/edit`}
-          />
+          <IconLink label="Ubah prodi" icon={Pencil} tone="text-warning" to={`/master/prodi/${row.id}/edit`} />
           <IconButton
             label="Hapus prodi"
             icon={Trash2}
@@ -73,23 +77,23 @@ export const ProdiPage = () => {
         <DataTable
           resource="prodi"
           columns={columns}
-          rowKey={(r) => r.kode}
+          rowKey={(row) => row.id}
           searchPlaceholder="Cari kode atau nama prodi..."
         />
       </Card>
 
-      <Drawer open={Boolean(detail)} onClose={() => setDetail(null)} title="Detail Program Studi" subtitle={detail?.kode}>
+      <Drawer open={Boolean(detail)} onClose={() => setDetail(null)} title="Detail Program Studi" subtitle={detail?.kode_prodi}>
         {detail && (
           <DetailList
             items={[
-              { label: 'Kode', value: detail.kode },
-              { label: 'Jenjang', value: detail.jenjang },
-              { label: 'Model ID', value: detail.model },
-              { label: 'Universitas ID', value: detail.univ },
-              { label: 'Fakultas ID', value: detail.fakultas },
-              { label: 'Departemen ID', value: detail.departemen },
-              { label: 'Nama resmi', value: detail.nama },
-              { label: 'Nama singkat', value: detail.singkat },
+              { label: 'Kode', value: detail.kode_prodi },
+              { label: 'Jenjang', value: detail.jenjangAkademik?.nama_jenjang },
+              { label: 'Model', value: detail.modelKurikulum?.nama },
+              { label: 'Universitas', value: detail.universitas?.nama_resmi },
+              { label: 'Fakultas', value: detail.fakultas?.nama_resmi },
+              { label: 'Departemen', value: detail.departemen?.nama_resmi },
+              { label: 'Nama resmi', value: detail.nama_resmi },
+              { label: 'Nama singkat', value: detail.nama_singkat },
             ]}
           />
         )}
@@ -99,9 +103,9 @@ export const ProdiPage = () => {
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         title="Hapus Program Studi"
-        message={`Yakin ingin menghapus prodi ${deleteTarget?.nama || ''}?`}
+        message={`Yakin ingin menghapus prodi ${deleteTarget?.nama_resmi || ''}?`}
         onConfirm={async () => {
-          await mutations.remove.mutateAsync(deleteTarget.kode);
+          await mutations.remove.mutateAsync(deleteTarget.id);
           setDeleteTarget(null);
         }}
         isLoading={mutations.remove.isPending}

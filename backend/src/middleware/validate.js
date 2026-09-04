@@ -43,7 +43,12 @@ const validate = ({ body, params, query } = {}) => (req, res, next) => {
     if (result.error) {
       return validationError(res, formatDetails(result.error));
     }
-    req.query = result.value;
+    Object.defineProperty(req, 'query', {
+      value: result.value,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
   }
 
   return next();

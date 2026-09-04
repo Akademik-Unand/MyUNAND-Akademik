@@ -51,13 +51,24 @@ export const MasterListPage = ({
 
   const saving = busy || mutations.create.isPending || mutations.update.isPending;
 
+  const pickPayload = (values) => {
+    const payload = {};
+    for (const key of Object.keys(emptyForm || {})) {
+      if (values[key] === undefined) continue;
+      if (values[key] === '' && key === 'password') continue;
+      payload[key] = values[key] === '' ? null : values[key];
+    }
+    return payload;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     run(async () => {
+      const payload = pickPayload(modal.values);
       const saved =
         modal.mode === 'create'
-          ? await mutations.create.mutateAsync(modal.values)
-          : await mutations.update.mutateAsync({ id: modal.values[idKey], payload: modal.values });
+          ? await mutations.create.mutateAsync(payload)
+          : await mutations.update.mutateAsync({ id: modal.values[idKey], payload });
       if (afterSave) await afterSave(saved, modal.values, modal.mode);
       setModal((m) => ({ ...m, open: false }));
     });

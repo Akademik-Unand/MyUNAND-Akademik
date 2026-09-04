@@ -16,7 +16,7 @@ Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`.
 - perkuliahan: ruang, kelas, dosen-kelas, jadwal-kelas, dosen-jadwal
 - krs: krs, krs-detil (+ `krs.approve`)
 - nilai: nilai (+ `nilai.upload`)
-- evaluasi: history-upload-nilai, evaluasi-cpmk
+- evaluasi: history-upload-nilai, evaluasi-cpmk, jenis-dokumen-evaluasi, dokumen-evaluasi
 - laporan: rekap-cp, laporan-cp
 - iam: user, role, permission, activity-log (`activity-log.read` saja; + `user.assign-roles`, `role.sync-permissions`)
 

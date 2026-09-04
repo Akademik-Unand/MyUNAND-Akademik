@@ -70,13 +70,21 @@ export const DataTable = ({
   emptyText = 'Tidak ada data ditemukan.',
   toolbarActions,
   className = '',
+  extraFilter,
 }) => {
   const table = useTableParams({ prefix: tableKey || paramPrefix, defaultLimit });
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const sourceRows = data ?? staticRows;
   const isServerMode = Boolean(resource);
-  const serverQuery = useTableQuery(resource, table.query);
+  const serverParams = useMemo(
+    () => ({
+      ...table.query,
+      filter: { ...table.query.filter, ...extraFilter },
+    }),
+    [table.query, extraFilter]
+  );
+  const serverQuery = useTableQuery(resource, serverParams);
 
   const clientResult = useMemo(
     () => applyQuery(sourceRows, table.query, searchableFields),

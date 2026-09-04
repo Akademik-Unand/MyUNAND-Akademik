@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { loginWithPassword, loginWithSso } from '../../services/api';
+import { loginWithPassword } from '../../services/api';
 import { useAuthStore } from '../../store/auth.store';
 
 export const LoginForm = () => {
@@ -12,64 +12,45 @@ export const LoginForm = () => {
   const login = useAuthStore((state) => state.login);
   const nextPath = location.state?.from || '/';
 
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [pending, setPending] = useState('');
+  const [pending, setPending] = useState(false);
   const lockRef = useRef(false);
-
-  const finish = (result) => {
-    login(result.user, result.access_token);
-    navigate(nextPath, { replace: true });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (lockRef.current || pending) return;
     setError('');
-    if (!username.trim() || !password) {
-      setError('Username dan kata sandi wajib diisi.');
+    if (!email.trim() || !password) {
+      setError('Email dan kata sandi wajib diisi.');
       return;
     }
 
     lockRef.current = true;
-    setPending('password');
+    setPending(true);
     try {
-      const result = await loginWithPassword({ username: username.trim(), password });
-      finish(result);
+      const result = await loginWithPassword({ email: email.trim(), password });
+      login(result.user, result.access_token);
+      navigate(nextPath, { replace: true });
     } catch (err) {
-      setError(err.message || 'Gagal masuk. Periksa username dan kata sandi.');
+      setError(err.message || 'Gagal masuk. Periksa email dan kata sandi.');
     } finally {
       lockRef.current = false;
-      setPending('');
-    }
-  };
-
-  const handleSso = async () => {
-    if (lockRef.current || pending) return;
-    setError('');
-    lockRef.current = true;
-    setPending('sso');
-    try {
-      const result = await loginWithSso();
-      finish(result);
-    } catch (err) {
-      toast.error(err.message || 'SSO belum dapat digunakan.');
-    } finally {
-      lockRef.current = false;
-      setPending('');
+      setPending(false);
     }
   };
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit} noValidate>
       <Input
-        label="Username"
-        name="username"
-        autoComplete="username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
         required
       />
 
@@ -96,7 +77,7 @@ export const LoginForm = () => {
 
       {error && <p className="text-sm text-error">{error}</p>}
 
-      <Button type="submit" className="w-full" isLoading={pending === 'password'} disabled={Boolean(pending)}>
+      <Button type="submit" className="w-full" isLoading={pending} disabled={pending}>
         Masuk
       </Button>
 
@@ -106,9 +87,8 @@ export const LoginForm = () => {
         type="button"
         variant="outline"
         className="w-full"
-        onClick={handleSso}
-        isLoading={pending === 'sso'}
-        disabled={Boolean(pending)}
+        onClick={() => toast.error('SSO Unand belum tersedia.')}
+        disabled={pending}
       >
         Masuk dengan SSO Unand
       </Button>

@@ -7,33 +7,22 @@ import { useAuthStore } from '../../store/auth.store';
 
 export const ProfileAccountForm = ({ user }) => {
   const setUser = useAuthStore((state) => state.setUser);
-  const [form, setForm] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    faculty: user?.faculty || '',
-  });
+  const [name, setName] = useState(user?.name || '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-
-  const setField = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (saving) return;
     setError('');
-    if (!form.name.trim() || !form.email.trim()) {
-      setError('Nama dan email wajib diisi.');
+    if (!name.trim()) {
+      setError('Nama wajib diisi.');
       return;
     }
 
     setSaving(true);
     try {
-      const saved = await updateProfile({
-        ...user,
-        name: form.name.trim(),
-        email: form.email.trim(),
-        faculty: form.faculty.trim(),
-      });
+      const saved = await updateProfile({ name: name.trim() });
       setUser(saved);
       toast.success('Profil disimpan');
     } catch (err) {
@@ -45,11 +34,13 @@ export const ProfileAccountForm = ({ user }) => {
 
   return (
     <form className="space-y-3" onSubmit={handleSubmit} noValidate>
-      <Input label="Nama" value={form.name} onChange={setField('name')} autoComplete="name" />
-      <Input label="Email" type="email" value={form.email} onChange={setField('email')} autoComplete="email" />
-      <Input label="Unit / fakultas" value={form.faculty} onChange={setField('faculty')} />
-      <Input label="Peran" value={user?.role || '—'} disabled />
-      <Input label="Universitas" value={user?.university || '—'} disabled />
+      <Input label="Nama" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+      <Input label="Email" type="email" value={user?.email || ''} disabled />
+      <Input
+        label="Peran"
+        value={(user?.roles || []).map((role) => role.name).join(', ') || user?.role || '—'}
+        disabled
+      />
       {error && <p className="text-sm text-error">{error}</p>}
       <div className="flex justify-end pt-1">
         <Button type="submit" size="sm" isLoading={saving}>

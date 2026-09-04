@@ -1,15 +1,19 @@
 import { NavLink, useParams } from 'react-router-dom';
 import { PageHeader } from '../common/PageHeader';
 import { Card } from '../ui/Card';
-import { Select } from '../ui/Select';
-import { FILTER_SEMESTER } from '../../constants/mockData';
-import { findMataKuliah } from '../../helpers/mkSemester';
+import { ResourceSelect } from '../common/ResourceSelect';
+import { useResourceItem } from '../../hooks/useResourceQuery';
+import { PageSkeleton } from '../common/PageSkeleton';
+import { mkKode, mkLabel } from '../../helpers/mkSemester';
 
-export const MKSemesterLayout = ({ children, active, action, semester, onSemesterChange }) => {
-  const { kode } = useParams();
-  const mk = findMataKuliah(kode);
-  const base = `/perkuliahan/mk-semester/${encodeURIComponent(mk.kode)}`;
+export const MKSemesterLayout = ({ children, action, semester, onSemesterChange }) => {
+  const { id } = useParams();
+  const mkQuery = useResourceItem('matakuliah', id);
+  const mk = mkQuery.data;
 
+  if (mkQuery.isPending) return <PageSkeleton cards={2} />;
+
+  const base = `/perkuliahan/mk-semester/${id}`;
   const tabs = [
     { id: 'pengaturan', to: base, label: 'Pengaturan CPMK Semester' },
     { id: 'evaluasi', to: `${base}/evaluasi`, label: 'Evaluasi CPMK Semester' },
@@ -20,54 +24,33 @@ export const MKSemesterLayout = ({ children, active, action, semester, onSemeste
     <div className="space-y-6">
       <PageHeader
         title="Kelola MK Semester"
-        subtitle={`${mk.nama} (${mk.kode})`}
+        subtitle={`${mkLabel(mk)} (${mkKode(mk)})`}
         breadcrumbs={[
           { label: 'Semester & Perkuliahan' },
           { label: 'MK Semester', path: '/perkuliahan/mk-semester' },
-          { label: mk.kode },
+          { label: mkKode(mk) || 'MK' },
         ]}
         action={action}
       />
 
       <Card>
-        <Select
+        <ResourceSelect
+          resource="setting-semester"
           label="Semester"
           size="sm"
-          className="max-w-xs"
-          value={semester}
+          value={semester || ''}
           onChange={(e) => onSemesterChange?.(e.target.value)}
-          options={FILTER_SEMESTER.map((item) => ({ value: item, label: item }))}
+          getLabel={(row) => `${row.jenisSemester?.nama || 'Semester'} ${row.tahun}`}
         />
       </Card>
 
       <Card>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <dl className="space-y-2 text-sm">
-            <InfoRow label="Mata Kuliah" value={mk.nama} strong />
-            <InfoRow label="Kode Mk" value={mk.kode} />
-            <InfoRow label="SKS" value={mk.sks} />
-            <InfoRow label="Program Studi" value={mk.prodi} />
-            <InfoRow label="Kurikulum" value={mk.kurikulum} />
-            <InfoRow label="Semester" value={mk.semester} />
-            <InfoRow label="Jumlah Peserta" value={mk.peserta} />
-          </dl>
-          <div>
-            <p className="mb-2 text-sm font-medium">Kelas Penyelenggara Mata Kuliah</p>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <NavLink to={`/perkuliahan/kelas/${encodeURIComponent(mk.kelasKode)}`} className="btn btn-neutral btn-sm">
-                  Kelas {mk.kelasKode}
-                </NavLink>
-                <p className="mt-1 text-xs text-base-content/70">
-                  {mk.peserta} peserta,{' '}
-                  <span className="text-success">
-                    Dosen <strong>{mk.dosen}</strong>
-                  </span>
-                </p>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <dl className="space-y-2 text-sm max-w-xl">
+          <InfoRow label="Mata Kuliah" value={mkLabel(mk)} strong />
+          <InfoRow label="Kode Mk" value={mkKode(mk)} />
+          <InfoRow label="SKS" value={mk?.jumlah_sks_kurikulum} />
+          <InfoRow label="Jenis semester" value={mk?.jenisSemester?.nama} />
+        </dl>
       </Card>
 
       <div className="tabs tabs-box w-fit bg-base-200">
@@ -76,7 +59,7 @@ export const MKSemesterLayout = ({ children, active, action, semester, onSemeste
             key={tab.id}
             to={tab.to}
             end={tab.id === 'pengaturan'}
-            className={({ isActive }) => `tab ${isActive || active === tab.id ? 'tab-active' : ''}`}
+            className={({ isActive }) => `tab ${isActive ? 'tab-active' : ''}`}
           >
             {tab.label}
           </NavLink>
@@ -92,7 +75,7 @@ const InfoRow = ({ label, value, strong }) => (
   <div className="grid grid-cols-[8rem_1fr] gap-2">
     <dt className="text-base-content/60">{label}</dt>
     <dd>
-      : {strong ? <span className="font-medium">{value}</span> : value}
+      : {strong ? <span className="font-medium">{value || '—'}</span> : value || '—'}
     </dd>
   </div>
 );

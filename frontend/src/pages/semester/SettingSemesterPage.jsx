@@ -20,40 +20,47 @@ export const SettingSemesterPage = () => {
   const allRows = useResourceQuery('setting-semester');
   const [detail, setDetail] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [activating, setActivating] = useState(false);
 
-  // Hanya satu semester boleh aktif, jadi seluruh baris ditulis ulang sekaligus.
-  const activate = (row) => {
-    const rows = (allRows.data ?? []).map((item) => ({
-      ...item,
-      status: item.id === row.id ? 'Aktif' : 'Tidak Aktif',
-    }));
-    mutations.replaceAll.mutate(rows, {
-      onSuccess: () => toast.success(`${row.semester} ${row.tahun} diaktifkan`),
-    });
+  const activate = async (row) => {
+    if (activating) return;
+    setActivating(true);
+    try {
+      const rows = allRows.data ?? [];
+      for (const item of rows) {
+        const next = item.id === row.id;
+        if (Boolean(item.is_aktif) === next) continue;
+        await mutations.update.mutateAsync({ id: item.id, payload: { is_aktif: next } });
+      }
+      toast.success(`${row.jenisSemester?.nama || 'Semester'} ${row.tahun} diaktifkan`);
+    } catch (err) {
+      toast.error(err.message || 'Gagal mengaktifkan semester');
+    } finally {
+      setActivating(false);
+    }
   };
 
   const columns = [
-    { key: 'tahun', header: 'Tahun Ajaran', sortable: true },
+    { key: 'tahun', header: 'Tahun', sortable: true },
     {
-      key: 'semester',
-      header: 'Semester',
+      key: 'jenis_semester_id',
+      header: 'Jenis',
       sortable: true,
-      filter: { type: 'select', options: ['Ganjil', 'Genap', 'Pendek'] },
+      render: (row) => row.jenisSemester?.nama || row.jenisSemester?.alias || '—',
     },
     {
-      key: 'status',
+      key: 'is_aktif',
       header: 'Status',
       sortable: true,
-      filter: { type: 'select', options: ['Aktif', 'Tidak Aktif'] },
       render: (row) =>
-        row.status === 'Aktif' ? (
+        row.is_aktif ? (
           <span className="badge badge-success badge-sm">Aktif</span>
         ) : (
           <span className="badge badge-ghost badge-sm">Tidak Aktif</span>
         ),
     },
-    { key: 'periodeMulai', header: 'Mulai', sortable: true },
-    { key: 'periodeSelesai', header: 'Selesai', sortable: true },
+    { key: 'tanggal_mulai', header: 'Mulai', sortable: true },
+    { key: 'tanggal_selesai', header: 'Selesai', sortable: true },
     {
       header: 'Aksi',
       className: 'text-right',
@@ -61,7 +68,7 @@ export const SettingSemesterPage = () => {
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
           <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
-          {row.status !== 'Aktif' && (
+          {!row.is_aktif && (
             <IconButton
               label="Aktifkan semester"
               icon={Power}
@@ -106,7 +113,7 @@ export const SettingSemesterPage = () => {
         <DataTable
           resource="setting-semester"
           columns={columns}
-          rowKey={(r) => r.id}
+          rowKey={(row) => row.id}
           searchPlaceholder="Cari tahun ajaran atau semester..."
         />
       </Card>
@@ -115,18 +122,16 @@ export const SettingSemesterPage = () => {
         open={Boolean(detail)}
         onClose={() => setDetail(null)}
         title="Detail Setting Semester"
-        subtitle={detail ? `${detail.semester} ${detail.tahun}` : ''}
+        subtitle={detail ? `${detail.jenisSemester?.nama || ''} ${detail.tahun}` : ''}
       >
         {detail && (
           <DetailList
             items={[
-              { label: 'Tahun ajaran', value: detail.tahun },
-              { label: 'Semester', value: detail.semester },
-              { label: 'Status', value: detail.status },
-              { label: 'Periode', value: `${detail.periodeMulai} — ${detail.periodeSelesai}` },
-              { label: 'Rencana studi', value: `${detail.rencanaMulai} — ${detail.rencanaSelesai}` },
-              { label: 'Ubah KRS', value: `${detail.ubahMulai} — ${detail.ubahSelesai}` },
-              { label: 'Input nilai', value: `${detail.nilaiMulai} — ${detail.nilaiSelesai}` },
+              { label: 'Tahun', value: detail.tahun },
+              { label: 'Jenis', value: detail.jenisSemester?.nama },
+              { label: 'Status', value: detail.is_aktif ? 'Aktif' : 'Tidak Aktif' },
+              { label: 'Mulai', value: detail.tanggal_mulai },
+              { label: 'Selesai', value: detail.tanggal_selesai },
             ]}
           />
         )}
@@ -138,7 +143,7 @@ export const SettingSemesterPage = () => {
         title="Hapus Setting Semester"
         message={
           deleteTarget
-            ? `Yakin ingin menghapus setting ${deleteTarget.semester} ${deleteTarget.tahun}?`
+            ? `Yakin ingin menghapus ${deleteTarget.jenisSemester?.nama || 'semester'} ${deleteTarget.tahun}?`
             : ''
         }
         onConfirm={async () => {

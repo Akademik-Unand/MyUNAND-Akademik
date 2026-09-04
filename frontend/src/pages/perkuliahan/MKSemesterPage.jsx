@@ -7,53 +7,38 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { FilterBar } from '../../components/common/FilterBar';
 import { DataTable } from '../../components/common/DataTable';
-import { MappingMatrix } from '../../components/common/MappingMatrix';
-import {
-  FILTER_DEPARTEMEN,
-  FILTER_PRODI,
-  FILTER_KURIKULUM,
-  FILTER_SEMESTER,
-  MAPPING_MATRIX,
-} from '../../constants/mockData';
-
-const filterFields = [
-  { label: 'Departemen', placeholder: 'Pilih Departemen', options: FILTER_DEPARTEMEN.map((d) => ({ value: d, label: d })) },
-  { label: 'Prodi', placeholder: 'Pilih', options: FILTER_PRODI.map((p) => ({ value: p, label: p })) },
-  { label: 'Kurikulum', placeholder: 'Pilih Kurikulum', options: FILTER_KURIKULUM.map((k) => ({ value: k, label: k })) },
-  { label: 'Semester', placeholder: 'Pilih Semester', options: FILTER_SEMESTER.map((s) => ({ value: s, label: s })) },
-];
-
-const mkCheckboxes = [
-  'Hanya yang belum ada CPMK Semester',
-  'Hanya yang Anda ampu',
-  'CPMK Semester Belum Disetujui',
-  'Sudah Upload Dokumen',
-];
-
-const transkripCheckboxes = [
-  'Hanya yang belum ada CPMK Semester',
-  'Hanya yang Anda ampu',
-  'CPMK Semester Belum Disetujui',
-  'Belum Upload Dokumen',
-];
+import { useFilterOptions } from '../../hooks/useFilterOptions';
 
 export const MKSemesterPage = () => {
   const [tab, setTab] = useState('mk');
+  const [kurikulumId, setKurikulumId] = useState('');
+  const filters = useFilterOptions();
 
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'kode', header: 'Kode', sortable: true, cellClassName: 'font-semibold' },
-    { key: 'nama', header: 'Nama Mata Kuliah', sortable: true },
-    { key: 'sks', header: 'SKS', sortable: true },
-    { key: 'kelas', header: 'Jumlah Kelas', sortable: true },
-    { key: 'peserta', header: 'Jumlah Peserta', sortable: true },
     {
-      key: 'transkrip',
+      key: 'matakuliah_id',
+      header: 'Kode',
+      sortable: true,
+      cellClassName: 'font-semibold',
+      render: (row) => row.matakuliah?.kode_matakuliah,
+    },
+    {
+      key: 'nama',
+      header: 'Nama Mata Kuliah',
+      render: (row) => row.matakuliah?.nama_resmi,
+    },
+    {
+      key: 'sks',
+      header: 'SKS',
+      render: (row) => row.matakuliah?.jumlah_sks_kurikulum,
+    },
+    {
+      key: 'status',
       header: 'Transkrip',
       sortable: true,
-      filter: { type: 'select', options: ['Ya', 'Tidak'] },
       render: (row) =>
-        row.transkrip === 'Ya' ? (
+        row.status === 'transkrip' ? (
           <span className="badge badge-success badge-sm">Ya</span>
         ) : (
           <span className="badge badge-ghost badge-sm">Tidak</span>
@@ -62,48 +47,10 @@ export const MKSemesterPage = () => {
     {
       header: 'Dokumen Evaluasi',
       render: (row) => (
-        <Link
-          to={`/perkuliahan/mk-semester/${encodeURIComponent(row.kode)}/dokumen`}
-          className="btn btn-xs btn-ghost"
-        >
-          Tidak ada
+        <Link to={`/perkuliahan/mk-semester/${row.matakuliah_id}/dokumen`} className="btn btn-xs btn-ghost">
+          Dokumen
         </Link>
       ),
-    },
-    {
-      key: 'jumlahCpmk',
-      header: 'Jumlah CPMK',
-      sortable: true,
-      render: (row) => (
-        <Link
-          to={`/perkuliahan/mk-semester/${encodeURIComponent(row.kode)}`}
-          className="badge badge-info text-info-content"
-        >
-          {row.jumlahCpmk} CPMK
-        </Link>
-      ),
-    },
-  ];
-
-  const transkripColumns = [
-    { header: '#', render: (_, idx) => idx + 1 },
-    { key: 'kode', header: 'Kode', sortable: true, cellClassName: 'font-semibold' },
-    { key: 'nama', header: 'Nama Mata Kuliah', sortable: true },
-    { key: 'sks', header: 'SKS', sortable: true },
-    { key: 'kelas', header: 'Jumlah Kelas', sortable: true },
-    { key: 'peserta', header: 'Jumlah Peserta', sortable: true },
-    { key: 'jumlahCpmk', header: 'Jumlah CPMK', sortable: true },
-    {
-      key: 'transkrip',
-      header: 'Transkrip',
-      sortable: true,
-      filter: { type: 'select', options: ['Ya', 'Tidak'] },
-      render: (row) =>
-        row.transkrip === 'Ya' ? (
-          <span className="badge badge-success badge-sm">Ya</span>
-        ) : (
-          <span className="badge badge-ghost badge-sm">Tidak</span>
-        ),
     },
     {
       header: 'Aksi',
@@ -115,7 +62,7 @@ export const MKSemesterPage = () => {
           icon={Settings2}
           tone="text-info"
           tooltipPosition="tooltip-left"
-          to={`/perkuliahan/mk-semester/${encodeURIComponent(row.kode)}`}
+          to={`/perkuliahan/mk-semester/${row.matakuliah_id}`}
         />
       ),
     },
@@ -137,25 +84,25 @@ export const MKSemesterPage = () => {
       />
 
       <Card>
-        <FilterBar fields={filterFields} />
-        <div className="divider my-3"></div>
-        <div className="flex flex-wrap items-center gap-4 text-xs text-base-content/70">
-          <span className="font-medium">Filter:</span>
-          {(tab === 'transkrip' ? transkripCheckboxes : mkCheckboxes).map((item) => (
-            <label key={item} className="flex cursor-pointer items-center gap-1.5">
-              <input type="checkbox" className="checkbox checkbox-xs checkbox-primary" />
-              {item}
-            </label>
-          ))}
-        </div>
+        <FilterBar
+          fields={[
+            { label: 'Departemen', placeholder: 'Pilih Departemen', options: filters.departemen },
+            { label: 'Prodi', placeholder: 'Pilih', options: filters.prodi },
+            {
+              label: 'Kurikulum',
+              placeholder: 'Pilih Kurikulum',
+              options: filters.kurikulum,
+              value: kurikulumId,
+              onChange: (e) => setKurikulumId(e.target.value),
+            },
+            { label: 'Semester', placeholder: 'Pilih Semester', options: filters.semester },
+          ]}
+        />
       </Card>
 
       <div className="tabs tabs-box w-fit bg-base-200">
         <button type="button" className={`tab ${tab === 'mk' ? 'tab-active' : ''}`} onClick={() => setTab('mk')}>
           MK Semester
-        </button>
-        <button type="button" className={`tab ${tab === 'mapping' ? 'tab-active' : ''}`} onClick={() => setTab('mapping')}>
-          Mapping CP
         </button>
         <button
           type="button"
@@ -172,17 +119,10 @@ export const MKSemesterPage = () => {
             resource="mk-semester"
             tableKey="mk_"
             columns={columns}
-            rowKey={(row) => row.kode}
+            extraFilter={kurikulumId ? { kurikulum_id: kurikulumId } : undefined}
+            rowKey={(row) => row.id}
             searchPlaceholder="Cari kode atau nama mata kuliah..."
           />
-        </Card>
-      )}
-      {tab === 'mapping' && (
-        <Card
-          title="Mapping CP"
-          actions={<span className="badge badge-ghost">Total Matakuliah: {MAPPING_MATRIX.rows.length}</span>}
-        >
-          <MappingMatrix matrix={MAPPING_MATRIX} />
         </Card>
       )}
       {tab === 'transkrip' && (
@@ -190,8 +130,9 @@ export const MKSemesterPage = () => {
           <DataTable
             resource="mk-transkrip"
             tableKey="tr_"
-            columns={transkripColumns}
-            rowKey={(row) => row.kode}
+            columns={columns}
+            extraFilter={{ status: 'transkrip', ...(kurikulumId ? { kurikulum_id: kurikulumId } : {}) }}
+            rowKey={(row) => row.id}
             searchPlaceholder="Cari mata kuliah transkrip..."
           />
         </Card>

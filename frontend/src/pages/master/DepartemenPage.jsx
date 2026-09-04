@@ -7,27 +7,33 @@ export const DepartemenPage = () => (
     subtitle="Kelola data departemen pada SIAKAD Kurikulum"
     breadcrumbs={[{ label: 'Master Data' }, { label: 'Departemen' }]}
     resource="departemen"
-    idKey="kode"
+    idKey="id"
     FormComponent={DepartemenForm}
-    emptyForm={{ kode: '', fakultas: '', nama: '', singkat: '' }}
-    rowKey={(r) => r.kode}
+    emptyForm={{
+      kode_departemen: '',
+      universitas_id: '',
+      fakultas_id: '',
+      nama_resmi: '',
+      nama_singkat: '',
+    }}
+    rowKey={(row) => row.id}
     searchPlaceholder="Cari kode atau nama departemen..."
     columns={[
-      { key: 'kode', header: 'Kode Departemen', sortable: true },
+      { key: 'kode_departemen', header: 'Kode Departemen', sortable: true },
       {
-        key: 'fakultas',
+        key: 'fakultas_id',
         header: 'Fakultas',
         sortable: true,
-        filter: { type: 'select', options: ['Fakultas Teknik', 'Fakultas Ekonomi'] },
+        render: (row) => row.fakultas?.nama_resmi || '—',
       },
-      { key: 'nama', header: 'Nama Resmi Departemen', sortable: true },
-      { key: 'singkat', header: 'Nama Singkat', sortable: true },
+      { key: 'nama_resmi', header: 'Nama Resmi Departemen', sortable: true },
+      { key: 'nama_singkat', header: 'Nama Singkat', sortable: true },
     ]}
-    detailItems={(d) => [
-      { label: 'Kode', value: d.kode },
-      { label: 'Fakultas', value: d.fakultas },
-      { label: 'Nama resmi', value: d.nama },
-      { label: 'Nama singkat', value: d.singkat },
+    detailItems={(row) => [
+      { label: 'Kode', value: row.kode_departemen },
+      { label: 'Fakultas', value: row.fakultas?.nama_resmi },
+      { label: 'Nama resmi', value: row.nama_resmi },
+      { label: 'Nama singkat', value: row.nama_singkat },
     ]}
   />
 );

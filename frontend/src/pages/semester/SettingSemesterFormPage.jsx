@@ -1,50 +1,64 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { FormActions } from '../../components/common/FormActions';
+import { PageSkeleton } from '../../components/common/PageSkeleton';
 import { SettingSemesterForm } from '../../components/master/SettingSemesterForm';
 import { useResourceMutations } from '../../hooks/useResourceMutations';
-import { SETTING_SEMESTER } from '../../constants/mockData';
+import { useResourceItem } from '../../hooks/useResourceQuery';
 
 const empty = {
   tahun: '',
-  semester: 'Genap',
-  periodeMulai: '',
-  periodeSelesai: '',
-  rencanaMulai: '',
-  rencanaSelesai: '',
-  ubahMulai: '',
-  ubahSelesai: '',
-  nilaiMulai: '',
-  nilaiSelesai: '',
+  jenis_semester_id: '',
+  tanggal_mulai: '',
+  tanggal_selesai: '',
 };
 
 export const SettingSemesterFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const existing = id ? SETTING_SEMESTER.find((s) => s.id === id) : null;
-  const [values, setValues] = useState(existing ? { ...existing } : empty);
-  const isEdit = Boolean(existing);
+  const existing = useResourceItem('setting-semester', id);
+  const [values, setValues] = useState(empty);
+  const isEdit = Boolean(id);
   const mutations = useResourceMutations('setting-semester');
   const saving = mutations.create.isPending || mutations.update.isPending;
+
+  useEffect(() => {
+    if (existing.data) {
+      setValues({
+        tahun: existing.data.tahun || '',
+        jenis_semester_id: existing.data.jenis_semester_id || '',
+        tanggal_mulai: existing.data.tanggal_mulai || '',
+        tanggal_selesai: existing.data.tanggal_selesai || '',
+      });
+    }
+  }, [existing.data]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (saving) return;
+    const payload = {
+      ...values,
+      tahun: Number(values.tahun),
+      tanggal_mulai: values.tanggal_mulai || null,
+      tanggal_selesai: values.tanggal_selesai || null,
+    };
     if (isEdit) {
-      await mutations.update.mutateAsync({ id: values.id, payload: values });
+      await mutations.update.mutateAsync({ id, payload });
     } else {
-      await mutations.create.mutateAsync(values);
+      await mutations.create.mutateAsync(payload);
     }
     navigate('/master/semester/setting');
   };
+
+  if (isEdit && existing.isPending) return <PageSkeleton cards={1} />;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={isEdit ? 'Ubah Setting Semester' : 'Tambah Setting Semester'}
-        subtitle="Atur periode akademik, KRS, dan input nilai"
+        subtitle="Atur tahun, jenis, dan periode semester"
         breadcrumbs={[
           { label: 'Master Data' },
           { label: 'Setting Semester', path: '/master/semester/setting' },

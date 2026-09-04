@@ -1,4 +1,5 @@
 import { env } from '../config/env';
+import { useAuthStore } from '../store/auth.store';
 
 const AUTH_STORAGE_KEY = 'myunand_auth';
 
@@ -29,6 +30,13 @@ const toQuery = (params = {}) => {
   return qs ? `?${qs}` : '';
 };
 
+const redirectToLogin = () => {
+  useAuthStore.getState().logout();
+  if (window.location.pathname !== '/login') {
+    window.location.assign('/login');
+  }
+};
+
 export const apiRequest = async (path, { method = 'GET', body, params } = {}) => {
   const token = readToken();
   const res = await fetch(`${env.apiBaseUrl}${path}${toQuery(params)}`, {
@@ -42,6 +50,11 @@ export const apiRequest = async (path, { method = 'GET', body, params } = {}) =>
   });
 
   const json = await res.json().catch(() => ({}));
+  const isLogin = path === '/auth/login';
+  if (res.status === 401 && !isLogin) {
+    redirectToLogin();
+  }
+
   if (!res.ok || json.status === 'error') {
     const firstError = Array.isArray(json.error) ? json.error[0]?.message : null;
     throw new Error(firstError || json.message || 'Permintaan gagal');

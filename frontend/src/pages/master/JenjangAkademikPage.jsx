@@ -7,18 +7,18 @@ export const JenjangAkademikPage = () => (
     subtitle="Kelola data jenjang akademik pada SIAKAD Kurikulum"
     breadcrumbs={[{ label: 'Master Data' }, { label: 'Jenjang Akademik' }]}
     resource="jenjang-akademik"
-    idKey="kode"
+    idKey="id"
     FormComponent={JenjangForm}
-    emptyForm={{ kode: '', nama: '' }}
-    rowKey={(r) => r.kode}
+    emptyForm={{ kode_jenjang: '', nama_jenjang: '' }}
+    rowKey={(row) => row.id}
     searchPlaceholder="Cari kode atau nama jenjang..."
     columns={[
-      { key: 'kode', header: 'Kode Jenjang', sortable: true },
-      { key: 'nama', header: 'Nama Jenjang', sortable: true },
+      { key: 'kode_jenjang', header: 'Kode Jenjang', sortable: true },
+      { key: 'nama_jenjang', header: 'Nama Jenjang', sortable: true },
     ]}
-    detailItems={(d) => [
-      { label: 'Kode', value: d.kode },
-      { label: 'Nama', value: d.nama },
+    detailItems={(row) => [
+      { label: 'Kode', value: row.kode_jenjang },
+      { label: 'Nama', value: row.nama_jenjang },
     ]}
   />
 );

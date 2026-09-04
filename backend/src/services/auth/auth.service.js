@@ -66,6 +66,32 @@ const register = async (payload) => {
 
 const profile = async (userId) => toAccessPayload(await getUserAccessById(userId));
 
+const updateProfile = async (userId, { name }) => {
+  const user = await User.findByPk(userId);
+  if (!user) {
+    throw new AppError('User tidak ditemukan', 404);
+  }
+  await user.update({ name });
+  logger.info({ userId }, 'User profile updated');
+  return toAccessPayload(await getUserAccessById(userId));
+};
+
+const changePassword = async (userId, { current_password, new_password }) => {
+  const user = await User.findByPk(userId);
+  if (!user) {
+    throw new AppError('User tidak ditemukan', 404);
+  }
+
+  const isValid = await bcrypt.compare(current_password, user.password);
+  if (!isValid) {
+    throw new AppError('Password saat ini salah', 400);
+  }
+
+  await user.update({ password: await bcrypt.hash(new_password, 10) });
+  logger.info({ userId }, 'User password changed');
+  return { id: userId };
+};
+
 const me = async (userId) => toAccessPayload(await getUserAccessById(userId));
 
 const refresh = async (userId) => {
@@ -78,4 +104,4 @@ const refresh = async (userId) => {
   };
 };
 
-module.exports = { login, register, profile, me, refresh };
+module.exports = { login, register, profile, updateProfile, changePassword, me, refresh };

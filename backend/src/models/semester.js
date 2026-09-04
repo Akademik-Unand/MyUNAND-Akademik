@@ -14,6 +14,7 @@ module.exports = (sequelize) => {
     tahun: { type: DataTypes.SMALLINT, allowNull: false },
     tanggal_mulai: { type: DataTypes.DATEONLY, allowNull: true },
     tanggal_selesai: { type: DataTypes.DATEONLY, allowNull: true },
+    is_aktif: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   }, { sequelize, modelName: 'Semester', tableName: 'semester', timestamps: true, paranoid: true });
   return Semester;
 };

@@ -1,6 +1,6 @@
 'use strict';
 
-const { ProgramStudi, JenjangAkademik, ModelKurikulum, Fakultas, Departemen } = require('../../models');
+const { ProgramStudi, JenjangAkademik, ModelKurikulum, Universitas, Fakultas, Departemen } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
@@ -12,6 +12,7 @@ const LIST_OPTIONS = {
   defaultInclude: [
     { model: JenjangAkademik, as: 'jenjangAkademik' },
     { model: ModelKurikulum, as: 'modelKurikulum' },
+    { model: Universitas, as: 'universitas' },
     { model: Fakultas, as: 'fakultas' },
     { model: Departemen, as: 'departemen' },
   ],

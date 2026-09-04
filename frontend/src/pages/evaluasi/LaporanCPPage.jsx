@@ -16,36 +16,30 @@ export const LaporanCPPage = () => {
   const columns = [
     { header: '#', render: (_, idx) => idx + 1 },
     {
-      key: 'nama',
+      key: 'nama_laporan',
       header: 'Nama Laporan',
       sortable: true,
       render: (row) => (
         <div>
-          <div className="font-medium">{row.nama}</div>
-          <div className="text-xs text-base-content/50">Last Edited: {row.terakhir}</div>
+          <div className="font-medium">{row.nama_laporan}</div>
+          <div className="text-xs text-base-content/50">Last Edited: {row.updatedAt}</div>
         </div>
       ),
     },
     { key: 'keterangan', header: 'Keterangan', sortable: true },
-    { key: 'dibuatOleh', header: 'Dibuat Oleh', sortable: true },
+    {
+      key: 'dibuat_oleh',
+      header: 'Dibuat Oleh',
+      render: (row) => row.pembuat?.name || '—',
+    },
     {
       header: 'Aksi',
       className: 'text-right',
       cellClassName: 'text-right',
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
-          <IconLink
-            label="Lihat laporan"
-            icon={Eye}
-            tone="text-info"
-            to={`/perkuliahan/laporan-cp/${row.id}`}
-          />
-          <IconLink
-            label="Ubah laporan"
-            icon={Pencil}
-            tone="text-warning"
-            to={`/perkuliahan/laporan-cp/${row.id}/edit`}
-          />
+          <IconLink label="Lihat laporan" icon={Eye} tone="text-info" to={`/perkuliahan/laporan-cp/${row.id}`} />
+          <IconLink label="Ubah laporan" icon={Pencil} tone="text-warning" to={`/perkuliahan/laporan-cp/${row.id}/edit`} />
           <IconButton
             label="Hapus laporan"
             icon={Trash2}
@@ -76,7 +70,7 @@ export const LaporanCPPage = () => {
         <DataTable
           resource="laporan-cp"
           columns={columns}
-          rowKey={(r) => r.id}
+          rowKey={(row) => row.id}
           searchPlaceholder="Cari nama laporan atau pembuat..."
         />
       </Card>
@@ -84,7 +78,7 @@ export const LaporanCPPage = () => {
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         title="Hapus Laporan CP"
-        message={`Yakin ingin menghapus laporan ${deleteTarget?.nama || ''}?`}
+        message={`Yakin ingin menghapus laporan ${deleteTarget?.nama_laporan || ''}?`}
         onConfirm={async () => {
           await mutations.remove.mutateAsync(deleteTarget.id);
           setDeleteTarget(null);
