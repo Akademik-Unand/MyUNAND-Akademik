@@ -1,6 +1,6 @@
 'use strict';
 
-const { deterministicUuid, parseSqlValue, splitSqlList, parseInsertStatement, parseSqlDump, academicYearStart, aggregateGrades, mapSourceToActualIds } = require('../../../src/helpers/tpbSqlImport');
+const { deterministicUuid, parseSqlValue, splitSqlList, parseInsertStatement, parseSqlDump, academicYearStart, academicSemesterYear, aggregateGrades, mapSourceToActualIds } = require('../../../src/helpers/tpbSqlImport');
 
 describe('TPB SQL import helper', () => {
   test('creates stable, namespaced UUID v5 values', () => {
@@ -26,8 +26,10 @@ describe('TPB SQL import helper', () => {
     expect(parseSqlDump(sql, ['a'])).toEqual({ a: [{ id: 1 }, { id: 3 }] });
   });
 
-  test('maps academic ranges to their starting year', () => {
+  test('maps academic ranges to semester calendar years', () => {
     expect(academicYearStart('2024/2025')).toBe(2024);
+    expect(academicSemesterYear('2024/2025', 'ganjil')).toBe(2024);
+    expect(academicSemesterYear('2024/2025', 'genap')).toBe(2025);
     expect(() => academicYearStart('unknown')).toThrow('Invalid academic year');
   });
 

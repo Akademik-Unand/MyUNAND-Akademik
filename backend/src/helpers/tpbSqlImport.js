@@ -78,6 +78,11 @@ function academicYearStart(value) {
   return Number(match[0]);
 }
 
+function academicSemesterYear(value, period) {
+  const start = academicYearStart(value);
+  return /^genap$/i.test(String(period || '').trim()) ? start + 1 : start;
+}
+
 function aggregateGrades(rows, keyFn) {
   const grouped = new Map();
   for (const row of rows) {
@@ -97,4 +102,4 @@ function mapSourceToActualIds(sourceRows, targetRows, sourceKey, targetKey) {
   }));
 }
 
-module.exports = { TPB_NAMESPACE, deterministicUuid, parseSqlValue, splitSqlList, parseValueTuples, parseInsertStatement, parseSqlDump, academicYearStart, aggregateGrades, mapSourceToActualIds };
+module.exports = { TPB_NAMESPACE, deterministicUuid, parseSqlValue, splitSqlList, parseValueTuples, parseInsertStatement, parseSqlDump, academicYearStart, academicSemesterYear, aggregateGrades, mapSourceToActualIds };

@@ -274,6 +274,7 @@ module.exports = {
   idList,
   kurikulumIdsSql,
   prodiIdsSql,
+  semesterProdiIdsSql,
   orgFiltersOnKurikulumId,
   orgFiltersOnProgramStudiId,
   orgFiltersOnMatakuliahViaKurikulum,

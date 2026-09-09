@@ -1,6 +1,6 @@
 'use strict';
 
-const { academicYearStart } = require('./tpbSqlImport');
+const { academicSemesterYear } = require('./tpbSqlImport');
 
 const SOURCE_TABLES = ['bobot', 'cpmk', 'cpmk_mat_kul', 'cpmk_parents', 'dosen', 'dosen_pengampu_kelas', 'kelas', 'kelas_mahasiswa', 'komponen', 'mahasiswa', 'mata_kuliah', 'nilai', 'tahun_ajaran', 'tahun_ajaran_matkul'];
 const countBy = (rows, keyFn) => rows.reduce((map, row) => { const key = keyFn(row); if (key != null) map.set(String(key), (map.get(String(key)) || []).concat(row)); return map; }, new Map());
@@ -11,13 +11,12 @@ const lookup = (rows) => new Map(rows.map((row) => [String(row.id), row]));
 const linkKey = (...values) => values.map((value) => String(value ?? '')).join('|');
 
 function semesterYear(tahun, periode) {
-  const start = academicYearStart(tahun);
-  return /genap/i.test(String(periode || '')) ? start + 1 : start;
+  return academicSemesterYear(tahun, periode);
 }
 
 function analyzeTpbTables(tables, options = {}) {
   const maxNim = options.maxNimLength || 20;
-  const maxNip = options.maxNipLength || 30;
+  const maxNip = options.maxNipLength || 18;
   const rows = (name) => tables[name] || [];
   const taById = lookup(rows('tahun_ajaran'));
   const offeringById = lookup(rows('tahun_ajaran_matkul'));

@@ -43,9 +43,9 @@ module.exports = {
       const typeIds = {};
       for (const [key, name, alias, urut] of [['ganjil', 'Ganjil', 'GANJIL', 1], ['genap', 'Genap', 'GENAP', 2]]) typeIds[key] = await resolveMaster(queryInterface, 'jenis_semester', 'LOWER(nama) = :name', { name: key }, { id: ownedId('jenis_semester', key), nama: name, alias, urut, ...stamp() }, t);
       const sourceSemesters = (s.tahun_ajaran || []).filter((r) => typeIds[String(r.periode).toLowerCase()]);
-      await insert(queryInterface, 'semester', sourceSemesters.map((r) => ({ id: ownedId('semester', r.id), jenis_semester_id: typeIds[String(r.periode).toLowerCase()], tahun: H.academicYearStart(r.tahun), is_aktif: false, ...stamp(r) })), t);
+      await insert(queryInterface, 'semester', sourceSemesters.map((r) => ({ id: ownedId('semester', r.id), jenis_semester_id: typeIds[String(r.periode).toLowerCase()], tahun: H.academicSemesterYear(r.tahun, r.periode), is_aktif: false, ...stamp(r) })), t);
       const semesterTargets = await select(queryInterface, 'SELECT id, tahun, jenis_semester_id FROM semester WHERE jenis_semester_id IN (:types)', { types: Object.values(typeIds) }, t);
-      const semesterMap = actualMap(sourceSemesters, semesterTargets, (r) => `${H.academicYearStart(r.tahun)}:${typeIds[String(r.periode).toLowerCase()]}`, (r) => `${r.tahun}:${r.jenis_semester_id}`);
+      const semesterMap = actualMap(sourceSemesters, semesterTargets, (r) => `${H.academicSemesterYear(r.tahun, r.periode)}:${typeIds[String(r.periode).toLowerCase()]}`, (r) => `${r.tahun}:${r.jenis_semester_id}`);
       await insert(queryInterface, 'semester_prodi', sourceSemesters.filter((r) => semesterMap.has(String(r.id))).map((r) => ({ id: ownedId('semester_prodi', r.id), program_studi_id: prodiId, semester_id: semesterMap.get(String(r.id)), is_aktif: false, sks_default: 15, sks_maksimal: 24, ...stamp(r) })), t);
       const semesterProdiTargets = await select(queryInterface, 'SELECT id, semester_id FROM semester_prodi WHERE program_studi_id = :prodi', { prodi: prodiId }, t);
       const semesterProdiBySemester = new Map(semesterProdiTargets.map((r) => [String(r.semester_id), r.id]));

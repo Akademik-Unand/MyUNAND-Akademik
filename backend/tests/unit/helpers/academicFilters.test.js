@@ -10,6 +10,7 @@ const {
   orgFiltersOnFakultasId,
   kurikulumIdsSql,
   prodiIdsSql,
+  semesterProdiIdsSql,
   ROOT_CPMK_COUNT_SQL,
 } = require('../../../src/helpers/academicFilters');
 
@@ -57,6 +58,12 @@ describe('academicFilters', () => {
     const filters = orgFiltersOnSemesterProdiId(sequelize);
     const where = filters.fakultas_id(['f-1']);
     expect(where.program_studi_id[Op.in].literal).toContain("p.fakultas_id IN ('f-1')");
+  });
+
+  it('exports semester-prodi SQL builder for rekap detail filters', () => {
+    expect(typeof semesterProdiIdsSql).toBe('function');
+    expect(semesterProdiIdsSql(sequelize, { semester_id: 's-1' }))
+      .toContain("sp.semester_id IN ('s-1')");
   });
 
   it('scopes sumber_penilaian via cpmk → matakuliah', () => {
