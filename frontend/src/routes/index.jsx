@@ -41,6 +41,13 @@ import { LaporanCPViewPage } from '../pages/evaluasi/LaporanCPViewPage';
 import { UsersPage } from '../pages/iam/UsersPage';
 import { RoleMatrixPage } from '../pages/iam/RoleMatrixPage';
 import { ActivityLogsPage } from '../pages/iam/ActivityLogsPage';
+import { MatakuliahPage } from '../pages/master/MatakuliahPage';
+import { GedungPage } from '../pages/master/GedungPage';
+import { RuangPage } from '../pages/master/RuangPage';
+import { PenawaranSemesterPage } from '../pages/perkuliahan/PenawaranSemesterPage';
+import { PersetujuanHostPage } from '../pages/perkuliahan/PersetujuanHostPage';
+import { KatalogLintasProdiPage } from '../pages/mahasiswa/KatalogLintasProdiPage';
+import { StatusKrsLintasPage } from '../pages/mahasiswa/StatusKrsLintasPage';
 
 export const router = createBrowserRouter([
   {
@@ -62,6 +69,9 @@ export const router = createBrowserRouter([
           { path: 'master/prodi/baru', element: gate('create', 'ProgramStudi', <ProdiFormPage />) },
           { path: 'master/prodi/:id/edit', element: gate('update', 'ProgramStudi', <ProdiFormPage />) },
           { path: 'master/prodi', element: gate('read', 'ProgramStudi', <ProdiPage />) },
+          { path: 'master/matakuliah', element: gate('read', 'Matakuliah', <MatakuliahPage />) },
+          { path: 'master/gedung', element: gate('read', 'Gedung', <GedungPage />) },
+          { path: 'master/ruang', element: gate('read', 'Ruang', <RuangPage />) },
           { path: 'master/jenjang-akademik', element: gate('read', 'JenjangAkademik', <JenjangAkademikPage />) },
           { path: 'master/semester/jenis', element: gate('read', 'JenisSemester', <JenisSemesterPage />) },
           { path: 'master/semester/setting/baru', element: gate('create', 'Semester', <SettingSemesterFormPage />) },
@@ -79,6 +89,10 @@ export const router = createBrowserRouter([
           { path: 'kurikulum/cpmk/:id', element: gateAny([{ I: 'create', a: 'Cpmk' }, { I: 'update', a: 'Cpmk' }], <AturCPMKPage />) },
           { path: 'kurikulum/cpmk', element: gate('read', 'Cpmk', <CPMKKurikulumPage />) },
 
+          { path: 'perkuliahan/penawaran-mk', element: gate('read', 'PenawaranMatakuliah', <PenawaranSemesterPage />) },
+          { path: 'perkuliahan/persetujuan/host', element: gate('approve-host', 'CrossEnrollment', <PersetujuanHostPage />) },
+          { path: 'mahasiswa/katalog-lintas-prodi', element: gate('catalog', 'PenawaranMatakuliah', <KatalogLintasProdiPage />) },
+          { path: 'mahasiswa/status-krs-lintas', element: gate('read', 'CrossEnrollment', <StatusKrsLintasPage />) },
           { path: 'perkuliahan/mk-semester/transkrip/atur', element: gate('update', 'MatakuliahKurikulum', <MKTranskripAturPage />) },
           { path: 'perkuliahan/mk-semester/:id/atur', element: gate('update', 'Cpmk', <AturCPMKSemesterPage />) },
           { path: 'perkuliahan/mk-semester/:id/evaluasi', element: gate('read', 'EvaluasiCpmk', <EvaluasiCPMKPage />) },

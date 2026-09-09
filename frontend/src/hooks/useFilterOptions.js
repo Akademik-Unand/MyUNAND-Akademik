@@ -14,7 +14,7 @@ export const useFilterOptions = () => {
   return {
     fakultas: toOptions(fakultas.data, (row) => row.nama_resmi || row.nama_singkat || row.kode_fakultas),
     departemen: toOptions(departemen.data, (row) => row.nama_resmi || row.nama_singkat),
-    prodi: toOptions(prodi.data, (row) => row.nama_resmi || row.kode_prodi),
+    prodi: toOptions(prodi.data, (row) => row.nama_singkat || row.kode_prodi),
     kurikulum: toOptions(kurikulum.data, (row) => row.nama || String(row.tahun || row.id)),
     semester: toOptions(
       semester.data,

@@ -104,7 +104,7 @@ const UserUnitsEditor = ({ user, onClose }) => {
               label="Prodi"
               size="sm"
               placeholder="Pilih prodi"
-              options={prodiOptions(row).map((p) => ({ value: p.id, label: p.nama_resmi || p.kode_prodi }))}
+              options={prodiOptions(row).map((p) => ({ value: p.id, label: p.nama_singkat || p.kode_prodi }))}
               value={row.program_studi_id}
               disabled={!row.departemen_id}
               onChange={(e) => updateAt(index, { program_studi_id: e.target.value })}

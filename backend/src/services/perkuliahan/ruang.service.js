@@ -1,6 +1,6 @@
 'use strict';
 
-const { Ruang } = require('../../models');
+const { Ruang, Gedung } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
@@ -8,8 +8,8 @@ const { restoreRecord } = require('../../helpers/softDelete');
 const LIST_OPTIONS = {
   searchFields: ["kode","nama"],
   sortableFields: ["kode","nama","createdAt"],
-  filterableFields: ["kode"],
-  defaultInclude: [],
+  filterableFields: ["kode","gedung_id"],
+  defaultInclude: [{ model: Gedung, as: 'gedung' }],
 };
 
 const list = (query) => paginate(Ruang, query, LIST_OPTIONS);

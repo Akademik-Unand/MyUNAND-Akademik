@@ -12,9 +12,12 @@ export const semesterDanSebelumnyaLabel = (semester) => {
   return label === '—' ? label : `${label} dan sebelumnya`;
 };
 
+export const programStudiLabel = (prodi, fallback = '—') =>
+  prodi?.nama_singkat || prodi?.kode_prodi || fallback;
+
 export const prodiDepartemenLabel = (prodi) => {
   if (!prodi) return '—';
-  const nama = prodi.nama_resmi || prodi.nama_singkat;
+  const nama = programStudiLabel(prodi, '');
   const jurusan = prodi.departemen?.nama_resmi || prodi.departemen?.nama_singkat;
   if (nama && jurusan) return `${nama} – ${jurusan}`;
   return nama || '—';
@@ -23,7 +26,7 @@ export const prodiDepartemenLabel = (prodi) => {
 export const semesterProdiLabel = (row) => {
   if (!row) return '—';
   const term = semesterAkademikLabel(row.semester);
-  const prodi = row.programStudi?.nama_singkat || row.programStudi?.nama_resmi;
+  const prodi = programStudiLabel(row.programStudi, '');
   if (term === '—') return prodi || '—';
   return prodi ? `${term} · ${prodi}` : term;
 };

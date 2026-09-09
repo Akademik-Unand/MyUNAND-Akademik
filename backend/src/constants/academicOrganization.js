@@ -1,0 +1,48 @@
+'use strict';
+
+const FACULTIES = [
+  ['01','Hukum'],['02','Pertanian'],['03','Kedokteran'],['04','Matematika dan Ilmu Pengetahuan Alam'],
+  ['05','Ekonomi dan Bisnis'],['06','Peternakan'],['07','Ilmu Budaya'],['08','Ilmu Sosial dan Ilmu Politik'],
+  ['09','Teknik'],['10','Farmasi'],['11','Teknologi Pertanian'],['12','Kesehatan Masyarakat'],
+  ['13','Keperawatan'],['14','Kedokteran Gigi'],['15','Teknologi Informasi'],['16','Sekolah Pascasarjana'],
+];
+
+const DEPARTMENTS = [
+  '01|1|Hukum',
+  '02|1|Agroteknologi','02|2|Agribisnis','02|3|Ilmu Tanah','02|4|Proteksi Tanaman','02|5|Penyuluhan Pertanian','02|6|Agroekoteknologi (Kampus III)','02|7|Ilmu Pertanian',
+  '03|1|Kedokteran','03|2|Psikologi','03|3|Kebidanan','03|4|Ilmu Biomedis','03|5|Administrasi Rumah Sakit',
+  '04|1|Kimia','04|2|Biologi','04|3|Matematika','04|4|Fisika','04|5|Statistika dan Sains Data',
+  '05|1|Ekonomi','05|2|Manajemen','05|3|Akuntansi','05|4|Ekonomi Islam','05|5|Kewirausahaan','05|6|Ekonomi Pembangunan (Kampus II)','05|7|Manajemen (Kampus II)','05|8|Vokasi',
+  '06|1|Peternakan','06|2|Peternakan (Kampus Payakumbuh)','06|3|Nutrisi dan Teknologi Pakan Ternak',
+  '07|1|Sejarah','07|2|Sastra Indonesia','07|3|Sastra Inggris','07|4|Sastra Minangkabau','07|5|Sastra Jepang','07|6|Arkeologi','07|7|Linguistik','07|8|Kajian Budaya',
+  '08|1|Sosiologi','08|2|Ilmu Politik','08|3|Antropologi Sosial','08|4|Hubungan Internasional','08|5|Ilmu Komunikasi','08|6|Administrasi Publik','08|7|Kajian Kebijakan',
+  '09|1|Teknik Sipil','09|2|Teknik Mesin','09|3|Teknik Industri','09|4|Teknik Elektro','09|5|Teknik Lingkungan','09|6|Arsitektur',
+  '10|1|Farmasi','11|1|Teknologi Pangan dan Hasil Pertanian','11|2|Teknik Pertanian dan Biosistem','11|3|Teknologi Industri Pertanian',
+  '12|1|Kesehatan Masyarakat','12|2|Gizi','13|1|Keperawatan','14|1|Kedokteran Gigi',
+  '15|1|Teknik Komputer','15|2|Sistem Informasi','15|3|Informatika',
+  '16|1|Studi Pembangunan','16|2|Ilmu Lingkungan','16|3|Bioteknologi','16|4|Penyuluhan dan Komunikasi Pembangunan','16|5|Manajemen Bencana','16|6|Profesi Insinyur',
+].map((item) => item.split('|'));
+
+const PROGRAMS = [
+  '01|1|Hukum|S1|74207','01|1|Hukum|S2|74108','01|1|Kenotariatan|S2|74102','01|1|Hukum|S3|74005',
+  '02|1|Agroteknologi|S1|54211','02|1|Agronomi|S2|54104','02|2|Agribisnis|S1|54201','02|2|Ekonomi Pertanian|S2|54102','02|3|Ilmu Tanah|S1|54294','02|3|Ilmu Tanah|S2|54105','02|4|Proteksi Tanaman|S1|54295','02|4|Proteksi Tanaman|S2|54195','02|5|Penyuluhan Pertanian|S1|54203','02|6|Agroekoteknologi|S1|54282','02|7|Ilmu Pertanian|S3|54001',
+  '03|1|Kedokteran|S1|11201','03|1|Pendidikan Profesi Dokter|Profesi|11903','03|1|Ilmu Kesehatan Mata|Sp-1|11701','03|1|Penyakit Dalam|Sp-1|11766','03|1|Bedah|Sp-1|11760','03|1|Kesehatan Anak|Sp-1|11762','03|1|Obstetrik dan Ginekologi|Sp-1|11761','03|1|Pulmonologi dan Ilmu Kedokteran Respirasi|Sp-1|11768','03|1|Patologi Klinis|Sp-1|11765','03|1|Dermatologi Venereologi Dan Estetika|Sp-1|11771','03|1|Neurologi|Sp-1|11703','03|1|Kesehatan Telinga Hidung Tenggorok, Bedah Kepala Leher|Sp-1|11769','03|1|Jantung dan Pembuluh Darah|Sp-1|11767','03|1|Patologi Anatomi|Sp-1|11764','03|1|Anestesiologi dan Terapi Intensif|Sp-1|11751','03|1|Orthopaedi dan Traumatologi|Sp-1|11728','03|1|Urologi|Sp-1|11776','03|1|Obstetri Dan Ginekologi|Sp-2|11816','03|1|Penyakit Dalam|Sp-2|11780','03|1|Bedah|Sp-2|11732','03|2|Psikologi|S1|73201','03|2|Pendidikan Profesi Psikolog|Profesi|73901','03|3|Kebidanan|S1|15201','03|3|Pendidikan Profesi Bidan|Profesi|15901','03|3|Kebidanan|S2|15103','03|4|Ilmu Biomedis|S1|11223','03|4|Ilmu Biomedis|S2|11111','03|4|Ilmu Biomedis|S3|11007','03|4|Kesehatan Masyarakat|S2|13101','03|4|Kesehatan Masyarakat|S3|13003','03|5|Administrasi Rumah Sakit|S2|13161',
+  '04|1|Kimia|S1|47201','04|1|Kimia|S2|47101','04|1|Kimia|S3|47002','04|2|Biologi|S1|46201','04|2|Biologi|S2|46101','04|2|Biologi|S3|46001','04|3|Matematika|S1|44201','04|3|Matematika|S2|44101','04|3|Matematika|S3|44002','04|4|Fisika|S1|45201','04|4|Fisika|S2|45101','04|5|Statistik dan Sains Data|S1|49205',
+  '05|1|Ekonomi|S1|87221','05|1|Ekonomi|S2|87122','05|1|Ekonomi|S3|60004','05|2|Manajemen|S1|61201','05|2|Manajemen|S2|61101','05|2|Manajemen|S3|61001','05|3|Akuntansi|S1|62201','05|3|Akuntansi|S2|62101','05|3|Ilmu Akuntansi|S3|62001','05|3|Pendidikan Profesi Akuntan|Profesi|62902','05|4|Ekonomi Islam|S1|60230','05|5|Kewirausahaan|S1|94202','05|6|Ekonomi Pembangunan (Kampus Payakumbuh)|S1|60270','05|7|Manajemen (Kampus Payakumbuh)|S1|61271','05|8|Manajemen Pemasaran|D3|61404','05|8|Akuntansi|D3|62401','05|8|Administrasi Perkantoran|D3|61401','05|8|Perbankan dan Keuangan|D3|61417',
+  '06|1|Peternakan|S1|54231','06|1|Ilmu Peternakan|S2|54131','06|1|Ilmu Peternakan|S3|54031','06|2|Peternakan, Kampus Payakumbuh|S1|54271','06|3|Nutrisi dan Teknologi Pakan Ternak|S1|54240',
+  '07|1|Sejarah|S1|80204','07|1|Kajian Sejarah|S2|80102','07|2|Sastra Indonesia|S1|79201','07|3|Sastra Inggris|S1|79202','07|4|Sastra Minangkabau|S1|79211','07|5|Sastra Jepang|S1|79204','07|6|Arkeologi|S1|81201','07|7|Linguistik|S2|79104','07|7|Linguistik|S3|79003','07|8|Susastra|S2|79105','07|8|Kajian Budaya|S2|95127',
+  '08|1|Sosiologi|S1|69201','08|1|Sosiologi|S2|69101','08|1|Sosiologi|S3|69001','08|2|Ilmu Politik|S1|67201','08|2|Ilmu Politik|S2|67101','08|3|Antropologi Sosial|S1|82201','08|3|Antropologi|S2|82101','08|4|Hubungan Internasional|S1|84201','08|5|Ilmu Komunikasi|S1|70201','08|5|Ilmu Komunikasi|S2|70101','08|6|Administrasi Publik|S1|63203','08|6|Administrasi Publik|S2|63101','08|7|Studi Kebijakan|S3|95007',
+  '09|1|Teknik Sipil|S1|22201','09|1|Teknik Sipil|S2|22101','09|1|Teknik Sipil|S3|22001','09|2|Teknik Mesin|S1|21201','09|2|Teknik Mesin|S2|21101','09|2|Teknik Mesin|S3|21001','09|3|Teknik Industri|S1|26201','09|3|Teknik Industri|S2|26101','09|3|Teknik Industri|S3|26002','09|4|Teknik Elektro|S1|20201','09|4|Teknik Elektro|S2|20101','09|4|Teknik Elektro|S3|20001','09|5|Teknik Lingkungan|S1|25201','09|5|Teknik Lingkungan|S2|25101','09|5|Teknik Lingkungan|S3|25001','09|6|Arsitektur|S1|23201',
+  '10|1|Farmasi|S1|48201','10|1|Farmasi|S2|48101','10|1|Farmasi|S3|48001','10|1|Pendidikan Profesi Apoteker|Profesi|48903',
+  '11|1|Teknologi Pangan dan Hasil Pertanian|S1|41231','11|1|Teknologi Pangan dan Hasil Pertanian|S2|41123','11|2|Teknik Pertanian dan Biosistem|S1|80203','11|2|Teknik Pertanian dan Biosistem|S2|80103','11|3|Teknologi Industri Pertanian|S1|41211','11|3|Teknologi Industri Pertanian|S2|41111',
+  '12|1|Kesehatan Masyarakat|S1|13201','12|1|Epidemiologi|S2|13121','12|2|Gizi|S1|13211','12|2|Ilmu Gizi|S2|13111','13|1|Keperawatan|S1|14206','13|1|Keperawatan|S2|14105','13|1|Pendidikan Profesi Ners|Profesi|14905','14|1|Kedokteran Gigi|S1|12202','14|1|Pendidikan Profesi Dokter Gigi|Profesi|12902','14|1|Bedah Mulut dan Maksilofasial|Sp-1|12709',
+  '15|1|Teknik Komputer|S1|56201','15|2|Sistem Informasi|S1|57201','15|3|Informatika|S1|55202',
+  '16|1|Studi Pembangunan|S3|95006','16|1|Pembangunan Wilayah Dan Pedesaan|S2|95103','16|2|Ilmu Lingkungan|S2|95129','16|2|Pengelolaan Sumber Daya Alam|S2|95112','16|3|Bioteknologi|S2|54107','16|4|Ilmu Penyuluhan dan Komunikasi Pembangunan|S2|95106','16|5|Manajemen Bencana|S2|22106','16|5|Perumahan dan Pemukiman|S2|95136','16|6|Pendidikan Profesi Insinyur|Profesi|23905',
+].map((item) => item.split('|'));
+
+const DEGREES = {
+  D3: 'Diploma Tiga', S1: 'Sarjana', S2: 'Magister', S3: 'Doktor',
+  Profesi: 'Profesi', 'Sp-1': 'Spesialis Satu', 'Sp-2': 'Spesialis Dua',
+};
+
+module.exports = { FACULTIES, DEPARTMENTS, PROGRAMS, DEGREES };

@@ -4,11 +4,13 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
   class Matakuliah extends Model {
     static associate(models) {
+      Matakuliah.belongsTo(models.ProgramStudi, { foreignKey: 'program_studi_id', as: 'programStudi' });
       Matakuliah.belongsTo(models.JenisSemester, { foreignKey: 'jenis_semester_id', as: 'jenisSemester' });
       Matakuliah.belongsTo(models.TipeMatakuliah, { foreignKey: 'tipe_matakuliah_id', as: 'tipeMatakuliah' });
       Matakuliah.belongsTo(models.SifatMatakuliah, { foreignKey: 'sifat_matakuliah_id', as: 'sifatMatakuliah' });
       Matakuliah.hasMany(models.Cpmk, { foreignKey: 'matakuliah_id', as: 'cpmk' });
       Matakuliah.hasMany(models.Kelas, { foreignKey: 'matakuliah_id', as: 'kelas' });
+      Matakuliah.hasMany(models.PenawaranMatakuliahDetil, { foreignKey: 'matakuliah_id', as: 'penawaranMatakuliah' });
       Matakuliah.belongsToMany(models.Kurikulum, {
         through: models.MatakuliahKurikulum,
         foreignKey: 'matakuliah_id',
@@ -21,6 +23,7 @@ module.exports = (sequelize) => {
   }
   Matakuliah.init({
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    program_studi_id: { type: DataTypes.UUID, allowNull: true },
     jenis_semester_id: { type: DataTypes.UUID, allowNull: false },
     tipe_matakuliah_id: { type: DataTypes.UUID, allowNull: true },
     sifat_matakuliah_id: { type: DataTypes.UUID, allowNull: true },

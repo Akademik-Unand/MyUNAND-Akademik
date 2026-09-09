@@ -106,7 +106,7 @@ export const cascadeAcademicOptions = (rows, draft = EMPTY_ACADEMIC_FILTER, scop
   return {
     fakultas: toOptions(fakultasRows, (row) => row.nama_resmi || row.nama_singkat || row.kode_fakultas),
     departemen: toOptions(departemenRows, (row) => row.nama_resmi || row.nama_singkat || row.kode_departemen),
-    prodi: toOptions(prodiRows, (row) => row.nama_resmi || row.kode_prodi),
+    prodi: toOptions(prodiRows, (row) => row.nama_singkat || row.kode_prodi),
     kurikulum: toOptions(kurikulumRows, (row) => row.nama || String(row.tahun || row.id)),
     semester: toOptions(
       rows.semester,

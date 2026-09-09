@@ -68,6 +68,17 @@ describe('academicFilter', () => {
     expect(options.prodi.map((row) => row.value)).toEqual(['p1']);
   });
 
+  it('uses nama_singkat for prodi option labels', () => {
+    const options = cascadeAcademicOptions({
+      fakultas: [],
+      departemen: [],
+      prodi: [{ id: 'p1', nama_resmi: 'Teknik Pertanian dan Biosistem', nama_singkat: 'S1 Teknik Pertanian dan Biosistem' }],
+      kurikulum: [],
+      semester: [],
+    });
+    expect(options.prodi[0].label).toBe('S1 Teknik Pertanian dan Biosistem');
+  });
+
   it('treats empty draft as not ready to apply', () => {
     expect(isAcademicDraftReady(EMPTY_ACADEMIC_FILTER)).toBe(false);
     expect(isAcademicDraftReady({ ...EMPTY_ACADEMIC_FILTER, fakultasId: 'f1' })).toBe(true);

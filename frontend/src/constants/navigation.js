@@ -33,6 +33,24 @@ export const NAVIGATION_MENU = [
         permission: { action: 'read', subject: 'ProgramStudi' },
       },
       {
+        label: 'Mata Kuliah',
+        path: '/master/matakuliah',
+        icon: 'BookOpen',
+        permission: { action: 'read', subject: 'Matakuliah' },
+      },
+      {
+        label: 'Gedung',
+        path: '/master/gedung',
+        icon: 'Building',
+        permission: { action: 'read', subject: 'Gedung' },
+      },
+      {
+        label: 'Ruang',
+        path: '/master/ruang',
+        icon: 'DoorOpen',
+        permission: { action: 'read', subject: 'Ruang' },
+      },
+      {
         label: 'Jenjang Akademik',
         path: '/master/jenjang-akademik',
         icon: 'TrendingUp',
@@ -90,6 +108,18 @@ export const NAVIGATION_MENU = [
     title: 'Semester & Perkuliahan',
     items: [
       {
+        label: 'Penawaran MK Semester',
+        path: '/perkuliahan/penawaran-mk',
+        icon: 'BookPlus',
+        permission: { action: 'read', subject: 'PenawaranMatakuliah' },
+      },
+      {
+        label: 'Persetujuan Penyelenggara',
+        path: '/perkuliahan/persetujuan/host',
+        icon: 'ListChecks',
+        permission: { action: 'approve-host', subject: 'CrossEnrollment' },
+      },
+      {
         label: 'MK Semester',
         path: '/perkuliahan/mk-semester',
         icon: 'BookOpenCheck',
@@ -119,6 +149,14 @@ export const NAVIGATION_MENU = [
         icon: 'FileSpreadsheet',
         permission: { action: 'read', subject: 'LaporanCp' },
       },
+    ],
+  },
+  {
+    type: 'group',
+    title: 'KRS Mahasiswa',
+    items: [
+      { label: 'Katalog Lintas Prodi', path: '/mahasiswa/katalog-lintas-prodi', icon: 'LibraryBig', permission: { action: 'catalog', subject: 'PenawaranMatakuliah' } },
+      { label: 'Status KRS Lintas Prodi', path: '/mahasiswa/status-krs-lintas', icon: 'Clock3', permission: { action: 'read', subject: 'CrossEnrollment' } },
     ],
   },
   {

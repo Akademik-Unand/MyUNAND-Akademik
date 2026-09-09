@@ -1,0 +1,3 @@
+import { describe, expect, it } from 'vitest';
+import { approvalStatusLabel, participantName, participantProgram } from './crossEnrollment';
+describe('cross enrollment presentation', () => { it('renders readable participant identity', () => { const row = { mahasiswa: { nama_lengkap: 'Ayu', programStudi: { nama_resmi: 'Teknik Industri' } } }; expect(participantName(row)).toBe('Ayu'); expect(participantProgram(row)).toBe('Teknik Industri'); }); it('maps approval states', () => { expect(approvalStatusLabel('menunggu_host')).toBe('Menunggu Prodi Penyelenggara'); expect(approvalStatusLabel('disetujui')).toBe('Disetujui'); }); });

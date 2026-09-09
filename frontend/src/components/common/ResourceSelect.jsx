@@ -11,12 +11,17 @@ export const ResourceSelect = ({
   required = false,
   disabled = false,
   getValue = (row) => row.id,
-  getLabel = (row) => row.nama_resmi || row.nama || row.name || row.kode || row.id,
+  getLabel,
   params,
   size,
 }) => {
   const { data = [] } = useResourceQuery(resource, { params });
-  const options = data.map((row) => ({ value: getValue(row), label: getLabel(row) }));
+  const resolveLabel = getLabel || ((row) =>
+    resource === 'prodi'
+      ? row.nama_singkat || row.kode_prodi || row.id
+      : row.nama_resmi || row.nama || row.name || row.kode || row.id
+  );
+  const options = data.map((row) => ({ value: getValue(row), label: resolveLabel(row) }));
 
   return (
     <Select

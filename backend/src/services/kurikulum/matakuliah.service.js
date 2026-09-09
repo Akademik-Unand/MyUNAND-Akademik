@@ -1,6 +1,6 @@
 'use strict';
 
-const { Matakuliah, JenisSemester, TipeMatakuliah, SifatMatakuliah, Cpmk, Kurikulum } = require('../../models');
+const { Matakuliah, ProgramStudi, JenisSemester, TipeMatakuliah, SifatMatakuliah, Cpmk, Kurikulum } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
@@ -8,8 +8,9 @@ const { restoreRecord } = require('../../helpers/softDelete');
 const LIST_OPTIONS = {
   searchFields: ["kode_matakuliah","nama_resmi"],
   sortableFields: ["kode_matakuliah","nama_resmi","createdAt"],
-  filterableFields: ["kode_matakuliah","jenis_semester_id","tipe_matakuliah_id"],
+  filterableFields: ["kode_matakuliah","program_studi_id","jenis_semester_id","tipe_matakuliah_id"],
   defaultInclude: [
+    { model: ProgramStudi, as: 'programStudi' },
     { model: JenisSemester, as: 'jenisSemester' },
     { model: TipeMatakuliah, as: 'tipeMatakuliah' },
     { model: SifatMatakuliah, as: 'sifatMatakuliah' },

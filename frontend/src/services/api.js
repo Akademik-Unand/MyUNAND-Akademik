@@ -18,6 +18,16 @@ const RESOURCE_PATH = {
   'kelas-peserta': '/krs-detil',
   'evaluasi-nilai': '/nilai',
   'rekap-cp-detail': '/rekap-cp/detail',
+  matakuliah: '/matakuliah',
+  gedung: '/gedung',
+  ruang: '/ruang',
+  'semester-prodi': '/semester-prodi',
+  'penawaran-matakuliah': '/penawaran-matakuliah',
+  'katalog-lintas-prodi': '/penawaran-matakuliah/catalog',
+  'krs-lintas-prodi': '/krs-lintas-prodi',
+  'persetujuan-lintas-host': '/krs-lintas-prodi',
+  'dosen-kelas': '/dosen-kelas',
+  'jadwal-kelas': '/jadwal-kelas',
 };
 
 const resourcePath = (resource) => RESOURCE_PATH[resource] || `/${resource}`;

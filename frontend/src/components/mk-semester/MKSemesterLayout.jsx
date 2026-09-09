@@ -5,11 +5,14 @@ import { ResourceSelect } from '../common/ResourceSelect';
 import { useResourceItem } from '../../hooks/useResourceQuery';
 import { PageSkeleton } from '../common/PageSkeleton';
 import { mkKode, mkLabel } from '../../helpers/mkSemester';
+import { kelasDosenNames } from '../../helpers/kelasInfo';
+import { participantName, participantProgram } from '../../utils/crossEnrollment';
 
 export const MKSemesterLayout = ({ children, action, semester, onSemesterChange }) => {
   const { id } = useParams();
-  const mkQuery = useResourceItem('matakuliah', id);
-  const mk = mkQuery.data;
+  const mkQuery = useResourceItem('penawaran-matakuliah', id);
+  const offering = mkQuery.data;
+  const mk = offering?.matakuliah || offering;
 
   if (mkQuery.isPending) return <PageSkeleton cards={2} />;
 
@@ -49,7 +52,12 @@ export const MKSemesterLayout = ({ children, action, semester, onSemesterChange 
           <InfoRow label="Mata Kuliah" value={mkLabel(mk)} strong />
           <InfoRow label="Kode Mk" value={mkKode(mk)} />
           <InfoRow label="SKS" value={mk?.jumlah_sks_kurikulum} />
-          <InfoRow label="Jenis semester" value={mk?.jenisSemester?.nama} />
+          <InfoRow label="Program Studi" value={offering?.semesterProdi?.programStudi?.nama_resmi} />
+          <InfoRow label="Kurikulum" value={offering?.kurikulum?.nama || offering?.kurikulum?.nama_kurikulum} />
+          <InfoRow label="Semester" value={offering?.semesterProdi?.semester?.nama || offering?.semesterProdi?.semester?.tahun} />
+          <InfoRow label="Jumlah Peserta" value={offering?.jumlah_peserta ?? offering?.peserta?.length} />
+          <InfoRow label="Peserta" value={offering?.peserta?.map((row) => `${participantName(row)} — ${participantProgram(row)}`).join(', ')} />
+          <InfoRow label="Kelas & Dosen" value={offering?.kelas?.map((kelas) => `${kelas.nama}: ${kelasDosenNames(kelas)}`).join('; ')} />
         </dl>
       </Card>
 

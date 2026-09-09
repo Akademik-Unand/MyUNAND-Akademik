@@ -1,0 +1,13 @@
+'use strict';
+const { Gedung, Ruang } = require('../../models');
+const { paginate } = require('../../helpers/listQuery');
+const { restoreRecord } = require('../../helpers/softDelete');
+const AppError = require('../../helpers/AppError');
+const options = { searchFields: ['kode','nama','alamat'], sortableFields: ['kode','nama','createdAt'], filterableFields: ['kode'], defaultInclude: [{ model: Ruang, as: 'ruang' }] };
+const list = (query) => paginate(Gedung, query, options);
+const getById = async (id) => { const row = await Gedung.findByPk(id, { include: options.defaultInclude }); if (!row) throw new AppError('Gedung tidak ditemukan', 404); return row; };
+const create = async (data) => getById((await Gedung.create(data)).id);
+const update = async (id, data) => { const row = await getById(id); await row.update(data); return getById(id); };
+const remove = async (id) => { const row = await getById(id); await row.destroy(); return { id }; };
+const restore = (id) => restoreRecord(Gedung, id, 'Gedung');
+module.exports = { list, getById, create, update, remove, restore };

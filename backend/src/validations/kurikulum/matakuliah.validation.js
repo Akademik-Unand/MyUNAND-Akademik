@@ -3,8 +3,9 @@
 const Joi = require('joi');
 const { idParam, listQuery } = require('../common');
 
-const list = listQuery(["kode_matakuliah","nama_resmi","createdAt"], ["kode_matakuliah","jenis_semester_id","tipe_matakuliah_id"]);
+const list = listQuery(["kode_matakuliah","nama_resmi","createdAt"], ["kode_matakuliah","program_studi_id","jenis_semester_id","tipe_matakuliah_id"]);
 const create = Joi.object({
+    program_studi_id: Joi.string().uuid().required(),
     jenis_semester_id: Joi.string().uuid().required(),
     tipe_matakuliah_id: Joi.string().uuid().allow(null),
     sifat_matakuliah_id: Joi.string().uuid().allow(null),
@@ -18,6 +19,7 @@ const create = Joi.object({
     bobot_nilai_minimal_lulus: Joi.number().allow(null),
 });
 const update = Joi.object({
+    program_studi_id: Joi.string().uuid(),
     jenis_semester_id: Joi.string().uuid().allow(null),
     tipe_matakuliah_id: Joi.string().uuid().allow(null),
     sifat_matakuliah_id: Joi.string().uuid().allow(null),

@@ -1,0 +1,12 @@
+'use strict';
+const Joi = require('joi');
+const { idParam, listQuery } = require('../common');
+const list = listQuery(['status','tanggal_mulai','tanggal_selesai','createdAt'], ['semester_prodi_id','status']);
+const prodi = Joi.object({ program_studi_id: Joi.string().uuid().required(), kuota: Joi.number().integer().min(0).allow(null) });
+const course = Joi.object({ matakuliah_id: Joi.string().uuid().required(), kuota_lintas_prodi: Joi.number().integer().min(0).allow(null), minimal_semester: Joi.number().integer().min(1).max(20).allow(null), maksimal_semester: Joi.number().integer().min(1).max(20).allow(null) });
+const create = Joi.object({ semester_prodi_id: Joi.string().uuid().required(), akses: Joi.string().valid('semua','terpilih').default('semua'), tanggal_mulai: Joi.date().iso().allow(null), tanggal_selesai: Joi.date().iso().min(Joi.ref('tanggal_mulai')).allow(null), kuota_lintas_prodi_default: Joi.number().integer().min(0).default(0), minimal_semester_default: Joi.number().integer().min(1).max(20).allow(null), maksimal_semester_default: Joi.number().integer().min(1).max(20).allow(null), prodi_tujuan: Joi.array().items(prodi).unique('program_studi_id').default([]), matakuliah: Joi.array().items(course).min(1).unique('matakuliah_id').required() });
+const update = create.fork(['semester_prodi_id','matakuliah'], (schema) => schema.optional()).min(1);
+const sync = Joi.object({ matakuliah: Joi.array().items(course).unique('matakuliah_id').required() });
+const catalog = listQuery(['published_at','createdAt'], ['semester_id','program_studi_id','matakuliah_id']);
+const schedule = Joi.object({ ruang_id: Joi.string().uuid().required(), hari: Joi.string().valid('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu').required(), jam_mulai: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/).required(), jam_selesai: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/).required() });
+module.exports = { list, create, update, sync, catalog, schedule, idParam };

@@ -4,7 +4,7 @@ Format nama: `{subject}.{action}` (contoh `fakultas.read`, `krs.approve`).
 Satu aksi = satu baris. Jangan `manage-*`.
 
 Aksi standar: `read`, `create`, `update`, `delete`.
-Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`, `assign-units`.
+Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`, `assign-units`, `publish`, `close`, `catalog`, `schedule`, `sync`, `enroll`, `cancel`, `approve-host`.
 `restore` hanya untuk data master (soft delete).
 
 ## Subject
@@ -13,8 +13,8 @@ Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`,
 - semester: jenis-semester, semester, semester-prodi, periode
 - kurikulum: kurikulum, sifat-matakuliah, tipe-matakuliah, matakuliah, matakuliah-kurikulum
 - obe: cp, scp, cpmk, sumber-penilaian, cpmk-scp
-- perkuliahan: ruang, kelas, dosen-kelas, jadwal-kelas, dosen-jadwal
-- krs: krs, krs-detil (+ `krs.approve`)
+- perkuliahan: gedung, ruang, kelas, dosen-kelas, jadwal-kelas, dosen-jadwal, penawaran-matakuliah (+ publish, close, catalog, schedule, sync)
+- krs: krs, krs-detil, cross-enrollment (+ `krs.approve`, enroll, cancel, approve-host)
 - nilai: nilai (+ `nilai.upload`)
 - evaluasi: history-upload-nilai, evaluasi-cpmk, jenis-dokumen-evaluasi, dokumen-evaluasi
 - laporan: rekap-cp, laporan-cp

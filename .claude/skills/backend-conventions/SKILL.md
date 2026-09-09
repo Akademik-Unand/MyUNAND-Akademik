@@ -62,6 +62,8 @@ route → middleware (auth, permission, validasi) → controller → service →
   npx sequelize-cli seed:generate --name demo-krs
   ```
 - **Migrasi lama TIDAK BOLEH diedit** setelah pernah dijalankan/di-commit. Kalau ada perubahan skema, selalu buat file migrasi baru (misal `add-status-to-krs`, `rename-column-x`).
+- **Seeder berbeda dengan migrasi:** jika data yang akan ditambahkan atau dikoreksi berkaitan dengan data yang sudah dikelola oleh seeder lama, **ubah/overwrite seeder lama tersebut**, jangan membuat seeder tambahan yang menduplikasi atau menambal data yang sama. Buat seeder baru hanya untuk domain/data baru yang belum pernah dikelola seeder sebelumnya.
+- Setelah mengubah seeder lama, wajib pastikan alur fresh database tetap berhasil: jalankan seluruh migrasi, lalu `sequelize-cli db:seed:all` (atau `npm run db:seed`) sekaligus—bukan hanya menjalankan satu seeder secara spesifik.
 - Gunakan transaction (`sequelize.transaction()`) untuk operasi yang melibatkan lebih dari satu tabel, supaya atomic.
 
 ## 4. Validasi — Wajib Joi

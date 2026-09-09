@@ -12,7 +12,9 @@ module.exports = (sequelize) => {
       ProgramStudi.hasMany(models.Dosen, { foreignKey: 'program_studi_id', as: 'dosen' });
       ProgramStudi.hasMany(models.Mahasiswa, { foreignKey: 'program_studi_id', as: 'mahasiswa' });
       ProgramStudi.hasMany(models.Kurikulum, { foreignKey: 'program_studi_id', as: 'kurikulum' });
+      ProgramStudi.hasMany(models.Matakuliah, { foreignKey: 'program_studi_id', as: 'matakuliah' });
       ProgramStudi.hasMany(models.SemesterProdi, { foreignKey: 'program_studi_id', as: 'semesterProdi' });
+      ProgramStudi.hasMany(models.PenawaranMatakuliahProdi, { foreignKey: 'program_studi_id', as: 'penawaranMatakuliah' });
     }
   }
   ProgramStudi.init({

@@ -26,7 +26,10 @@ const SUBJECTS = {
   cpmk: { casl: 'Cpmk', group: 'obe', master: true, label: 'CPMK' },
   'sumber-penilaian': { casl: 'SumberPenilaian', group: 'obe', master: false, label: 'Sumber Penilaian' },
   'cpmk-scp': { casl: 'CpmkScp', group: 'obe', master: false, label: 'CPMK SCP' },
+  gedung: { casl: 'Gedung', group: 'perkuliahan', master: true, label: 'Gedung' },
   ruang: { casl: 'Ruang', group: 'perkuliahan', master: true, label: 'Ruang' },
+  'penawaran-matakuliah': { casl: 'PenawaranMatakuliah', group: 'perkuliahan', master: true, label: 'Penawaran Matakuliah' },
+  'cross-enrollment': { casl: 'CrossEnrollment', group: 'krs', master: false, label: 'Lintas Program Studi' },
   kelas: { casl: 'Kelas', group: 'perkuliahan', master: true, label: 'Kelas' },
   'dosen-kelas': { casl: 'DosenKelas', group: 'perkuliahan', master: false, label: 'Dosen Kelas' },
   'jadwal-kelas': { casl: 'JadwalKelas', group: 'perkuliahan', master: false, label: 'Jadwal Kelas' },
@@ -48,6 +51,14 @@ const SUBJECTS = {
 
 const SPECIAL = [
   { key: 'krs', action: 'approve', description: 'Menyetujui KRS' },
+  { key: 'penawaran-matakuliah', action: 'publish', description: 'Publikasikan penawaran matakuliah' },
+  { key: 'penawaran-matakuliah', action: 'close', description: 'Tutup penawaran matakuliah' },
+  { key: 'penawaran-matakuliah', action: 'catalog', description: 'Lihat katalog lintas prodi' },
+  { key: 'penawaran-matakuliah', action: 'schedule', description: 'Kelola jadwal penawaran' },
+  { key: 'penawaran-matakuliah', action: 'sync', description: 'Sinkronkan pilihan matakuliah semester' },
+  { key: 'cross-enrollment', action: 'enroll', description: 'Ajukan lintas prodi' },
+  { key: 'cross-enrollment', action: 'cancel', description: 'Batalkan lintas prodi' },
+  { key: 'cross-enrollment', action: 'approve-host', description: 'Setujui dari prodi penyelenggara' },
   { key: 'nilai', action: 'upload', description: 'Unggah nilai massal' },
   { key: 'user', action: 'assign-roles', description: 'Menetapkan role ke user' },
   { key: 'user', action: 'assign-units', description: 'Menetapkan unit organisasi ke user' },
@@ -108,7 +119,9 @@ const MASTER_TABLES = [
   'cp',
   'scp',
   'cpmk',
+  'gedung',
   'ruang',
+  'penawaran_matakuliah',
   'kelas',
   'jenis_dokumen_evaluasi',
   'roles',
@@ -125,7 +138,7 @@ const isAdminAllowed = (item) => {
 
 const isDosenAllowed = (item) => {
   if (item.key === 'periode' && item.action === 'read') return true;
-  if (item.group === 'krs' && ['read', 'approve'].includes(item.action)) return true;
+  if (item.group === 'krs' && ['read', 'approve', 'approve-host'].includes(item.action)) return true;
   if (item.group === 'nilai') return true;
   if (item.group === 'evaluasi') return true;
   if (item.group === 'laporan' && item.action === 'read') return true;
@@ -134,6 +147,8 @@ const isDosenAllowed = (item) => {
 
 const isMahasiswaAllowed = (item) => {
   if (item.key === 'krs' && ['read', 'create', 'update'].includes(item.action)) return true;
+  if (item.key === 'penawaran-matakuliah' && item.action === 'catalog') return true;
+  if (item.key === 'cross-enrollment' && ['read', 'enroll', 'cancel'].includes(item.action)) return true;
   if (item.group === 'laporan' && item.action === 'read') return true;
   return false;
 };

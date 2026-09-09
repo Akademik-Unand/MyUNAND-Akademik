@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { semesterDanSebelumnyaLabel, semesterProdiLabel } from './semesterProdi';
+import { programStudiLabel, semesterDanSebelumnyaLabel, semesterProdiLabel } from './semesterProdi';
+
+describe('programStudiLabel', () => {
+  it('uses nama_singkat and never falls back to nama_resmi', () => {
+    expect(programStudiLabel({ nama_singkat: 'S1 TPB', nama_resmi: 'Teknik Pertanian' })).toBe('S1 TPB');
+    expect(programStudiLabel({ kode_prodi: '80203', nama_resmi: 'Teknik Pertanian' })).toBe('80203');
+  });
+});
 
 describe('semesterProdiLabel', () => {
   it('joins jenis, tahun, and prodi', () => {

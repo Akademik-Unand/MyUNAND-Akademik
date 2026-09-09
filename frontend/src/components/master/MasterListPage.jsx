@@ -36,6 +36,9 @@ export const MasterListPage = ({
   subject,
   rowActionExtra,
   detailResource,
+  extraFilter,
+  beforeTable,
+  createDefaults,
 }) => {
   const can = useCan();
   const mutations = useResourceMutations(resource, {
@@ -56,7 +59,11 @@ export const MasterListPage = ({
     if (busy || mutations.create.isPending || mutations.update.isPending) return;
     setModal((m) => ({ ...m, open: false }));
   };
-  const openCreate = () => setModal({ open: true, mode: 'create', values: { ...emptyForm } });
+  const openCreate = () => setModal({
+    open: true,
+    mode: 'create',
+    values: { ...emptyForm, ...(createDefaults || {}) },
+  });
   const openEdit = (row) => setModal({ open: true, mode: 'edit', values: { ...row } });
 
   const saving = busy || mutations.create.isPending || mutations.update.isPending;
@@ -124,10 +131,13 @@ export const MasterListPage = ({
         }
       />
 
+      {beforeTable}
+
       <Card title={`Daftar ${title}`}>
         <DataTable
           resource={resource}
           columns={tableColumns}
+          extraFilter={extraFilter}
           rowKey={rowKey}
           searchPlaceholder={searchPlaceholder || `Cari ${title.toLowerCase()}...`}
         />

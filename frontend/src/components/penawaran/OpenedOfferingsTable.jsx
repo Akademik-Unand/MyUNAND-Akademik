@@ -1,0 +1,7 @@
+import { Link } from 'react-router-dom';
+import { ExternalLink } from 'lucide-react';
+import { DataTable } from '../common/DataTable';
+import { Button } from '../ui/Button';
+import { formatDateTime } from '../../utils/crossEnrollment';
+
+export const OpenedOfferingsTable = ({ filter, onStatus, canPublish = false, canClose = false }) => <DataTable resource="penawaran-matakuliah" tableKey="opened_" extraFilter={filter} rowKey={(row) => row.id} searchPlaceholder="Cari mata kuliah yang dibuka..." columns={[{ key: 'matakuliah_id', header: 'Mata Kuliah', render: (row) => `${row.matakuliah?.kode_matakuliah || ''} — ${row.matakuliah?.nama_resmi || ''}` }, { key: 'tanggal_mulai', header: 'Periode', render: (row) => `${formatDateTime(row.tanggal_mulai)} – ${formatDateTime(row.tanggal_selesai)}` }, { key: 'kuota_lintas_prodi', header: 'Kuota Lintas', sortable: true }, { key: 'status', header: 'Status', sortable: true, render: (row) => <span className="badge badge-ghost badge-sm">{row.status || 'draft'}</span> }, { header: 'Aksi', className: 'text-right', cellClassName: 'text-right', render: (row) => <div className="flex justify-end gap-1">{canPublish && row.status === 'draft' && <Button size="xs" onClick={() => onStatus(row.id, 'publish')}>Publikasikan</Button>}{canClose && row.status === 'published' && <Button size="xs" variant="outline" onClick={() => onStatus(row.id, 'close')}>Tutup</Button>}<Link className="btn btn-ghost btn-xs" to={`/perkuliahan/mk-semester/${row.id}`}><ExternalLink size={14}/> Detail</Link></div> }]} />;
