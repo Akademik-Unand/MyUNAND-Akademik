@@ -26,9 +26,11 @@ function analyzeTpbTables(tables, options = {}) {
   const lecturerClassById = lookup(rows('dosen_pengampu_kelas'));
   const weightById = lookup(rows('bobot'));
   const courseLinksByCpmk = countBy(rows('cpmk_mat_kul'), (row) => row.cpmkId);
-  const courseIdsForCpmk = (id) => unique((courseLinksByCpmk.get(String(id)) || []).map((link) => offeringById.get(String(link.tahunAjaranMatkulId))?.mataKuliahId));
+  const courseIdsByCpmk = new Map([...courseLinksByCpmk].map(([id, links]) => [id, unique(links.map((link) => offeringById.get(String(link.tahunAjaranMatkulId))?.mataKuliahId))]));
+  const courseIdsForCpmk = (id) => courseIdsByCpmk.get(String(id)) || [];
   const enrollmentKeys = new Set(rows('kelas_mahasiswa').map((row) => linkKey(row.mahasiswaId, row.kelasId)));
   const gradeEnrollmentKey = (grade) => linkKey(grade.mahasiswaId, classById.get(String(lecturerClassById.get(String(grade.dosenPengampuKelasId))?.kelasId))?.id);
+  const gradesByEnrollment = countBy(rows('nilai'), gradeEnrollmentKey);
 
   const courseVariants = [...countBy(rows('mata_kuliah'), (row) => normalizeCode(row.kodeMatkul)).entries()]
     .filter(([code, grouped]) => code && grouped.length > 1)
@@ -56,7 +58,7 @@ function analyzeTpbTables(tables, options = {}) {
   const gradeKeys = countBy(rows('nilai'), (row) => linkKey(row.mahasiswaId, row.dosenPengampuKelasId, row.tahunAjaranMatkulId, row.cpmkId, row.bobotId));
   const gradeEnrollmentKeys = new Set(rows('nilai').map(gradeEnrollmentKey));
   const finalReconciliation = rows('kelas_mahasiswa').map((enrollment) => {
-    const grades = rows('nilai').filter((grade) => gradeEnrollmentKey(grade) === linkKey(enrollment.mahasiswaId, enrollment.kelasId));
+    const grades = gradesByEnrollment.get(linkKey(enrollment.mahasiswaId, enrollment.kelasId)) || [];
     const calculated = grades.reduce((sum, grade) => { const weight = weightById.get(String(grade.bobotId)); return sum + Number(grade.nilai || 0) * Number(weight?.bobot || 0) / 100; }, 0);
     return { enrollmentId: enrollment.id, sourceTotal: enrollment.totalNilai, calculatedTotal: Number(calculated.toFixed(4)), delta: Number((calculated - Number(enrollment.totalNilai || 0)).toFixed(4)), sourceGrade: enrollment.grade };
   });
