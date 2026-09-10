@@ -17,7 +17,7 @@ const generateAccessToken = (user, roles = []) =>
     {
       id: user.id,
       email: user.email,
-      role: roles[0]?.name || user.role,
+      role: roles[0]?.name || null,
       roles: roles.map((role) => role.name),
       name: user.name,
       dosen_id: user.dosen_id,

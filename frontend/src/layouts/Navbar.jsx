@@ -8,6 +8,7 @@ import { NavSearchModal } from './NavSearchModal';
 import { AccessibilityMenu } from './AccessibilityMenu';
 import { getInitials } from '../utils/initials';
 import { roleLabel } from '../constants/roles';
+import { OrganizationSelector } from '../components/organization/OrganizationSelector';
 
 export const Navbar = () => {
   const { toggleSidebar, toggleMobileSidebar } = useUIStore();
@@ -66,8 +67,10 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* Right side: Kemudahan, Notifications, User Profile */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* Right side: Organization, Kemudahan, Notifications, User Profile */}
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <OrganizationSelector />
+
         {/* Mobile search trigger */}
         <button
           onClick={() => setSearchOpen(true)}
@@ -138,7 +141,7 @@ export const Navbar = () => {
                 <p className="text-xs text-base-content/60">{user?.email}</p>
                 <div className="flex items-center gap-1 mt-1 text-[11px] text-primary font-medium">
                   <ShieldCheck size={13} />
-                  <span>{user?.faculty}</span>
+                  <span>{(user?.roles || []).map((role) => roleLabel(role.name)).join(', ') || roleLabel(user?.role)}</span>
                 </div>
               </div>
             </li>

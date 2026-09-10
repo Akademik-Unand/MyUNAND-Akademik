@@ -5,21 +5,21 @@ const { normalizeListQuery } = require('./listQuery');
 const { idList, prodiIdsSql, semesterProdiIdsSql } = require('./academicFilters');
 
 const FROM_SQL = `
-FROM krs_detil AS kd
+FROM nilai_mahasiswa AS nm
+INNER JOIN krs_detil AS kd ON kd.id = nm.krs_detil_id
 INNER JOIN krs AS kr ON kr.id = kd.krs_id
 INNER JOIN mahasiswa AS m ON m.id = kr.mahasiswa_id AND m.deletedAt IS NULL
 INNER JOIN kelas AS k ON k.id = kd.kelas_id AND k.deletedAt IS NULL
 INNER JOIN matakuliah AS mk ON mk.id = k.matakuliah_id AND mk.deletedAt IS NULL
-INNER JOIN cpmk ON cpmk.matakuliah_id = mk.id AND cpmk.deletedAt IS NULL
-INNER JOIN sumber_penilaian AS sp ON sp.cpmk_id = cpmk.id
-LEFT JOIN cpmk_scp AS cs ON cs.cpmk_id = cpmk.id
-  OR (
-    NOT EXISTS (SELECT 1 FROM cpmk_scp AS z WHERE z.cpmk_id = cpmk.id)
-    AND cs.cpmk_id = cpmk.parent_cpmk_id
-  )
-LEFT JOIN scp ON scp.id = cs.scp_id AND scp.deletedAt IS NULL
+INNER JOIN sumber_penilaian AS sp ON sp.id = nm.sumber_penilaian_id
+INNER JOIN cpmk ON cpmk.id = sp.cpmk_id
+  AND cpmk.matakuliah_id = mk.id
+  AND cpmk.deletedAt IS NULL
+LEFT JOIN cpmk_scp AS direct_cs ON direct_cs.cpmk_id = cpmk.id
+LEFT JOIN cpmk_scp AS parent_cs ON parent_cs.cpmk_id = cpmk.parent_cpmk_id
+  AND direct_cs.id IS NULL
+LEFT JOIN scp ON scp.id = COALESCE(direct_cs.scp_id, parent_cs.scp_id) AND scp.deletedAt IS NULL
 LEFT JOIN cp ON cp.id = scp.cp_id AND cp.deletedAt IS NULL
-LEFT JOIN nilai_mahasiswa AS nm ON nm.krs_detil_id = kd.id AND nm.sumber_penilaian_id = sp.id
 LEFT JOIN semester_prodi AS smp ON smp.id = COALESCE(k.semester_prodi_id, kr.semester_prodi_id)
 LEFT JOIN semester AS sm ON sm.id = smp.semester_id AND sm.deletedAt IS NULL
 LEFT JOIN jenis_semester AS js ON js.id = sm.jenis_semester_id AND js.deletedAt IS NULL
@@ -63,7 +63,7 @@ SELECT
 const buildWhere = (query = {}) => {
   const parsed = normalizeListQuery(query);
   const filter = parsed.filter && typeof parsed.filter === 'object' ? parsed.filter : {};
-  const clauses = ['1=1'];
+  const clauses = ['nm.nilai IS NOT NULL'];
 
   const andIn = (column, val) => {
     if (val === undefined || val === '' || val === null) return;

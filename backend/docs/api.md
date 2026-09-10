@@ -9,14 +9,24 @@ Auth publik: `POST /api/v1/auth/login` mengembalikan `access_token` (pendek) dan
 `POST /api/v1/auth/refresh` `{ refresh_token }` — tanpa access token; memutar refresh token.
 `POST /api/v1/auth/logout` `{ refresh_token }` — mencabut refresh token.
 Endpoint lain memakai access JWT + CASL.
+
+Administrasi user (`/api/v1/users`) menerapkan scope organisasi pada service untuk list, detail, update, delete/restore, assign role, dan assign unit. Aktor tanpa scope valid ditolak (fail closed); admin unit hanya dapat mengelola target dalam unit dan hierarki role di bawahnya. Seeder akun organisasi memakai `ORG_ACCOUNT_SEED_PASSWORD` (minimal 12 karakter), tidak berjalan di production bila env tidak disediakan, dan menghasilkan dua akun deterministik per fakultas/departemen/prodi (`admin-*` dan `pimpinan-*`; 472 akun pada master canonical 16/67/153).
 Health: `GET /up`.
 
 Redis opsional (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`). Backend tetap boot jika Redis down. Cache JSON: `helpers/cache.js` (`get` / `set` / `del`).
 
 Auth terautentikasi:
-- `GET /api/v1/auth/me`, `GET /api/v1/auth/profile`
+- `GET /api/v1/auth/me`, `GET /api/v1/auth/profile` mengembalikan payload akses otoritatif dan deterministik: `role`, `role_label`, `roles[]` berlabel, `permissions[]`, `units[]` berlabel, dan `org_scope` terhitung.
 - `PUT /api/v1/auth/profile` `{ name }`
 - `PUT /api/v1/auth/change-password` `{ current_password, new_password }`
+- Payload akses memakai `user_roles` sebagai satu-satunya sumber otorisasi. `role` dipilih deterministik dari role yang diurutkan berdasarkan nama; `users.role` hanya data tampilan legacy. Payload menyertakan `roles`, permission gabungan, unit ringkas (ID/kode/nama/induk), dan `org_scope` efektif.
+
+IAM User (seluruh endpoint memerlukan permission CASL dan dibatasi scope organisasi aktor):
+- `GET /api/v1/users`, `GET /api/v1/users/:id` — admin unit hanya melihat user yang memiliki `user_units` di dalam scope-nya; scope kosong/tidak valid ditolak (fail closed).
+- `POST /api/v1/users` — pembuatan awal user tanpa role/unit hanya untuk admin universitas; role diberikan lewat endpoint khusus.
+- `PUT /api/v1/users/:id`, `DELETE /api/v1/users/:id`, `POST /api/v1/users/:id/restore` — target wajib berada di scope aktor dan memiliki role lebih rendah; hapus diri sendiri ditolak.
+- `PUT /api/v1/users/:id/roles` `{ role_ids }` — role target wajib lebih rendah dari role tertinggi aktor; perubahan role sendiri ditolak.
+- `PUT /api/v1/users/:id/units` `{ units }` — setiap item wajib memilih tepat satu dari `fakultas_id`, `departemen_id`, atau `program_studi_id`; referensi dan scope aktor divalidasi; perubahan unit sendiri ditolak.
 
 Rekap CP:
 - `GET /api/v1/rekap-cp` — ringkasan tersimpan (`mahasiswa`, `cp`, `nilai_capaian`).

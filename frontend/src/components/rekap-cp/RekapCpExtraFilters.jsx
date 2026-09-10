@@ -53,7 +53,8 @@ export const RekapCpExtraFilters = ({ academicFilter = {}, onApply, onReset }) =
     if (draft.matakuliah_id) filter.matakuliah_id = draft.matakuliah_id;
     if (academicFilter.semester_id) filter.semester_id = academicFilter.semester_id;
     if (academicFilter.program_studi_id) filter.program_studi_id = academicFilter.program_studi_id;
-    return Object.keys(filter).length ? { filter } : {};
+    filter.has_peserta = '1';
+    return { filter };
   }, [draft.matakuliah_id, academicFilter.semester_id, academicFilter.program_studi_id]);
 
   const fields = [

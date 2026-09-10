@@ -8,6 +8,7 @@ const {
   orgFiltersOnCpmkId,
   orgFiltersOnKelasId,
   orgFiltersOnFakultasId,
+  kelasFilters,
   kurikulumIdsSql,
   prodiIdsSql,
   semesterProdiIdsSql,
@@ -83,6 +84,11 @@ describe('academicFilters', () => {
     const filters = orgFiltersOnFakultasId(sequelize);
     const where = filters.fakultas_id(['f-1', 'f-2']);
     expect(where.id).toEqual(['f-1', 'f-2']);
+  });
+
+  it('filters class options to classes that have participants', () => {
+    const where = kelasFilters(sequelize).has_peserta('1');
+    expect(where.id[Op.in].literal).toContain('SELECT DISTINCT kd.kelas_id FROM krs_detil kd');
   });
 
   it('counts only root CPMK for a mata kuliah', () => {

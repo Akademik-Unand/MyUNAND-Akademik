@@ -9,7 +9,6 @@ const create = Joi.object({
   name: Joi.string().max(255).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  role: Joi.string().max(64),
   dosen_id: Joi.string().uuid().allow(null),
   mahasiswa_id: Joi.string().uuid().allow(null),
 });
@@ -18,7 +17,6 @@ const update = Joi.object({
   name: Joi.string().max(255).allow(null),
   email: Joi.string().email().allow(null),
   password: Joi.string().min(6).allow(null, ''),
-  role: Joi.string().max(64).allow(null),
   dosen_id: Joi.string().uuid().allow(null),
   mahasiswa_id: Joi.string().uuid().allow(null),
 });
@@ -32,8 +30,9 @@ const unitItem = Joi.object({
   departemen_id: Joi.string().uuid().allow(null),
   program_studi_id: Joi.string().uuid().allow(null),
 }).custom((value, helpers) => {
-  if (!value.fakultas_id && !value.departemen_id && !value.program_studi_id) {
-    return helpers.message('Setiap unit wajib memilih minimal satu level (fakultas/departemen/prodi)');
+  const selected = [value.fakultas_id, value.departemen_id, value.program_studi_id].filter(Boolean);
+  if (selected.length !== 1) {
+    return helpers.message('Setiap unit wajib memilih tepat satu level (fakultas/departemen/prodi)');
   }
   return value;
 });

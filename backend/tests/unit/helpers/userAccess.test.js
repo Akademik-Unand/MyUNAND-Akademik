@@ -41,10 +41,11 @@ describe('userAccess', () => {
   it('builds complete user payload', () => {
     const payload = toAccessPayload(user);
     expect(payload.roles).toEqual([
-      { id: 'r1', name: 'admin' },
-      { id: 'r2', name: 'dosen' },
+      { id: 'r1', name: 'admin', label: 'Admin' },
+      { id: 'r2', name: 'dosen', label: 'Dosen' },
     ]);
     expect(payload.permissions).toContain('nilai.upload');
     expect(payload.role).toBe('admin');
+    expect(payload.org_scope).toEqual({ level: null });
   });
 });

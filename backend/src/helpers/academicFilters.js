@@ -201,6 +201,14 @@ const kelasFilters = (sequelize) => ({
   semester_id: (val) => ({
     semester_prodi_id: inSql(sequelize, semesterProdiIdsSql(sequelize, { semester_id: val })),
   }),
+  has_peserta: (val) => {
+    const shouldHaveParticipants = val === true || val === 1 || String(val).toLowerCase() === 'true' || String(val) === '1';
+    return {
+      id: {
+        [shouldHaveParticipants ? Op.in : Op.notIn]: sequelize.literal('(SELECT DISTINCT kd.kelas_id FROM krs_detil kd)'),
+      },
+    };
+  },
 });
 
 const historyUploadFilters = (sequelize) => ({

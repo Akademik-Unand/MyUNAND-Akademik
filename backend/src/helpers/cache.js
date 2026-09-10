@@ -3,9 +3,17 @@
 const { getRedisClient, isRedisReady } = require('../config/redis');
 const logger = require('../utils/logger');
 
+const memoryCache = new Map();
+
 async function get(key) {
   if (!isRedisReady()) {
-    return null;
+    const cached = memoryCache.get(key);
+    if (!cached) return null;
+    if (cached.expiresAt && cached.expiresAt <= Date.now()) {
+      memoryCache.delete(key);
+      return null;
+    }
+    return cached.value;
   }
 
   try {
@@ -22,7 +30,11 @@ async function get(key) {
 
 async function set(key, value, ttlSeconds) {
   if (!isRedisReady()) {
-    return false;
+    memoryCache.set(key, {
+      value,
+      expiresAt: ttlSeconds ? Date.now() + Number(ttlSeconds) * 1000 : null,
+    });
+    return true;
   }
 
   try {
@@ -40,8 +52,9 @@ async function set(key, value, ttlSeconds) {
 }
 
 async function del(key) {
+  memoryCache.delete(key);
   if (!isRedisReady()) {
-    return false;
+    return true;
   }
 
   try {

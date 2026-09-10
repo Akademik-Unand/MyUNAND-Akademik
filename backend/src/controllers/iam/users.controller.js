@@ -5,42 +5,42 @@ const { success } = require('../../helpers/response');
 const usersService = require('../../services/iam/users.service');
 
 const list = asyncHandler(async (req, res) => {
-  const { rows, pagination } = await usersService.list(req.query);
+  const { rows, pagination } = await usersService.list(req.query, { access: req.access, orgScope: req.orgScope });
   return success(res, { message: 'Data User berhasil diambil', data: rows, pagination });
 });
 
 const getById = asyncHandler(async (req, res) => {
-  const data = await usersService.getById(req.params.id);
+  const data = await usersService.getById(req.params.id, { access: req.access, orgScope: req.orgScope });
   return success(res, { message: 'Detail User berhasil diambil', data });
 });
 
 const create = asyncHandler(async (req, res) => {
-  const data = await usersService.create(req.body);
+  const data = await usersService.create(req.body, { access: req.access, orgScope: req.orgScope });
   return success(res, { code: 201, message: 'User berhasil ditambahkan', data });
 });
 
 const update = asyncHandler(async (req, res) => {
-  const data = await usersService.update(req.params.id, req.body);
+  const data = await usersService.update(req.params.id, req.body, { access: req.access, orgScope: req.orgScope });
   return success(res, { message: 'User berhasil diperbarui', data });
 });
 
 const remove = asyncHandler(async (req, res) => {
-  const data = await usersService.remove(req.params.id);
+  const data = await usersService.remove(req.params.id, { access: req.access, orgScope: req.orgScope });
   return success(res, { message: 'User berhasil dihapus', data });
 });
 
 const restore = asyncHandler(async (req, res) => {
-  const data = await usersService.restore(req.params.id);
+  const data = await usersService.restore(req.params.id, { access: req.access, orgScope: req.orgScope });
   return success(res, { message: 'User berhasil dipulihkan', data });
 });
 
 const assignRoles = asyncHandler(async (req, res) => {
-  const data = await usersService.assignRoles(req.params.id, req.body.role_ids);
+  const data = await usersService.assignRoles(req.params.id, req.body.role_ids, { access: req.access, orgScope: req.orgScope });
   return success(res, { message: 'Role user berhasil diperbarui', data });
 });
 
 const assignUnits = asyncHandler(async (req, res) => {
-  const data = await usersService.assignUnits(req.params.id, req.body.units || []);
+  const data = await usersService.assignUnits(req.params.id, req.body.units || [], { access: req.access, orgScope: req.orgScope });
   return success(res, { message: 'Unit user berhasil diperbarui', data });
 });
 

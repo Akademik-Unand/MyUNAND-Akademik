@@ -32,7 +32,7 @@ export const MatakuliahPage = () => {
       idKey="id"
       FormComponent={MatakuliahForm}
       emptyForm={emptyForm}
-      createDefaults={{ program_studi_id: academic.applied.prodi || '' }}
+      createDefaults={{ program_studi_id: academic.applied.prodiId || '' }}
       extraFilter={academic.extraFilter}
       beforeTable={(
         <Card title="Filter Mata Kuliah">

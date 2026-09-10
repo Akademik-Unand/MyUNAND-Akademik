@@ -109,8 +109,10 @@ const paginate = async (Model, query, options = {}) => {
     }
   }
 
+  const scopedWhere = findOptions.where;
+  delete findOptions.where;
   const { count, rows } = await Model.findAndCountAll({
-    where,
+    where: scopedWhere ? { [Op.and]: [where, scopedWhere] } : where,
     include: options.defaultInclude || [],
     order,
     limit,

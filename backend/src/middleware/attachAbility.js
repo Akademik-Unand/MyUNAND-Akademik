@@ -15,7 +15,6 @@ const attachAbility = asyncHandler(async (req, res, next) => {
 
   const user = await getUserAccessById(req.user.id, { required: false });
   const roleNames = (user?.roles || []).map((role) => role.name);
-  if (req.user.role) roleNames.push(req.user.role);
   const permissions = user ? collectPermissions(user) : [];
   req.ability = defineAbility(req.user, permissions, roleNames);
   req.access = user;

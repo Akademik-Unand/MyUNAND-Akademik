@@ -23,12 +23,15 @@ export const RekapCPPage = () => {
   const academic = useAcademicFilter({ keys: FILTER_KEYS });
   const [extraApplied, setExtraApplied] = useState({});
 
+  const hasAcademicFilter = Boolean(academic.extraFilter?.semester_id);
   const extraFilter = useMemo(
     () => ({ ...(academic.extraFilter || {}), ...extraApplied }),
     [academic.extraFilter, extraApplied]
   );
 
-  const grafik = useRekapCpGrafik(extraFilter, { enabled: tab === 'grafik' });
+  const grafik = useRekapCpGrafik(extraFilter, {
+    enabled: tab === 'grafik' && hasAcademicFilter,
+  });
 
   return (
     <div className="space-y-4">
@@ -68,7 +71,13 @@ export const RekapCPPage = () => {
         }}
       />
 
-      {tab === 'rekap' ? (
+      {!hasAcademicFilter ? (
+        <Card title={tab === 'rekap' ? 'Rekap CP' : 'Grafik'}>
+          <p className="py-8 text-center text-sm text-base-content/60">
+            Pilih Prodi dan Semester lalu klik Terapkan untuk memuat rekap.
+          </p>
+        </Card>
+      ) : tab === 'rekap' ? (
         <Card title="Rekap CP">
           <DataTable
             resource="rekap-cp-detail"

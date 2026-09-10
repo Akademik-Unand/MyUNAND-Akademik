@@ -25,11 +25,13 @@ describe('cache helper', () => {
     isRedisReady.mockReturnValue(true);
   });
 
-  it('returns null when Redis is not ready', async () => {
+  it('uses the in-memory fallback when Redis is not ready', async () => {
     isRedisReady.mockReturnValue(false);
     await expect(cache.get('dashboard:summary')).resolves.toBeNull();
-    await expect(cache.set('dashboard:summary', { ok: true })).resolves.toBe(false);
-    await expect(cache.del('dashboard:summary')).resolves.toBe(false);
+    await expect(cache.set('dashboard:summary', { ok: true })).resolves.toBe(true);
+    await expect(cache.get('dashboard:summary')).resolves.toEqual({ ok: true });
+    await expect(cache.del('dashboard:summary')).resolves.toBe(true);
+    await expect(cache.get('dashboard:summary')).resolves.toBeNull();
     expect(redis.get).not.toHaveBeenCalled();
   });
 

@@ -74,6 +74,12 @@ module.exports = {
       await insert(queryInterface, 'users', sourceUsers.map((r) => ({ id: ownedId('users', r.id), name: r.name, email: r.email, email_verified_at: r.email_verified_at, password: resetHash, role: roleName(r.role), dosen_id: lecturerMap.get(String(lecturerByUser.get(String(r.id))?.id)) || null, mahasiswa_id: studentMap.get(String(studentByUser.get(String(r.id))?.id)) || null, remember_token: null, ...stamp(r) })), t);
       const userMap = actualMap(sourceUsers, await select(queryInterface, 'SELECT id, email FROM users', {}, t), (r) => r.email.toLowerCase(), (r) => r.email.toLowerCase());
       await insert(queryInterface, 'user_roles', sourceUsers.filter((r) => userMap.has(String(r.id))).map((r) => ({ id: ownedId('user_roles', `${userMap.get(String(r.id))}:${roles.get(roleName(r.role))}`), user_id: userMap.get(String(r.id)), role_id: roles.get(roleName(r.role)), ...stamp(r) })), t);
+      const scopedUsers = sourceUsers.filter((r) => ['admin-prodi', 'pimpinan-prodi'].includes(roleName(r.role)) && userMap.has(String(r.id)));
+      await insert(queryInterface, 'user_units', scopedUsers.map((r) => ({
+        id: ownedId('user_units', `${userMap.get(String(r.id))}:${prodiId}`),
+        user_id: userMap.get(String(r.id)), fakultas_id: null, departemen_id: null,
+        program_studi_id: prodiId, ...stamp(r), deletedAt: null,
+      })), t);
 
       const cps = s.cpl || [];
       await insert(queryInterface, 'cp', cps.map((r) => ({ id: ownedId('cp', r.id), kurikulum_id: curriculumId, nama_cp: r.kodeCpl, deskripsi: r.deskripsi, nilai_min: Number(r.nilaiMinimal) || 0, nilai_max: 100, ...stamp(r) })), t);
@@ -125,7 +131,7 @@ module.exports = {
         ['sumber_penilaian', owned('sumber_penilaian', (s.bobot || []).map((r) => r.id))], ['cpmk_scp', []], ['cpmk', owned('cpmk', cpmkKeys)],
         ['scp', owned('scp', (s.cpl || []).map((r) => r.id))], ['cp', owned('cp', (s.cpl || []).map((r) => r.id))],
         ['matakuliah_kurikulum', []], ['matakuliah', owned('matakuliah', (s.mata_kuliah || []).map((r) => r.id))],
-        ['user_roles', []], ['users', owned('users', (s.users || []).map((r) => r.id))], ['mahasiswa', owned('mahasiswa', (s.mahasiswa || []).map((r) => r.id))], ['dosen', owned('dosen', (s.dosen || []).map((r) => r.id))],
+        ['user_units', []], ['user_roles', []], ['users', owned('users', (s.users || []).map((r) => r.id))], ['mahasiswa', owned('mahasiswa', (s.mahasiswa || []).map((r) => r.id))], ['dosen', owned('dosen', (s.dosen || []).map((r) => r.id))],
         ['semester_prodi', owned('semester_prodi', (s.tahun_ajaran || []).map((r) => r.id))], ['semester', owned('semester', (s.tahun_ajaran || []).map((r) => r.id))], ['kurikulum', [ownedId('kurikulum', 'obe-tpb')]], ['program_studi', [ownedId('program_studi', '80203')]],
       ];
       const deterministicCleanup = {
@@ -133,6 +139,7 @@ module.exports = {
         krs: await select(queryInterface, 'SELECT id FROM krs WHERE id IN (SELECT DISTINCT krs_id FROM krs_detil WHERE id IN (:ids))', { ids: owned('krs_detil', (s.kelas_mahasiswa || []).map((r) => r.id)) || [''] }, t).then((rows) => rows.map((r) => r.id)),
         cpmk_scp: await select(queryInterface, 'SELECT id FROM cpmk_scp WHERE cpmk_id IN (:ids)', { ids: owned('cpmk', cpmkKeys) || [''] }, t).then((rows) => rows.map((r) => r.id)),
         matakuliah_kurikulum: await select(queryInterface, 'SELECT id FROM matakuliah_kurikulum WHERE kurikulum_id = :id', { id: ownedId('kurikulum', 'obe-tpb') }, t).then((rows) => rows.map((r) => r.id)),
+        user_units: await select(queryInterface, 'SELECT id FROM user_units WHERE id IN (:ids)', { ids: (s.users || []).map((u) => ownedId('user_units', `${ownedId('users', u.id)}:${ownedId('program_studi', '80203')}`)) }, t).then((rows) => rows.map((r) => r.id)),
         user_roles: await select(queryInterface, 'SELECT id FROM user_roles WHERE id IN (:ids)', { ids: (s.users || []).flatMap((u) => ['admin-prodi', 'pimpinan-prodi', 'dosen', 'mahasiswa'].map((role) => ownedId('user_roles', `${ownedId('users', u.id)}:${role}`))) }, t).then((rows) => rows.map((r) => r.id)),
       };
       for (const [table, defaults] of specifications) for (const part of chunk(deterministicCleanup[table] || defaults)) if (part.length) await queryInterface.bulkDelete(table, { id: part }, { transaction: t });

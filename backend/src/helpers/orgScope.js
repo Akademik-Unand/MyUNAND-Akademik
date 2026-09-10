@@ -40,8 +40,8 @@ const collectUnitIds = (units = []) => {
  * - null: bukan role organisasi → tidak ada pembatasan otomatis.
  */
 const computeOrgScope = (user = {}) => {
+  // Authorization is derived exclusively from user_roles; users.role is display-only legacy data.
   const roleNames = new Set((user.roles || []).map((role) => role.name));
-  if (user.role) roleNames.add(user.role);
 
   if ([...roleNames].some(isUniversityAdminRole)) {
     return { level: 'universitas' };

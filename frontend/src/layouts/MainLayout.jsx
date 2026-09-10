@@ -4,7 +4,6 @@ import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { useUIStore } from '../store/ui.store';
-
 export const MainLayout = () => {
   const { theme } = useUIStore();
 
@@ -15,10 +14,8 @@ export const MainLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-base-200 text-base-content antialiased">
-      {/* Sidebar Navigation */}
       <Sidebar />
 
-      {/* Main Content Area */}
       <div className="flex flex-col flex-1 min-w-0">
         <Navbar />
 
