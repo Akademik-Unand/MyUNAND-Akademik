@@ -1,11 +1,17 @@
-'use strict';
+"use strict";
 
-const { getUserAccessById, collectPermissions } = require('../helpers/userAccess');
-const { defineAbility } = require('../policies/defineAbility');
-const { computeOrgScope, orgFilterForResource } = require('../helpers/orgScope');
-const asyncHandler = require('./asyncHandler');
+const {
+  getUserAccessById,
+  collectPermissions,
+} = require("../helpers/userAccess");
+const { defineAbility } = require("../policies/defineAbility");
+const {
+  computeOrgScope,
+  orgFilterForResource,
+} = require("../helpers/orgScope");
+const asyncHandler = require("./asyncHandler");
 
-const resourceName = (req) => String(req.baseUrl || '').split('/')[2] || '';
+const resourceName = (req) => String(req.baseUrl || "").split("/")[2] || "";
 
 const attachAbility = asyncHandler(async (req, res, next) => {
   if (!req.user) {
@@ -24,11 +30,13 @@ const attachAbility = asyncHandler(async (req, res, next) => {
   const orgFilter = orgFilterForResource(resourceName(req), scope);
   if (orgFilter) {
     const existing =
-      req.query.filter && typeof req.query.filter === 'object' && !Array.isArray(req.query.filter)
+      req.query.filter &&
+      typeof req.query.filter === "object" &&
+      !Array.isArray(req.query.filter)
         ? { ...req.query.filter }
         : {};
     const merged = { ...existing, ...orgFilter };
-    Object.defineProperty(req, 'query', {
+    Object.defineProperty(req, "query", {
       value: { ...req.query, filter: merged },
       writable: true,
       enumerable: true,

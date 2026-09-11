@@ -3,7 +3,7 @@
 const Joi = require('joi');
 const { idParam, listQuery } = require('../common');
 
-const JENIS = ['cpmk', 'nilai'];
+const JENIS = ['cpmk', 'nilai', 'krs'];
 
 const list = listQuery(
   ['jenis', 'tanggal_mulai', 'tanggal_selesai', 'createdAt'],

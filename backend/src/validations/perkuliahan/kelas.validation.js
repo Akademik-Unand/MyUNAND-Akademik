@@ -7,6 +7,7 @@ const list = listQuery(["nama","createdAt"], uniqueFields(["matakuliah_id","seme
 const create = Joi.object({
     semester_prodi_id: Joi.string().uuid().allow(null),
     matakuliah_id: Joi.string().uuid().required(),
+    penawaran_matakuliah_id: Joi.string().uuid().allow(null),
     nama: Joi.string().max(10).required(),
     jumlah_peserta_min: Joi.number().allow(null),
     jumlah_peserta_max: Joi.number().allow(null),
@@ -14,6 +15,7 @@ const create = Joi.object({
 const update = Joi.object({
     semester_prodi_id: Joi.string().uuid().allow(null),
     matakuliah_id: Joi.string().uuid().allow(null),
+    penawaran_matakuliah_id: Joi.string().uuid().allow(null),
     nama: Joi.string().max(10).allow(null),
     jumlah_peserta_min: Joi.number().allow(null),
     jumlah_peserta_max: Joi.number().allow(null),

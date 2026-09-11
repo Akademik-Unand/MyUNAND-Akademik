@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Landmark,
@@ -7,6 +7,7 @@ import {
   GraduationCap,
   TrendingUp,
   Calendar,
+  CalendarClock,
   Layers,
   FileCheck2,
   Award,
@@ -15,17 +16,25 @@ import {
   UploadCloud,
   BarChart3,
   FileSpreadsheet,
+  ClipboardList,
+  Clock3,
+  LibraryBig,
+  ListChecks,
+  BookPlus,
   Users,
+  UserCheck,
+  UserCog,
+  UsersRound,
   Shield,
   ScrollText,
   ChevronDown,
   ChevronRight,
   X,
-} from 'lucide-react';
-import { NAVIGATION_MENU } from '../constants/navigation';
-import { filterNavigation } from '../helpers/navigation';
-import { useAuthStore } from '../store/auth.store';
-import { useUIStore } from '../store/ui.store';
+} from "lucide-react";
+import { NAVIGATION_MENU } from "../constants/navigation";
+import { filterNavigation } from "../helpers/navigation";
+import { useAuthStore } from "../store/auth.store";
+import { useUIStore } from "../store/ui.store";
 
 // Map icon string to Lucide component
 const ICON_MAP = {
@@ -35,6 +44,7 @@ const ICON_MAP = {
   GraduationCap,
   TrendingUp,
   Calendar,
+  CalendarClock,
   Layers,
   FileCheck2,
   Award,
@@ -43,13 +53,22 @@ const ICON_MAP = {
   UploadCloud,
   BarChart3,
   FileSpreadsheet,
+  ClipboardList,
+  Clock3,
+  LibraryBig,
+  ListChecks,
+  BookPlus,
   Users,
+  UserCheck,
+  UserCog,
+  UsersRound,
   Shield,
   ScrollText,
 };
 
 export const Sidebar = () => {
-  const { isSidebarOpen, isMobileSidebarOpen, setMobileSidebarOpen } = useUIStore();
+  const { isSidebarOpen, isMobileSidebarOpen, setMobileSidebarOpen } =
+    useUIStore();
   const user = useAuthStore((state) => state.user);
   const menu = filterNavigation(NAVIGATION_MENU, user);
   const location = useLocation();
@@ -84,8 +103,8 @@ export const Sidebar = () => {
             alt="myUNAND"
             className={
               expanded
-                ? 'h-10 w-auto max-w-full object-contain'
-                : 'h-10 w-10 object-cover object-left'
+                ? "h-10 w-auto max-w-full object-contain"
+                : "h-10 w-10 object-cover object-left"
             }
           />
         </NavLink>
@@ -103,7 +122,7 @@ export const Sidebar = () => {
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto no-scrollbar px-3 py-4 space-y-4">
         {menu.map((item, idx) => {
-          if (item.type === 'link') {
+          if (item.type === "link") {
             const isActive = location.pathname === item.path;
             return (
               <NavLink
@@ -112,8 +131,8 @@ export const Sidebar = () => {
                 onClick={() => setMobileSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-xs font-semibold transition-colors ${
                   isActive
-                    ? 'bg-primary text-primary-content shadow-xs'
-                    : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
+                    ? "bg-primary text-primary-content shadow-xs"
+                    : "text-base-content/80 hover:bg-base-200 hover:text-base-content"
                 }`}
                 title={item.label}
               >
@@ -123,7 +142,7 @@ export const Sidebar = () => {
             );
           }
 
-          if (item.type === 'group') {
+          if (item.type === "group") {
             return (
               <div key={idx} className="space-y-1">
                 {expanded && (
@@ -138,7 +157,7 @@ export const Sidebar = () => {
                     if (subItem.children) {
                       const isOpen = openSubmenus[subItem.label] ?? false;
                       const hasActiveChild = subItem.children.some(
-                        (c) => location.pathname === c.path
+                        (c) => location.pathname === c.path,
                       );
 
                       return (
@@ -146,11 +165,11 @@ export const Sidebar = () => {
                           <button
                             type="button"
                             onClick={() => toggleSubmenu(subItem.label)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-xs font-semibold transition-colors ${
-                  hasActiveChild
-                    ? 'bg-primary/10 text-primary font-bold'
-                    : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
-                }`}
+                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-xs font-semibold transition-colors ${
+                              hasActiveChild
+                                ? "bg-primary/10 text-primary font-bold"
+                                : "text-base-content/80 hover:bg-base-200 hover:text-base-content"
+                            }`}
                             title={subItem.label}
                           >
                             <div className="flex items-center gap-3">
@@ -159,7 +178,11 @@ export const Sidebar = () => {
                             </div>
                             {expanded && (
                               <span>
-                                {isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                                {isOpen ? (
+                                  <ChevronDown size={15} />
+                                ) : (
+                                  <ChevronRight size={15} />
+                                )}
                               </span>
                             )}
                           </button>
@@ -168,7 +191,8 @@ export const Sidebar = () => {
                           {isOpen && expanded && (
                             <div className="ml-5 pl-3 border-l-2 border-base-300 space-y-0.5 mt-1">
                               {subItem.children.map((child, cIdx) => {
-                                const isChildActive = location.pathname === child.path;
+                                const isChildActive =
+                                  location.pathname === child.path;
                                 return (
                                   <NavLink
                                     key={cIdx}
@@ -176,8 +200,8 @@ export const Sidebar = () => {
                                     onClick={() => setMobileSidebarOpen(false)}
                                     className={`block px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                                       isChildActive
-                                        ? 'bg-primary text-primary-content font-bold'
-                                        : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
+                                        ? "bg-primary text-primary-content font-bold"
+                                        : "text-base-content/70 hover:bg-base-200 hover:text-base-content"
                                     }`}
                                   >
                                     {child.label}
@@ -198,8 +222,8 @@ export const Sidebar = () => {
                         onClick={() => setMobileSidebarOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-xs font-semibold transition-colors ${
                           isActive
-                            ? 'bg-primary text-primary-content shadow-xs'
-                            : 'text-base-content/80 hover:bg-base-200 hover:text-base-content'
+                            ? "bg-primary text-primary-content shadow-xs"
+                            : "text-base-content/80 hover:bg-base-200 hover:text-base-content"
                         }`}
                         title={subItem.label}
                       >
@@ -216,7 +240,6 @@ export const Sidebar = () => {
           return null;
         })}
       </nav>
-
     </div>
   );
 
@@ -225,10 +248,12 @@ export const Sidebar = () => {
       {/* Desktop Sidebar */}
       <aside
         className={`hidden lg:block shrink-0 transition-all duration-300 ${
-          isSidebarOpen ? 'w-64' : 'w-20'
+          isSidebarOpen ? "w-64" : "w-20"
         }`}
       >
-        <div className="sticky top-0 h-screen overflow-hidden">{renderMenu(isSidebarOpen)}</div>
+        <div className="sticky top-0 h-screen overflow-hidden">
+          {renderMenu(isSidebarOpen)}
+        </div>
       </aside>
 
       {/* Mobile Offcanvas Drawer */}

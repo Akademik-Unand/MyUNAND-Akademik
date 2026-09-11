@@ -1,14 +1,25 @@
-import { Plus, Trash2 } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { IconButton } from '../common/IconButton';
-import { Input } from '../ui/Input';
-import { isLeafCpmk, MAX_MK_BOBOT, totalBobotMataKuliah } from '../../helpers/cpmkBobot';
+import { Plus, Trash2 } from "lucide-react";
+import { Button } from "../ui/Button";
+import { IconButton } from "../common/IconButton";
+import { Input } from "../ui/Input";
+import {
+  isLeafCpmk,
+  MAX_MK_BOBOT,
+  totalBobotMataKuliah,
+} from "../../helpers/cpmkBobot";
 
-const newSumber = () => ({ id: `new-${Date.now()}`, nama_sumber_penilaian: '', bobot: 0, isNew: true });
+const newSumber = () => ({
+  id: `new-${Date.now()}`,
+  nama_sumber_penilaian: "",
+  bobot: 0,
+  isNew: true,
+});
 
 export const AturCPMKSemesterForm = ({ items, onChange }) => {
   const updateCpmk = (cpmkId, patch) => {
-    onChange(items.map((item) => (item.id === cpmkId ? { ...item, ...patch } : item)));
+    onChange(
+      items.map((item) => (item.id === cpmkId ? { ...item, ...patch } : item)),
+    );
   };
 
   const updateSumber = (cpmkId, sumberId, patch) => {
@@ -19,10 +30,10 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
           : {
               ...item,
               sumberPenilaian: (item.sumberPenilaian || []).map((row) =>
-                row.id === sumberId ? { ...row, ...patch } : row
+                row.id === sumberId ? { ...row, ...patch } : row,
               ),
-            }
-      )
+            },
+      ),
     );
   };
 
@@ -36,7 +47,7 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
         return (
           <div key={cpmk.id} className="rounded-box border border-base-300 p-4">
             <p>
-              <strong>{cpmk.nama_cpmk}</strong> — {cpmk.deskripsi || '—'}
+              <strong>{cpmk.nama_cpmk}</strong> — {cpmk.deskripsi || "—"}
             </p>
             {!leaf && (
               <p className="mt-2 text-sm text-base-content/60">
@@ -46,12 +57,17 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
             {leaf && (
               <div className="mt-4 space-y-3">
                 {(cpmk.sumberPenilaian || []).map((row, idx) => (
-                  <div key={row.id} className="grid grid-cols-1 items-end gap-3 md:grid-cols-[1fr_8rem_auto]">
+                  <div
+                    key={row.id}
+                    className="grid grid-cols-1 items-end gap-3 md:grid-cols-[1fr_8rem_auto]"
+                  >
                     <Input
                       label={`Sumber penilaian #${idx + 1}`}
-                      value={row.nama_sumber_penilaian || ''}
+                      value={row.nama_sumber_penilaian || ""}
                       onChange={(e) =>
-                        updateSumber(cpmk.id, row.id, { nama_sumber_penilaian: e.target.value })
+                        updateSumber(cpmk.id, row.id, {
+                          nama_sumber_penilaian: e.target.value,
+                        })
                       }
                     />
                     <Input
@@ -61,7 +77,11 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                       max={MAX_MK_BOBOT}
                       step="0.1"
                       value={row.bobot ?? 0}
-                      onChange={(e) => updateSumber(cpmk.id, row.id, { bobot: Number(e.target.value) })}
+                      onChange={(e) =>
+                        updateSumber(cpmk.id, row.id, {
+                          bobot: Number(e.target.value),
+                        })
+                      }
                     />
                     <IconButton
                       label="Hapus sumber penilaian"
@@ -69,8 +89,13 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                       tone="text-error"
                       onClick={() =>
                         updateCpmk(cpmk.id, {
-                          sumberPenilaian: (cpmk.sumberPenilaian || []).filter((item) => item.id !== row.id),
-                          removedSumber: [...(cpmk.removedSumber || []), row].filter((item) => !item.isNew),
+                          sumberPenilaian: (cpmk.sumberPenilaian || []).filter(
+                            (item) => item.id !== row.id,
+                          ),
+                          removedSumber: [
+                            ...(cpmk.removedSumber || []),
+                            row,
+                          ].filter((item) => !item.isNew),
                         })
                       }
                     />
@@ -82,7 +107,12 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                   size="xs"
                   className="gap-1"
                   onClick={() =>
-                    updateCpmk(cpmk.id, { sumberPenilaian: [...(cpmk.sumberPenilaian || []), newSumber()] })
+                    updateCpmk(cpmk.id, {
+                      sumberPenilaian: [
+                        ...(cpmk.sumberPenilaian || []),
+                        newSumber(),
+                      ],
+                    })
                   }
                 >
                   <Plus size={13} /> Sumber Penilaian
@@ -92,9 +122,9 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
           </div>
         );
       })}
-      <p className={`text-sm ${overMax ? 'text-error' : ''}`}>
+      <p className={`text-sm ${overMax ? "text-error" : ""}`}>
         Total bobot: <strong>{totalBobot}</strong>% / {MAX_MK_BOBOT}%
-        {overMax ? ' — total tidak boleh lebih dari 100%.' : ''}
+        {overMax ? " — total tidak boleh lebih dari 100%." : ""}
       </p>
     </div>
   );

@@ -1,10 +1,12 @@
-'use strict';
+"use strict";
 
-const appConfig = require('./app');
+const appConfig = require("./app");
 
-const rawOrigins = process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:4173,http://localhost:8080';
+const rawOrigins =
+  process.env.CORS_ORIGIN ||
+  "http://localhost:5173,http://localhost:4173,http://localhost:8080";
 const allowedOrigins = rawOrigins
-  .split(',')
+  .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
@@ -14,11 +16,11 @@ module.exports = {
         if (!origin || allowedOrigins.includes(origin)) {
           return callback(null, true);
         }
-        return callback(new Error('Origin tidak diizinkan oleh CORS'));
+        return callback(new Error("Origin tidak diizinkan oleh CORS"));
       }
     : allowedOrigins.length === 1
       ? allowedOrigins[0]
       : allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };

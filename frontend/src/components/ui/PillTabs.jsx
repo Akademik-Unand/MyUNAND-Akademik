@@ -9,7 +9,7 @@ export const PillTabs = ({ items = [], value, onChange }) => (
         key={item.id}
         type="button"
         role="tab"
-        className={`tab ${value === item.id ? 'tab-active' : ''}`}
+        className={`tab ${value === item.id ? "tab-active" : ""}`}
         onClick={() => onChange(item.id)}
       >
         {item.label}

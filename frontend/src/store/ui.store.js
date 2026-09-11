@@ -1,26 +1,31 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
   DEFAULT_FONT_SCALE,
   DEFAULT_THEME,
   FONT_SCALES,
   getFontScale,
   normalizeTheme,
-} from '../constants/theme';
+} from "../constants/theme";
 
-const THEME_STORAGE_KEY = 'myunand_theme';
-const FONT_STORAGE_KEY = 'myunand_font_scale';
+const THEME_STORAGE_KEY = "myunand_theme";
+const FONT_STORAGE_KEY = "myunand_font_scale";
 
 const readTheme = () => normalizeTheme(localStorage.getItem(THEME_STORAGE_KEY));
 
 const readFontScale = () => {
   const stored = localStorage.getItem(FONT_STORAGE_KEY);
-  return FONT_SCALES.some((item) => item.id === stored) ? stored : DEFAULT_FONT_SCALE;
+  return FONT_SCALES.some((item) => item.id === stored)
+    ? stored
+    : DEFAULT_FONT_SCALE;
 };
 
 const applyAppearance = (theme, fontScaleId) => {
   const scale = getFontScale(fontScaleId);
-  document.documentElement.setAttribute('data-theme', theme);
-  document.documentElement.style.setProperty('--app-font-size', `${scale.px}px`);
+  document.documentElement.setAttribute("data-theme", theme);
+  document.documentElement.style.setProperty(
+    "--app-font-size",
+    `${scale.px}px`,
+  );
 };
 
 const initialTheme = readTheme();
@@ -34,10 +39,12 @@ export const useUIStore = create((set, get) => ({
   theme: initialTheme,
   fontScale: initialFontScale,
 
-  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  toggleSidebar: () =>
+    set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
 
-  toggleMobileSidebar: () => set((state) => ({ isMobileSidebarOpen: !state.isMobileSidebarOpen })),
+  toggleMobileSidebar: () =>
+    set((state) => ({ isMobileSidebarOpen: !state.isMobileSidebarOpen })),
   setMobileSidebarOpen: (isOpen) => set({ isMobileSidebarOpen: isOpen }),
 
   setTheme: (newTheme) => {
@@ -48,7 +55,8 @@ export const useUIStore = create((set, get) => ({
   },
 
   toggleTheme: () => {
-    const next = get().theme === 'myunand-dark' ? DEFAULT_THEME : 'myunand-dark';
+    const next =
+      get().theme === "myunand-dark" ? DEFAULT_THEME : "myunand-dark";
     get().setTheme(next);
   },
 

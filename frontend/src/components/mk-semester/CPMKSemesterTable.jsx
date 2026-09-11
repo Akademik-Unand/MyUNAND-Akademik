@@ -1,4 +1,4 @@
-import { MAX_MK_BOBOT, totalBobotMataKuliah } from '../../helpers/cpmkBobot';
+import { MAX_MK_BOBOT, totalBobotMataKuliah } from "../../helpers/cpmkBobot";
 
 export const CPMKSemesterTable = ({ items = [] }) => {
   const totalBobot = totalBobotMataKuliah(items);
@@ -19,12 +19,15 @@ export const CPMKSemesterTable = ({ items = [] }) => {
           {items.map((item) => {
             const sumber = item.sumberPenilaian?.length
               ? item.sumberPenilaian
-              : [{ id: 'empty', nama_sumber_penilaian: '—', bobot: 0 }];
+              : [{ id: "empty", nama_sumber_penilaian: "—", bobot: 0 }];
             return sumber.map((row, idx) => (
               <tr key={`${item.id}-${row.id}`}>
                 {idx === 0 && (
                   <>
-                    <td rowSpan={sumber.length} className="align-top font-semibold">
+                    <td
+                      rowSpan={sumber.length}
+                      className="align-top font-semibold"
+                    >
                       {item.nama_cpmk}
                     </td>
                     <td rowSpan={sumber.length} className="align-top max-w-xs">
@@ -41,7 +44,7 @@ export const CPMKSemesterTable = ({ items = [] }) => {
             <td colSpan={3} className="font-medium">
               Total Bobot
             </td>
-            <td className={`font-medium ${overMax ? 'text-error' : ''}`}>
+            <td className={`font-medium ${overMax ? "text-error" : ""}`}>
               {totalBobot}% / {MAX_MK_BOBOT}%
             </td>
           </tr>

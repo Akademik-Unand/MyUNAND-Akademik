@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 /**
  * Menutup overlay non-dialog (drawer) lewat tombol Escape.
@@ -9,10 +9,10 @@ export const useEscapeKey = (active, onEscape) => {
     if (!active) return undefined;
 
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') onEscape?.();
+      if (event.key === "Escape") onEscape?.();
     };
 
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [active, onEscape]);
 };

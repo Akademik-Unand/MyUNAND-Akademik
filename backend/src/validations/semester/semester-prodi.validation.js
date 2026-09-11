@@ -3,7 +3,7 @@
 const Joi = require('joi');
 const { idParam, listQuery } = require('../common');
 
-const list = listQuery(["is_aktif","createdAt"], ["program_studi_id","semester_id","is_aktif"]);
+const list = listQuery(["is_aktif","createdAt","tanggal_krs_mulai","tanggal_krs_selesai"], ["program_studi_id","semester_id","is_aktif"]);
 const create = Joi.object({
     program_studi_id: Joi.string().uuid().required(),
     semester_id: Joi.string().uuid().allow(null),

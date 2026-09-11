@@ -1,21 +1,25 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, X } from 'lucide-react';
-import { NAVIGATION_MENU } from '../constants/navigation';
-import { filterNavigation } from '../helpers/navigation';
-import { useAuthStore } from '../store/auth.store';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, X } from "lucide-react";
+import { NAVIGATION_MENU } from "../constants/navigation";
+import { filterNavigation } from "../helpers/navigation";
+import { useAuthStore } from "../store/auth.store";
 
 const buildIndex = (menu) => {
   const items = [];
   const walk = (nodes) => {
     nodes.forEach((item) => {
-      if (item.type === 'link') {
+      if (item.type === "link") {
         items.push({ label: item.label, path: item.path, group: null });
-      } else if (item.type === 'group') {
+      } else if (item.type === "group") {
         item.items.forEach((sub) => {
           if (sub.children) {
             sub.children.forEach((child) => {
-              items.push({ label: child.label, path: child.path, group: sub.label });
+              items.push({
+                label: child.label,
+                path: child.path,
+                group: sub.label,
+              });
             });
           } else {
             items.push({ label: sub.label, path: sub.path, group: item.title });
@@ -32,7 +36,7 @@ export const NavSearchModal = ({ open, onClose }) => {
   const dialogRef = useRef(null);
   const inputRef = useRef(null);
   const closedByProp = useRef(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
 
@@ -43,7 +47,7 @@ export const NavSearchModal = ({ open, onClose }) => {
     if (open && !dialog.open) {
       dialog.showModal();
       requestAnimationFrame(() => {
-        setQuery('');
+        setQuery("");
         inputRef.current?.focus();
       });
     } else if (!open && dialog.open) {
@@ -70,7 +74,8 @@ export const NavSearchModal = ({ open, onClose }) => {
     if (!q) return index;
     return index.filter(
       (item) =>
-        item.label.toLowerCase().includes(q) || (item.group && item.group.toLowerCase().includes(q))
+        item.label.toLowerCase().includes(q) ||
+        (item.group && item.group.toLowerCase().includes(q)),
     );
   }, [query, index]);
 
@@ -90,12 +95,17 @@ export const NavSearchModal = ({ open, onClose }) => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && results.length > 0) handleSelect(results[0].path);
+              if (e.key === "Enter" && results.length > 0)
+                handleSelect(results[0].path);
             }}
             placeholder="Cari menu atau halaman..."
             className="w-full bg-transparent text-sm outline-hidden placeholder:text-base-content/40"
           />
-          <button className="btn btn-ghost btn-circle btn-xs shrink-0" onClick={onClose} aria-label="Tutup">
+          <button
+            className="btn btn-ghost btn-circle btn-xs shrink-0"
+            onClick={onClose}
+            aria-label="Tutup"
+          >
             <X size={16} />
           </button>
         </div>
@@ -115,7 +125,9 @@ export const NavSearchModal = ({ open, onClose }) => {
                   >
                     <span className="font-medium">{item.label}</span>
                     {item.group && (
-                      <span className="text-[11px] text-base-content/50">{item.group}</span>
+                      <span className="text-[11px] text-base-content/50">
+                        {item.group}
+                      </span>
                     )}
                   </button>
                 </li>

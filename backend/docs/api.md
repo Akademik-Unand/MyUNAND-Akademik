@@ -38,12 +38,43 @@ Laporan CP:
 - `GET /api/v1/laporan-cp/preview?kurikulum_id=&semester_id=` — baris CP × SCP × CPMK × MK (sumber + dosen digabung, capaian agregat). `semester_id` = semester terpilih **dan sebelumnya**. Body simpan `items` `{ cpmk_id, matakuliah_id, semester_id }`. Detail laporan menampilkan capaian CPMK/SCP/CP dari baris terpilih.
 - `GET /api/v1/laporan-cp/matakuliah/:matakuliahId?semester_id=&kurikulum_id=` — agregat evaluasi satu MK untuk modal di detail laporan: header MK (kode, SKS, prodi, kurikulum, semester, jumlah peserta), kelas penyelenggara + dosen, CPMK semester (target, CPL, sumber + bobot), rangkuman evaluasi CPMK (capaian, rata-rata, jumlah lulus), matriks nilai peserta (nilai per sumber + total), dan dokumen evaluasi. Permission `laporan-cp.read`.
 
-Master Periode (`jenis` STRING whitelist `cpmk` | `nilai`, bukan ENUM MySQL):
+Master Periode (`jenis` STRING whitelist `cpmk` | `nilai` | `krs`, bukan ENUM MySQL):
 - `GET|POST /api/v1/periode`, `GET|PUT|DELETE /:id`, `POST /:id/restore`
 - Unique hidup: satu baris per `(semester_id, jenis)`. Status buka dihitung dari tanggal (inklusif); tanpa baris = tertutup.
-- Mutasi CPMK / sumber penilaian / pemetaan CPMK–SCP butuh periode `cpmk` pada semester `is_aktif`. Mutasi nilai dan `POST /nilai/upload` butuh periode `nilai` pada semester kelas. Baca tetap boleh.
+- Mutasi CPMK / sumber penilaian / pemetaan CPMK–SCP butuh periode `cpmk` pada semester `is_aktif`. Mutasi nilai dan `POST /nilai/upload` butuh periode `nilai` pada semester kelas. Pengambilan mata kuliah (KRS reguler maupun lintas prodi) butuh periode `krs` pada semester yang bersangkutan — satu periode untuk seluruh universitas. Baca tetap boleh.
 
-Kelas list/detail menyertakan `jumlah_peserta` dan `progress_upload_nilai` (`Ada`/`Belum`).
+KRS Reguler (mahasiswa prodi sendiri):
+- Pintu tunggal pengambilan: mata kuliah hanya bisa diambil jika **penawaran-nya `published`** pada semester yang sama dengan KRS (dicek lewat relasi `kelas → penawaran_matakuliah_detil → penawaran_matakuliah`). MK yang tidak dibuka ⇒ tidak ada kelas yang dapat dipilih ⇒ otomatis tidak tersedia.
+- `POST /api/v1/krs` `{ mahasiswa_id, semester_prodi_id }` — buat header KRS; butuh periode `krs` terbuka pada semester tersebut. Jika pemanggil adalah mahasiswa, `mahasiswa_id` dipaksa miliknya sendiri.
+- `POST /api/v1/krs-detil` `{ krs_id, kelas_id }` — daftar satu mata kuliah; butuh periode `krs`, KRS belum disetujui (`approval_ke = 0`), kelas milik penawaran `published` pada semester yang sama, dan kapasitas kelas (`kelas.jumlah_peserta_max`) belum penuh untuk mahasiswa prodi sendiri.
+- `PATCH /api/v1/krs/:id/approve` — persetujuan dosen: `approval_ke` naik, `jam_selesai` di-set, dan detil **reguler** menjadi `approved: '1'`. Baris lintas prodi tidak ikut diubah karena punya keputusan dosen PA sendiri (`cross_enrollment_status`). Setelah disetujui, detil KRS tidak dapat ditambah/diubah/dihapus lagi.
+- `GET /api/v1/krs` — daftar KRS, otomatis dibatasi: mahasiswa hanya miliknya, dosen hanya mahasiswa bimbingannya (dari `bimbingan_akademik` aktif), admin/prodi melihat semua.
+- `GET /api/v1/krs/mahasiswa/:mahasiswaId` — riwayat KRS seorang mahasiswa.
+
+Lintas Program Studi (cross enrollment):
+- Admin prodi penyelenggara membuka penawaran lewat `POST /api/v1/penawaran-matakuliah` (lalu `/:id/publish`, `/:id/close`). Penawaran boleh memuat mata kuliah berprasyarat — larangan berprasyarat hanya berlaku saat **diambil lintas prodi** (dicek saat `enroll`), bukan saat dibuka.
+- `GET /api/v1/penawaran-matakuliah/catalog` — katalog penawaran yang sedang dibuka untuk mahasiswa.
+- `POST /api/v1/cross-enrollment/enroll` `{ penawaran_matakuliah_id, kelas_id }` — `penawaran_matakuliah_id` adalah id baris penawaran per mata kuliah. Status awal `pending_pa`.
+- `POST /api/v1/cross-enrollment/:id/pa-approval` `{ approved, reason }` — hanya dosen PA mahasiswa tersebut (dari `bimbingan_akademik` aktif) yang boleh; approval permission `cross-enrollment.approve-pa`.
+- Pengajuan lintas prodi dikeluarkan dengan **menghapus barisnya**: `DELETE /api/v1/krs-detil/:id`. Tidak ada aksi/status "dibatalkan" terpisah — sama seperti mata kuliah reguler, berlaku selama KRS belum disetujui (`approval_ke = 0`).
+- `GET /api/v1/cross-enrollment` — daftar pengajuan, otomatis dibatasi: mahasiswa hanya miliknya, dosen hanya mahasiswa bimbingannya.
+- Validasi enroll: penawaran `published` + periode `krs` pada semester penawaran, bukan prodi sendiri, rentang semester, MK tanpa prasyarat, punya dosen PA, kuota lintas prodi, batas SKS, dan bentrok jadwal. Jendela tanggal penawaran tidak dipakai lagi — selama periode KRS terbuka dan penawaran `published`, mata kuliah dapat diambil.
+- Kapasitas dua pot terpisah: `kelas.jumlah_peserta_max` membatasi mahasiswa prodi sendiri (dicek pada `POST /krs-detil`), sedangkan `kuota_lintas_prodi` (default header, override per MK/prodi tujuan) adalah jatah tambahan di luar kapasitas kelas untuk mahasiswa lintas prodi (dicek saat `enroll`).
+
+Bimbingan Akademik (Dosen PA):
+- `GET /api/v1/bimbingan-akademik` — daftar bimbingan. Filter unit (`fakultas_id`/`departemen_id`/`program_studi_id`) diterjemahkan lewat program studi **mahasiswa** bimbingan, jadi admin prodi hanya melihat bimbingannya. `search` menjangkau `tahun_akademik`, nama/NIU mahasiswa, dan nama dosen.
+- `GET /api/v1/bimbingan-akademik/candidates` — mahasiswa yang **belum punya PA aktif** (calon yang terblokir ambil KRS), ikut dibatasi scope unit; filter `program_studi_id` dan `angkatan`.
+- `GET /api/v1/bimbingan-akademik/summary` — `{ total_mahasiswa, sudah_punya_pa, belum_punya_pa, dosen_membimbing, beban_teratas[] }` untuk filter unit yang sama.
+- `POST /api/v1/bimbingan-akademik` `{ mahasiswa_id, dosen_id, tahun_akademik?, catatan? }` — dosen wajib **seprodi atau sedepartemen** dengan mahasiswa (`422` bila tidak). Bila mahasiswa sudah punya PA aktif, penetapan baru otomatis menutup PA lama (`status: selesai`) agar tetap satu PA aktif per mahasiswa. Penetapan ulang dosen yang sama saat masih aktif ditolak (`409`).
+- `POST /api/v1/bimbingan-akademik/assign-bulk` `{ dosen_id, mahasiswa_ids[], tahun_akademik?, catatan? }` — penetapan massal satu dosen untuk banyak mahasiswa. Hasil `{ ditetapkan, ditutup, dilewati: [{ mahasiswa_id, nama, alasan }], dosen }`; mahasiswa yang berbeda unit atau sudah dibimbing dosen itu **dilewati dengan alasan**, bukan menggagalkan seluruh proses.
+- `PUT /api/v1/bimbingan-akademik/:id`, `DELETE /api/v1/bimbingan-akademik/:id` — ganti/lepas PA. Operasi tulis hanya boleh menyentuh mahasiswa di dalam scope unit aktor (`403` bila di luar).
+
+Kelas:
+- `GET|POST /api/v1/kelas`, `GET|PUT|DELETE /:id`, `POST /:id/restore` — `create` menerima `{ semester_prodi_id, matakuliah_id, penawaran_matakuliah_id, nama, jumlah_peserta_min, jumlah_peserta_max }`. `penawaran_matakuliah_id` mengikat kelas ke detail penawaran (opsional tapi disarankan) — service memvalidasi konsistensi: detail penawaran harus cocok dengan MK dan semester-prodi yang dipilih, serta MK harus milik prodi semester tersebut.
+- Kelas list/detail menyertakan `jumlah_peserta` dan `progress_upload_nilai` (`Ada`/`Belum`).
+- Dosen pengampu diatur per kelas lewat `dosen-kelas` (`{ dosen_id, kelas_id, dosen_ke }`) — bukan dari mata kuliah.
+- Shift Jadwal (master, per fakultas): `GET|POST /api/v1/shift`, `GET|PUT|DELETE /:id`, `POST /:id/restore` — `{ fakultas_id, kode, jam_mulai, jam_selesai }`; jam selesai harus setelah jam mulai (`422`).
+- Jadwal kuliah lewat `jadwal-kelas` (`{ kelas_id, shift_id, ruang_id, hari }` — jam otomatis diambil dari shift master, `shift_id` wajib sesuai fakultas kelas; tanpa `shift_id` jam manual lama tetap didukung). create/update menolak jadwal bentrok pada ruang, hari, dan jam yang sama (`409`).
 Matriks nilai: `GET /api/v1/nilai/kelas/:kelasId/matriks` — kelompok CPMK, sumber+bobot, peserta (NIU, nama, nilai per sumber, angka, huruf). Permission `nilai.read`.
 
 Dokumen evaluasi:

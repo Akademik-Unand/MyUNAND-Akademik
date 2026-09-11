@@ -1,20 +1,26 @@
-import { Button } from '../ui/Button';
+import { Button } from "../ui/Button";
 
 export const FormActions = ({
   onCancel,
-  submitLabel = 'Simpan',
+  submitLabel = "Simpan",
   isLoading = false,
   formId,
   onSubmitClick,
-  className = '',
+  className = "",
 }) => {
   return (
     <div className={`flex items-center justify-end gap-2 ${className}`}>
-      <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={isLoading}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={onCancel}
+        disabled={isLoading}
+      >
         Batal
       </Button>
       <Button
-        type={formId || !onSubmitClick ? 'submit' : 'button'}
+        type={formId || !onSubmitClick ? "submit" : "button"}
         size="sm"
         isLoading={isLoading}
         form={formId}

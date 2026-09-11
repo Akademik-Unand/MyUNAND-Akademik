@@ -4,15 +4,17 @@ jest.mock('../../../src/models', () => ({
   Periode: { findOne: jest.fn() },
   Semester: { findOne: jest.fn() },
   Kelas: { findByPk: jest.fn() },
-  SemesterProdi: {},
+  SemesterProdi: { findByPk: jest.fn() },
   KrsDetil: { findByPk: jest.fn() },
 }));
 
-const { Periode, Semester, Kelas, KrsDetil } = require('../../../src/models');
+const { Periode, Semester, Kelas, SemesterProdi, KrsDetil } = require('../../../src/models');
 const {
   localToday,
   isWithinInclusive,
   assertCpmkPeriod,
+  assertKrsPeriodForSemester,
+  assertKrsPeriodForSemesterProdi,
   assertNilaiPeriodForKelas,
   assertNilaiPeriodForKrsDetil,
 } = require('../../../src/helpers/academicPeriod');
@@ -76,6 +78,51 @@ describe('academicPeriod', () => {
     });
     expect(Periode.findOne).toHaveBeenCalledWith({
       where: { semester_id: 'sem-1', jenis: 'cpmk' },
+    });
+  });
+
+  it('assertKrsPeriodForSemester rejects when periode is missing', async () => {
+    Periode.findOne.mockResolvedValue(null);
+    await expect(assertKrsPeriodForSemester('sem-9')).rejects.toMatchObject({
+      code: 422,
+      message: 'Periode pengambilan mata kuliah belum diatur',
+    });
+    expect(Periode.findOne).toHaveBeenCalledWith({
+      where: { semester_id: 'sem-9', jenis: 'krs' },
+    });
+  });
+
+  it('assertKrsPeriodForSemester allows today inside range', async () => {
+    const today = localToday();
+    Periode.findOne.mockResolvedValue({ tanggal_mulai: today, tanggal_selesai: today });
+    await expect(assertKrsPeriodForSemester('sem-9')).resolves.toBeTruthy();
+  });
+
+  it('assertKrsPeriodForSemesterProdi delegates to semester periode', async () => {
+    SemesterProdi.findByPk.mockResolvedValue({ id: 'sp-1', semester_id: 'sem-9' });
+    Periode.findOne.mockResolvedValue(null);
+    await expect(assertKrsPeriodForSemesterProdi('sp-1')).rejects.toMatchObject({
+      code: 422,
+      message: 'Periode pengambilan mata kuliah belum diatur',
+    });
+    expect(Periode.findOne).toHaveBeenCalledWith({
+      where: { semester_id: 'sem-9', jenis: 'krs' },
+    });
+  });
+
+  it('assertKrsPeriodForSemesterProdi rejects when semester prodi is missing', async () => {
+    SemesterProdi.findByPk.mockResolvedValue(null);
+    await expect(assertKrsPeriodForSemesterProdi('sp-1')).rejects.toMatchObject({
+      code: 404,
+      message: 'Semester prodi tidak ditemukan',
+    });
+  });
+
+  it('assertKrsPeriodForSemesterProdi rejects when semester prodi has no semester', async () => {
+    SemesterProdi.findByPk.mockResolvedValue({ id: 'sp-1', semester_id: null });
+    await expect(assertKrsPeriodForSemesterProdi('sp-1')).rejects.toMatchObject({
+      code: 422,
+      message: 'Semester prodi belum terikat semester',
     });
   });
 

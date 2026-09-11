@@ -1,74 +1,74 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const ruangValidation = require('../../validations/perkuliahan/ruang.validation');
-const ruangController = require('../../controllers/perkuliahan/ruang.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const ruangValidation = require("../../validations/perkuliahan/ruang.validation");
+const ruangController = require("../../controllers/perkuliahan/ruang.controller");
 
-const subject = 'Ruang';
+const subject = "Ruang";
 
-/ruang */
+/ruang */;
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: ruangValidation.list }),
-  ruangController.list
+  ruangController.list,
 );
 
 /** POST /ruang */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: ruangValidation.create }),
-  ruangController.create
+  ruangController.create,
 );
 
 /** POST /ruang/:id/restore */
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: ruangValidation.idParam }),
-  ruangController.restore
+  ruangController.restore,
 );
 
 /** GET /ruang/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: ruangValidation.idParam }),
-  ruangController.getById
+  ruangController.getById,
 );
 
 /** PUT /ruang/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
+  checkPermission("update", subject),
   validate({ params: ruangValidation.idParam, body: ruangValidation.update }),
-  ruangController.update
+  ruangController.update,
 );
 
 /** DELETE /ruang/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: ruangValidation.idParam }),
-  ruangController.remove
+  ruangController.remove,
 );
 
 module.exports = router;

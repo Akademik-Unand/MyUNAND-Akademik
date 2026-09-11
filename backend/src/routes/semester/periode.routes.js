@@ -1,68 +1,71 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const periodeValidation = require('../../validations/semester/periode.validation');
-const periodeController = require('../../controllers/semester/periode.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const periodeValidation = require("../../validations/semester/periode.validation");
+const periodeController = require("../../controllers/semester/periode.controller");
 
-const subject = 'Periode';
+const subject = "Periode";
 
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: periodeValidation.list }),
-  periodeController.list
+  periodeController.list,
 );
 
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: periodeValidation.create }),
-  periodeController.create
+  periodeController.create,
 );
 
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: periodeValidation.idParam }),
-  periodeController.restore
+  periodeController.restore,
 );
 
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: periodeValidation.idParam }),
-  periodeController.getById
+  periodeController.getById,
 );
 
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
-  validate({ params: periodeValidation.idParam, body: periodeValidation.update }),
-  periodeController.update
+  checkPermission("update", subject),
+  validate({
+    params: periodeValidation.idParam,
+    body: periodeValidation.update,
+  }),
+  periodeController.update,
 );
 
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: periodeValidation.idParam }),
-  periodeController.remove
+  periodeController.remove,
 );
 
 module.exports = router;

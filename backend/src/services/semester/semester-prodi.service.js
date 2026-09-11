@@ -6,8 +6,8 @@ const AppError = require('../../helpers/AppError');
 const { orgFiltersOnSemesterProdiId } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
-  searchFields: [],
-  sortableFields: ["is_aktif","createdAt"],
+  searchFields: ['$programStudi.nama_resmi$', '$programStudi.nama_singkat$', '$programStudi.kode_prodi$'],
+  sortableFields: ["is_aktif","createdAt","tanggal_krs_mulai","tanggal_krs_selesai"],
   filterableFields: ["program_studi_id","semester_id","is_aktif"],
   virtualFilters: orgFiltersOnSemesterProdiId(sequelize),
   defaultInclude: [

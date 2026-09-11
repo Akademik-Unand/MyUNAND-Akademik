@@ -15,6 +15,9 @@ const {
   Dosen,
   JadwalKelas,
   Ruang,
+  Shift,
+  PenawaranMatakuliah,
+  PenawaranMatakuliahDetil,
 } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
@@ -74,7 +77,10 @@ const findInclude = [
   {
     model: JadwalKelas,
     as: 'jadwalKelas',
-    include: [{ model: Ruang, as: 'ruang' }],
+    include: [
+      { model: Ruang, as: 'ruang' },
+      { model: Shift, as: 'shift' },
+    ],
   },
 ];
 
@@ -100,13 +106,48 @@ const getById = async (id) => {
   return item;
 };
 
+/**
+ * Pastikan kelas mengacu pada kombinasi (semester-prodi, MK, penawaran) yang
+ * konsisten: MK milik prodi semester tersebut, dan detail penawaran cocok
+ * dengan MK serta semester yang dipilih.
+ */
+const assertKelasConsistency = async (payload, transaction) => {
+  const { semester_prodi_id, matakuliah_id, penawaran_matakuliah_id } = payload;
+  if (penawaran_matakuliah_id) {
+    const detil = await PenawaranMatakuliahDetil.findByPk(penawaran_matakuliah_id, {
+      include: [{ model: PenawaranMatakuliah, as: 'penawaran' }],
+      transaction,
+    });
+    if (!detil) throw new AppError('Detail penawaran tidak ditemukan', 404);
+    if (matakuliah_id && detil.matakuliah_id !== matakuliah_id) {
+      throw new AppError('Mata kuliah tidak sesuai dengan penawaran', 422);
+    }
+    if (semester_prodi_id && detil.penawaran?.semester_prodi_id !== semester_prodi_id) {
+      throw new AppError('Semester tidak sesuai dengan penawaran', 422);
+    }
+  }
+  if (semester_prodi_id && matakuliah_id) {
+    const [sp, mk] = await Promise.all([
+      SemesterProdi.findByPk(semester_prodi_id, { transaction }),
+      Matakuliah.findByPk(matakuliah_id, { transaction }),
+    ]);
+    if (!sp) throw new AppError('Semester prodi tidak ditemukan', 404);
+    if (!mk) throw new AppError('Mata kuliah tidak ditemukan', 404);
+    if (sp.program_studi_id !== mk.program_studi_id) {
+      throw new AppError('Mata kuliah tidak dimiliki program studi semester tersebut', 422);
+    }
+  }
+};
+
 const create = async (payload) => {
+  await assertKelasConsistency(payload);
   const item = await Kelas.create(payload);
   return loadKelas(item.id);
 };
 
 const update = async (id, payload) => {
   const item = await getById(id);
+  await assertKelasConsistency({ ...item.toJSON(), ...payload });
   await item.update(payload);
   return loadKelas(id);
 };
@@ -119,4 +160,4 @@ const remove = async (id) => {
 
 const restore = (id) => restoreRecord(Kelas, id, 'Kelas');
 
-module.exports = { list, getById, create, update, remove, restore };
+module.exports = { list, getById, create, update, remove, restore, assertKelasConsistency };

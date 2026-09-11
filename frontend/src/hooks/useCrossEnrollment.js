@@ -1,14 +1,18 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { decideCrossEnrollment, submitCrossEnrollment } from '../services/crossEnrollment.service';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  decideCrossEnrollment,
+  submitCrossEnrollment,
+} from "../services/crossEnrollment.service";
 
-export const useApprovalDecisions = (queue) => {
+export const useApprovalDecisions = () => {
   const client = useQueryClient();
   const mutation = useMutation({
-    mutationFn: ({ id, approved, reason }) => decideCrossEnrollment(queue, id, approved, reason),
+    mutationFn: ({ id, approved, reason }) =>
+      decideCrossEnrollment(id, approved, reason),
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: ['table'] });
-      toast.success('Keputusan persetujuan berhasil disimpan.');
+      client.invalidateQueries({ queryKey: ["table"] });
+      toast.success("Keputusan persetujuan berhasil disimpan.");
     },
     onError: (error) => toast.error(error.message),
   });
@@ -25,8 +29,8 @@ export const useSubmitCrossEnrollment = () => {
   return useMutation({
     mutationFn: submitCrossEnrollment,
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: ['table'] });
-      toast.success('Pengajuan lintas program studi dikirim.');
+      client.invalidateQueries({ queryKey: ["table"] });
+      toast.success("Pengajuan lintas program studi dikirim ke dosen PA.");
     },
     onError: (error) => toast.error(error.message),
   });

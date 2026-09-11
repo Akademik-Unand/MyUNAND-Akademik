@@ -1,7 +1,7 @@
-import { Download, FileText, HelpCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
+import { Download, FileText, HelpCircle } from "lucide-react";
+import { toast } from "sonner";
+import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
 
 export const QuickActionCard = () => (
   <Card className="h-full bg-base-100">
@@ -15,7 +15,8 @@ export const QuickActionCard = () => (
             Panduan Portal Kurikulum
           </h4>
           <p className="text-xs text-base-content/70 mt-1 leading-relaxed">
-            Unduh buku panduan penggunaan aplikasi portal teknik & kurikulum Unand untuk Dosen dan Koordinator Program Studi.
+            Unduh buku panduan penggunaan aplikasi portal teknik & kurikulum
+            Unand untuk Dosen dan Koordinator Program Studi.
           </p>
         </div>
       </div>
@@ -29,7 +30,7 @@ export const QuickActionCard = () => (
           variant="secondary"
           size="sm"
           className="gap-1.5 font-semibold"
-          onClick={() => toast.info('Berkas panduan belum tersedia.')}
+          onClick={() => toast.info("Berkas panduan belum tersedia.")}
         >
           <Download size={15} />
           <span>Download Manual</span>

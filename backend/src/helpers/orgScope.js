@@ -1,14 +1,14 @@
-'use strict';
+"use strict";
 
-const { isUniversityAdminRole } = require('../constants/roles');
+const { isUniversityAdminRole } = require("../constants/roles");
 
 const ROLE_LEVELS = {
-  'admin-fakultas': 'fakultas',
-  'pimpinan-fakultas': 'fakultas',
-  'admin-departemen': 'departemen',
-  'pimpinan-departemen': 'departemen',
-  'admin-prodi': 'prodi',
-  'pimpinan-prodi': 'prodi',
+  "admin-fakultas": "fakultas",
+  "pimpinan-fakultas": "fakultas",
+  "admin-departemen": "departemen",
+  "pimpinan-departemen": "departemen",
+  "admin-prodi": "prodi",
+  "pimpinan-prodi": "prodi",
 };
 
 const LEVEL_ORDER = { fakultas: 3, departemen: 2, prodi: 1 };
@@ -19,7 +19,10 @@ const collectUnitIds = (units = []) => {
   const departemen = new Set();
   const prodi = new Set();
   for (const unit of units) {
-    const f = unit.fakultas_id || unit.departemen?.fakultas_id || unit.programStudi?.fakultas_id;
+    const f =
+      unit.fakultas_id ||
+      unit.departemen?.fakultas_id ||
+      unit.programStudi?.fakultas_id;
     const d = unit.departemen_id || unit.programStudi?.departemen_id;
     const p = unit.program_studi_id;
     if (f) fakultas.add(f);
@@ -44,7 +47,7 @@ const computeOrgScope = (user = {}) => {
   const roleNames = new Set((user.roles || []).map((role) => role.name));
 
   if ([...roleNames].some(isUniversityAdminRole)) {
-    return { level: 'universitas' };
+    return { level: "universitas" };
   }
 
   let level = null;
@@ -63,27 +66,27 @@ const computeOrgScope = (user = {}) => {
 // Resource master: kunci filter & daftar id efektif yang dipakai per level scope.
 const MASTER_SCOPE = {
   fakultas: {
-    fakultas: { key: 'fakultas_id', ids: (s) => s.fakultas_ids },
-    departemen: { key: 'fakultas_id', ids: (s) => s.fakultas_ids },
-    prodi: { key: 'fakultas_id', ids: (s) => s.fakultas_ids },
+    fakultas: { key: "fakultas_id", ids: (s) => s.fakultas_ids },
+    departemen: { key: "fakultas_id", ids: (s) => s.fakultas_ids },
+    prodi: { key: "fakultas_id", ids: (s) => s.fakultas_ids },
   },
   departemen: {
-    fakultas: { key: 'fakultas_id', ids: (s) => s.fakultas_ids },
-    departemen: { key: 'id', ids: (s) => s.departemen_ids },
-    prodi: { key: 'id', ids: (s) => s.departemen_ids },
+    fakultas: { key: "fakultas_id", ids: (s) => s.fakultas_ids },
+    departemen: { key: "id", ids: (s) => s.departemen_ids },
+    prodi: { key: "id", ids: (s) => s.departemen_ids },
   },
-  'program-studi': {
-    fakultas: { key: 'fakultas_id', ids: (s) => s.fakultas_ids },
-    departemen: { key: 'departemen_id', ids: (s) => s.departemen_ids },
-    prodi: { key: 'id', ids: (s) => s.prodi_ids },
+  "program-studi": {
+    fakultas: { key: "fakultas_id", ids: (s) => s.fakultas_ids },
+    departemen: { key: "departemen_id", ids: (s) => s.departemen_ids },
+    prodi: { key: "id", ids: (s) => s.prodi_ids },
   },
 };
 
 // Resource lain: kunci & daftar id sesuai level scope (via kolom/virtual org filter).
 const DEFAULT_SCOPE = {
-  fakultas: { key: 'fakultas_id', ids: (s) => s.fakultas_ids },
-  departemen: { key: 'departemen_id', ids: (s) => s.departemen_ids },
-  prodi: { key: 'program_studi_id', ids: (s) => s.prodi_ids },
+  fakultas: { key: "fakultas_id", ids: (s) => s.fakultas_ids },
+  departemen: { key: "departemen_id", ids: (s) => s.departemen_ids },
+  prodi: { key: "program_studi_id", ids: (s) => s.prodi_ids },
 };
 
 /**
@@ -91,8 +94,9 @@ const DEFAULT_SCOPE = {
  * Mengembalikan null bila user tidak perlu dibatasi.
  */
 const orgFilterForResource = (resource, scope) => {
-  if (!scope || !scope.level || scope.level === 'universitas') return null;
-  const mapping = MASTER_SCOPE[resource]?.[scope.level] || DEFAULT_SCOPE[scope.level];
+  if (!scope || !scope.level || scope.level === "universitas") return null;
+  const mapping =
+    MASTER_SCOPE[resource]?.[scope.level] || DEFAULT_SCOPE[scope.level];
   if (!mapping) return null;
   return { [mapping.key]: mapping.ids(scope) };
 };

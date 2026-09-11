@@ -14,12 +14,19 @@ const listQuery = (sortableFields = [], filterableFields = []) => {
     ? Joi.string().valid(...sortableFields)
     : Joi.string();
 
-  const filter = filterableFields.length
-    ? Joi.object().pattern(
-      Joi.string().valid(...filterableFields),
-      Joi.alternatives().try(Joi.string(), Joi.number(), Joi.boolean())
+  // Key filter organisasi (fakultas_id/departemen_id/program_studi_id) selalu
+  // diizinkan karena middleware attachAbility menyuntikkannya sesuai scope user;
+  // nilainya bisa array (mis. program_studi_id: [id1, id2]). 'id' dipakai
+  // resource master (departemen/program-studi) pada scope yang lebih sempit.
+  const filter = Joi.object().pattern(
+    Joi.string().valid(...uniqueFields(['id'], filterableFields, ORG_FILTER_FIELDS)),
+    Joi.alternatives().try(
+      Joi.string(),
+      Joi.number(),
+      Joi.boolean(),
+      Joi.array().items(Joi.string(), Joi.number())
     )
-    : Joi.object();
+  );
 
   return Joi.object({
     page: Joi.number().integer().min(1),

@@ -1,5 +1,5 @@
-import { getInitials } from '../../utils/initials';
-import { roleLabel } from '../../constants/roles';
+import { getInitials } from "../../utils/initials";
+import { roleLabel } from "../../constants/roles";
 
 export const ProfileIdentity = ({ user }) => {
   if (!user) return null;
@@ -12,11 +12,14 @@ export const ProfileIdentity = ({ user }) => {
         </div>
       </div>
       <div className="min-w-0">
-        <p className="text-lg font-medium text-base-content truncate">{user.name}</p>
+        <p className="text-lg font-medium text-base-content truncate">
+          {user.name}
+        </p>
         <p className="text-sm text-base-content/70 truncate">{user.email}</p>
         <p className="mt-1 text-sm text-base-content/60">
-          {(user.roles || []).map((role) => roleLabel(role.name)).join(', ') || roleLabel(user.role)}
-          {user.faculty ? ` · ${user.faculty}` : ''}
+          {(user.roles || []).map((role) => roleLabel(role.name)).join(", ") ||
+            roleLabel(user.role)}
+          {user.faculty ? ` · ${user.faculty}` : ""}
         </p>
       </div>
     </div>

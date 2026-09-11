@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
-const { DataTypes } = require('sequelize');
+const { DataTypes } = require("sequelize");
 
 module.exports = {
   async up(queryInterface) {
-    await queryInterface.addColumn('semester', 'is_aktif', {
+    await queryInterface.addColumn("semester", "is_aktif", {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
@@ -12,6 +12,6 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    await queryInterface.removeColumn('semester', 'is_aktif');
+    await queryInterface.removeColumn("semester", "is_aktif");
   },
 };

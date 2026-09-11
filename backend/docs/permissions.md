@@ -4,7 +4,7 @@ Format nama: `{subject}.{action}` (contoh `fakultas.read`, `krs.approve`).
 Satu aksi = satu baris. Jangan `manage-*`.
 
 Aksi standar: `read`, `create`, `update`, `delete`.
-Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`, `assign-units`, `publish`, `close`, `catalog`, `schedule`, `sync`, `enroll`, `cancel`, `approve-host`.
+Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`, `assign-units`, `publish`, `close`, `catalog`, `schedule`, `sync`, `enroll`, `approve-pa`.
 `restore` hanya untuk data master (soft delete).
 
 ## Subject
@@ -13,8 +13,8 @@ Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`,
 - semester: jenis-semester, semester, semester-prodi, periode
 - kurikulum: kurikulum, sifat-matakuliah, tipe-matakuliah, matakuliah, matakuliah-kurikulum
 - obe: cp, scp, cpmk, sumber-penilaian, cpmk-scp
-- perkuliahan: gedung, ruang, kelas, dosen-kelas, jadwal-kelas, dosen-jadwal, penawaran-matakuliah (+ publish, close, catalog, schedule, sync)
-- krs: krs, krs-detil, cross-enrollment (+ `krs.approve`, enroll, cancel, approve-host)
+- perkuliahan: gedung, ruang, shift, kelas, dosen-kelas, jadwal-kelas, dosen-jadwal, penawaran-matakuliah (+ publish, close, catalog, schedule, sync)
+- krs: krs, krs-detil, cross-enrollment (+ `krs.approve`, enroll, approve-pa)
 - nilai: nilai (+ `nilai.upload`)
 - evaluasi: history-upload-nilai, evaluasi-cpmk, jenis-dokumen-evaluasi, dokumen-evaluasi
 - laporan: rekap-cp, laporan-cp
@@ -35,11 +35,13 @@ Role organisasi otomatis membatasi data ke unitnya (server-side, tidak bisa dile
 - admin-departemen / pimpinan-departemen → data departemennya (departemen → semua prodi di dalamnya)
 - admin-prodi / pimpinan-prodi → data prodinya
 
+`bimbingan-akademik` ikut dibatasi scope, tetapi karena tabelnya tidak menyimpan unit, filternya diterjemahkan lewat program studi **mahasiswa** bimbingan — termasuk pada operasi tulis (menetapkan/mengubah/menghapus PA mahasiswa di luar unit ditolak `403`).
+
 Unit user ditentukan dari `user_units` (tabel assignment per user; diatur lewat `PUT /api/v1/users/:id/units`).
 Admin universitas tidak dibatasi. User multi-unit mendapat gabungan unitnya.
 - dosen: `krs.read`, `krs.approve`, seluruh nilai/evaluasi, laporan read
-- dosen-pa: grant dosen + bimbingan akademik + `mahasiswa.read`
-- mahasiswa: `krs.read` / `krs.create` / `krs.update`, laporan read
+- dosen-pa: grant dosen + bimbingan akademik + `mahasiswa.read` + `cross-enrollment.approve-pa`
+- mahasiswa: `krs.read` / `krs.create` / `krs.update`, `krs-detil.create` / `krs-detil.delete` (hanya KRS miliknya sendiri), penawaran catalog, cross-enrollment read/enroll, laporan read. Mengeluarkan mata kuliah — reguler maupun lintas prodi — dilakukan lewat `krs-detil.delete`.
 - orang-tua: laporan read
 - pimpinan-prodi / pimpinan-departemen / pimpinan-fakultas: read akademik (bukan IAM)
 

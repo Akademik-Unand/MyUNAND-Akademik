@@ -1,5 +1,5 @@
-import { Filter, Search, X } from 'lucide-react';
-import { ROWS_PER_PAGE_OPTIONS } from '../../hooks/table/useTablePagination';
+import { Filter, Search, X } from "lucide-react";
+import { ROWS_PER_PAGE_OPTIONS } from "../../hooks/table/useTablePagination";
 
 export const DataTableToolbar = ({
   table,
@@ -21,7 +21,11 @@ export const DataTableToolbar = ({
           aria-label={searchPlaceholder}
         />
         {table.draft && (
-          <button type="button" onClick={table.clear} aria-label="Bersihkan pencarian">
+          <button
+            type="button"
+            onClick={table.clear}
+            aria-label="Bersihkan pencarian"
+          >
             <X size={14} className="opacity-50" />
           </button>
         )}
@@ -33,13 +37,15 @@ export const DataTableToolbar = ({
         {hasFilters && (
           <button
             type="button"
-            className={`btn btn-sm gap-1.5 ${filtersOpen ? 'btn-primary' : 'btn-ghost'}`}
+            className={`btn btn-sm gap-1.5 ${filtersOpen ? "btn-primary" : "btn-ghost"}`}
             onClick={onToggleFilters}
           >
             <Filter size={14} />
             Filter
             {table.activeCount > 0 && (
-              <span className="badge badge-xs badge-neutral">{table.activeCount}</span>
+              <span className="badge badge-xs badge-neutral">
+                {table.activeCount}
+              </span>
             )}
           </button>
         )}

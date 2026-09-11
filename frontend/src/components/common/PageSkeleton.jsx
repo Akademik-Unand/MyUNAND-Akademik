@@ -1,11 +1,15 @@
-import { Skeleton } from '../ui/Skeleton';
-import { Card } from '../ui/Card';
-import { TableSkeleton } from './TableSkeleton';
+import { Skeleton } from "../ui/Skeleton";
+import { Card } from "../ui/Card";
+import { TableSkeleton } from "./TableSkeleton";
 
 /**
  * Page-level skeleton: header, optional filter card, then table/cards.
  */
-export const PageSkeleton = ({ showFilter = true, cards = 0, tableCols = 5 }) => {
+export const PageSkeleton = ({
+  showFilter = true,
+  cards = 0,
+  tableCols = 5,
+}) => {
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

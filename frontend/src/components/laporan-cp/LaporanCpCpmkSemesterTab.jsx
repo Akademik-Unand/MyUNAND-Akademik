@@ -1,13 +1,21 @@
-import { sumberLabel } from '../../helpers/laporanCpMatakuliah';
+import { sumberLabel } from "../../helpers/laporanCpMatakuliah";
 
-const targetPct = (value) => (value === null || value === undefined ? '—' : `${value} %`);
+const targetPct = (value) =>
+  value === null || value === undefined ? "—" : `${value} %`;
 
 export const LaporanCpCpmkSemesterTab = ({ cpmk = [] }) => {
   if (!cpmk.length) {
-    return <p className="text-sm text-base-content/60">Belum ada CPMK untuk mata kuliah ini.</p>;
+    return (
+      <p className="text-sm text-base-content/60">
+        Belum ada CPMK untuk mata kuliah ini.
+      </p>
+    );
   }
 
-  const totalBobot = cpmk.reduce((total, row) => total + (row.bobot_total || 0), 0);
+  const totalBobot = cpmk.reduce(
+    (total, row) => total + (row.bobot_total || 0),
+    0,
+  );
 
   return (
     <div className="overflow-x-auto">
@@ -16,7 +24,9 @@ export const LaporanCpCpmkSemesterTab = ({ cpmk = [] }) => {
           <tr className="text-xs uppercase text-base-content/60">
             <th className="bg-base-100">Nama</th>
             <th className="bg-base-100">Deskripsi</th>
-            <th className="bg-base-100 text-center">Target Mencapai Nilai Minimal</th>
+            <th className="bg-base-100 text-center">
+              Target Mencapai Nilai Minimal
+            </th>
             <th className="bg-base-100 text-center">Target Nilai Minimal</th>
             <th className="bg-base-100">CPL</th>
             <th className="bg-base-100">Sumber Nilai</th>
@@ -27,10 +37,14 @@ export const LaporanCpCpmkSemesterTab = ({ cpmk = [] }) => {
           {cpmk.map((row) => (
             <tr key={row.id}>
               <td className="align-top font-medium">{row.nama_cpmk}</td>
-              <td className="align-top max-w-md whitespace-normal">{row.deskripsi || '—'}</td>
-              <td className="align-middle text-center">{targetPct(row.target_persen)}</td>
+              <td className="align-top max-w-md whitespace-normal">
+                {row.deskripsi || "—"}
+              </td>
               <td className="align-middle text-center">
-                {row.nilai_min == null ? '—' : `${row.nilai_min}/100`}
+                {targetPct(row.target_persen)}
+              </td>
+              <td className="align-middle text-center">
+                {row.nilai_min == null ? "—" : `${row.nilai_min}/100`}
               </td>
               <td className="align-top whitespace-normal">
                 {row.cpl.length ? (
@@ -39,25 +53,34 @@ export const LaporanCpCpmkSemesterTab = ({ cpmk = [] }) => {
                       <li key={item.kode}>
                         <span className="font-medium">{item.kode}</span>
                         {item.deskripsi && (
-                          <span className="text-xs text-base-content/60"> — {item.deskripsi}</span>
+                          <span className="text-xs text-base-content/60">
+                            {" "}
+                            — {item.deskripsi}
+                          </span>
                         )}
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  '—'
+                  "—"
                 )}
               </td>
               <td className="align-top whitespace-normal">
-                {row.sumber.length ? row.sumber.map(sumberLabel).join(', ') : '—'}
+                {row.sumber.length
+                  ? row.sumber.map(sumberLabel).join(", ")
+                  : "—"}
               </td>
-              <td className="align-middle text-center">{row.bobot_total ?? 0}</td>
+              <td className="align-middle text-center">
+                {row.bobot_total ?? 0}
+              </td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr className="font-semibold">
-            <td colSpan={6} className="text-right">Total Bobot</td>
+            <td colSpan={6} className="text-right">
+              Total Bobot
+            </td>
             <td className="text-center">{totalBobot}</td>
           </tr>
         </tfoot>

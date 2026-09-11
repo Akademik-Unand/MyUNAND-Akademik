@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 const SIZE_CLASS = {
-  xs: 'btn-xs',
-  sm: 'btn-sm',
-  md: 'btn-md',
+  xs: "btn-xs",
+  sm: "btn-sm",
+  md: "btn-md",
 };
 
 const ICON_SIZE = {
@@ -19,11 +19,11 @@ export const IconButton = ({
   label,
   icon: Icon,
   onClick,
-  tone = '',
-  size = 'xs',
-  tooltipPosition = 'tooltip-top',
+  tone = "",
+  size = "xs",
+  tooltipPosition = "tooltip-top",
   disabled = false,
-  className = '',
+  className = "",
 }) => {
   return (
     <div className={`tooltip ${tooltipPosition}`} data-tip={label}>
@@ -45,10 +45,10 @@ export const IconLink = ({
   label,
   icon: Icon,
   to,
-  tone = '',
-  size = 'xs',
-  tooltipPosition = 'tooltip-top',
-  className = '',
+  tone = "",
+  size = "xs",
+  tooltipPosition = "tooltip-top",
+  className = "",
 }) => {
   return (
     <div className={`tooltip ${tooltipPosition}`} data-tip={label}>

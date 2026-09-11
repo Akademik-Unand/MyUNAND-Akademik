@@ -1,13 +1,27 @@
-import { Fragment } from 'react';
-import { roleLabel } from '../../constants/roles';
+import { Fragment } from "react";
+import { roleLabel } from "../../constants/roles";
 
-export const RoleMatrixTable = ({ roles, groups, draft, onToggle, readOnly = false }) => {
+export const RoleMatrixTable = ({
+  roles,
+  groups,
+  draft,
+  onToggle,
+  readOnly = false,
+}) => {
   if (!roles.length) {
-    return <p className="p-4 text-sm text-base-content/60">Belum ada peran untuk diatur.</p>;
+    return (
+      <p className="p-4 text-sm text-base-content/60">
+        Belum ada peran untuk diatur.
+      </p>
+    );
   }
 
   if (!Object.keys(groups).length) {
-    return <p className="p-4 text-sm text-base-content/60">Tidak ada permission yang cocok.</p>;
+    return (
+      <p className="p-4 text-sm text-base-content/60">
+        Tidak ada permission yang cocok.
+      </p>
+    );
   }
 
   return (
@@ -16,7 +30,9 @@ export const RoleMatrixTable = ({ roles, groups, draft, onToggle, readOnly = fal
         <tr>
           <th>Permission</th>
           {roles.map((role) => (
-            <th key={role.id} className="text-center">{roleLabel(role.name)}</th>
+            <th key={role.id} className="text-center">
+              {roleLabel(role.name)}
+            </th>
           ))}
         </tr>
       </thead>
@@ -24,19 +40,31 @@ export const RoleMatrixTable = ({ roles, groups, draft, onToggle, readOnly = fal
         {Object.entries(groups).map(([group, permissions]) => (
           <Fragment key={group}>
             <tr>
-              <td colSpan={roles.length + 1} className="font-medium bg-base-200">{group}</td>
+              <td
+                colSpan={roles.length + 1}
+                className="font-medium bg-base-200"
+              >
+                {group}
+              </td>
             </tr>
             {permissions.map((permission) => (
               <tr key={permission.id}>
                 <td>
                   <div className="font-mono text-xs">{permission.name}</div>
-                  <div className="text-xs text-base-content/60">{permission.description}</div>
+                  <div className="text-xs text-base-content/60">
+                    {permission.description}
+                  </div>
                 </td>
                 {roles.map((role) => (
-                  <td key={`${role.id}-${permission.id}`} className="text-center">
+                  <td
+                    key={`${role.id}-${permission.id}`}
+                    className="text-center"
+                  >
                     {readOnly ? (
                       <span className="text-sm">
-                        {(draft[role.id] || []).includes(permission.id) ? 'Ya' : '—'}
+                        {(draft[role.id] || []).includes(permission.id)
+                          ? "Ya"
+                          : "—"}
                       </span>
                     ) : (
                       <input

@@ -1,28 +1,29 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { Input } from '../ui/Input';
-import { Button } from '../ui/Button';
-import { changePassword } from '../../services/api';
+import { useState } from "react";
+import { toast } from "sonner";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
+import { changePassword } from "../../services/api";
 
-const empty = { currentPassword: '', newPassword: '', confirmPassword: '' };
+const empty = { currentPassword: "", newPassword: "", confirmPassword: "" };
 
 export const ProfilePasswordForm = () => {
   const [form, setForm] = useState(empty);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const setField = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  const setField = (key) => (e) =>
+    setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (saving) return;
-    setError('');
+    setError("");
     if (form.newPassword !== form.confirmPassword) {
-      setError('Ulangi kata sandi tidak sama.');
+      setError("Ulangi kata sandi tidak sama.");
       return;
     }
     if (form.newPassword.length < 6) {
-      setError('Kata sandi baru minimal 6 karakter.');
+      setError("Kata sandi baru minimal 6 karakter.");
       return;
     }
     setSaving(true);
@@ -32,9 +33,9 @@ export const ProfilePasswordForm = () => {
         newPassword: form.newPassword,
       });
       setForm(empty);
-      toast.success('Kata sandi diperbarui');
+      toast.success("Kata sandi diperbarui");
     } catch (err) {
-      setError(err.message || 'Gagal mengubah kata sandi.');
+      setError(err.message || "Gagal mengubah kata sandi.");
     } finally {
       setSaving(false);
     }
@@ -47,21 +48,21 @@ export const ProfilePasswordForm = () => {
         type="password"
         autoComplete="current-password"
         value={form.currentPassword}
-        onChange={setField('currentPassword')}
+        onChange={setField("currentPassword")}
       />
       <Input
         label="Kata sandi baru"
         type="password"
         autoComplete="new-password"
         value={form.newPassword}
-        onChange={setField('newPassword')}
+        onChange={setField("newPassword")}
       />
       <Input
         label="Ulangi kata sandi baru"
         type="password"
         autoComplete="new-password"
         value={form.confirmPassword}
-        onChange={setField('confirmPassword')}
+        onChange={setField("confirmPassword")}
       />
       {error && <p className="text-sm text-error">{error}</p>}
       <div className="flex justify-end pt-1">

@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 /** Menampilkan maksimal 5 nomor halaman yang mengelilingi halaman aktif. */
 const buildPageList = (page, totalPages) => {
@@ -35,9 +35,9 @@ export const DataTablePagination = ({ meta, page, onPageChange }) => {
             <button
               key={item}
               type="button"
-              className={`join-item btn btn-sm ${item === page ? 'btn-primary' : 'btn-ghost'}`}
+              className={`join-item btn btn-sm ${item === page ? "btn-primary" : "btn-ghost"}`}
               onClick={() => onPageChange(item)}
-              aria-current={item === page ? 'page' : undefined}
+              aria-current={item === page ? "page" : undefined}
             >
               {item}
             </button>

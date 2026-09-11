@@ -1,15 +1,21 @@
-import { PageHeader } from '../components/common/PageHeader';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Layers, Plus, Filter, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { PageHeader } from "../components/common/PageHeader";
+import { Card } from "../components/ui/Card";
+import { Button } from "../components/ui/Button";
+import { Layers, Plus, Filter, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 
-export const PlaceholderPage = ({ title, group = 'Master Data', description }) => {
+export const PlaceholderPage = ({
+  title,
+  group = "Master Data",
+  description,
+}) => {
   return (
     <div className="space-y-4">
       <PageHeader
         title={title}
-        subtitle={description || `Modul ${title} pada ${group} SIAKAD Kurikulum`}
+        subtitle={
+          description || `Modul ${title} pada ${group} SIAKAD Kurikulum`
+        }
         breadcrumbs={[{ label: group }, { label: title }]}
         action={
           <div className="flex items-center gap-2">
@@ -17,7 +23,11 @@ export const PlaceholderPage = ({ title, group = 'Master Data', description }) =
               <Filter size={14} />
               <span>Filter Data</span>
             </Button>
-            <Button variant="primary" size="sm" className="gap-1.5 text-xs font-semibold">
+            <Button
+              variant="primary"
+              size="sm"
+              className="gap-1.5 text-xs font-semibold"
+            >
               <Plus size={15} />
               <span>Tambah {title}</span>
             </Button>
@@ -31,7 +41,9 @@ export const PlaceholderPage = ({ title, group = 'Master Data', description }) =
             <Layers size={24} />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-semibold text-base-content">{title}</h3>
+            <h3 className="text-base font-semibold text-base-content">
+              {title}
+            </h3>
             <p className="text-xs text-base-content/50">Modul belum aktif.</p>
           </div>
           <div className="pt-1 flex items-center justify-center">

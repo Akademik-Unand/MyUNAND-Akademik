@@ -1,15 +1,15 @@
-import { useMemo } from 'react';
-import { useTableSearchParams } from './useTableSearchParams';
-import { useTablePagination } from './useTablePagination';
-import { useTableSearch } from './useTableSearch';
-import { useTableSort } from './useTableSort';
-import { useTableFilters } from './useTableFilters';
+import { useMemo } from "react";
+import { useTableSearchParams } from "./useTableSearchParams";
+import { useTablePagination } from "./useTablePagination";
+import { useTableSearch } from "./useTableSearch";
+import { useTableSort } from "./useTableSort";
+import { useTableFilters } from "./useTableFilters";
 
 /**
  * Menggabungkan seluruh state tabel menjadi satu objek. `query` adalah bentuk
  * yang siap dikirim ke server (page, limit, search, sortBy, sortOrder, filter).
  */
-export const useTableParams = ({ prefix = '', defaultLimit = 10 } = {}) => {
+export const useTableParams = ({ prefix = "", defaultLimit = 10 } = {}) => {
   const store = useTableSearchParams(prefix);
   const pagination = useTablePagination(store, defaultLimit);
   const search = useTableSearch(store);
@@ -32,7 +32,7 @@ export const useTableParams = ({ prefix = '', defaultLimit = 10 } = {}) => {
       sort.sortBy,
       sort.sortOrder,
       filters.filter,
-    ]
+    ],
   );
 
   return { ...pagination, ...search, ...sort, ...filters, query };

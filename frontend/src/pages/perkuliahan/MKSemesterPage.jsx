@@ -1,66 +1,78 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Settings2 } from 'lucide-react';
-import { IconLink } from '../../components/common/IconButton';
-import { PageHeader } from '../../components/common/PageHeader';
-import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { FilterBar } from '../../components/common/FilterBar';
-import { DataTable } from '../../components/common/DataTable';
-import { Can } from '../../components/auth/Can';
-import { useAcademicFilter } from '../../hooks/useAcademicFilter';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Settings2 } from "lucide-react";
+import { IconLink } from "../../components/common/IconButton";
+import { PageHeader } from "../../components/common/PageHeader";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { FilterBar } from "../../components/common/FilterBar";
+import { DataTable } from "../../components/common/DataTable";
+import { Can } from "../../components/auth/Can";
+import { useAcademicFilter } from "../../hooks/useAcademicFilter";
 
-const FILTER_KEYS = ['fakultas', 'departemen', 'prodi', 'kurikulum', 'semester'];
+const FILTER_KEYS = [
+  "fakultas",
+  "departemen",
+  "prodi",
+  "kurikulum",
+  "semester",
+];
 
 export const MKSemesterPage = () => {
-  const [tab, setTab] = useState('mk');
-  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const [tab, setTab] = useState("mk");
+  const academic = useAcademicFilter({
+    keys: FILTER_KEYS,
+    defaultSemesterToActive: true,
+  });
   const extraFilter = academic.extraFilter;
 
   const columns = [
-    { header: '#', render: (_, idx) => idx + 1 },
+    { header: "#", render: (_, idx) => idx + 1 },
     {
-      key: 'matakuliah_id',
-      header: 'Kode',
+      key: "matakuliah_id",
+      header: "Kode",
       sortable: true,
-      cellClassName: 'font-semibold',
+      cellClassName: "font-semibold",
       render: (row) => row.matakuliah?.kode_matakuliah,
     },
     {
-      key: 'nama',
-      header: 'Nama Mata Kuliah',
+      key: "nama",
+      header: "Nama Mata Kuliah",
       render: (row) => row.matakuliah?.nama_resmi,
     },
     {
-      key: 'sks',
-      header: 'SKS',
+      key: "sks",
+      header: "SKS",
       render: (row) => row.matakuliah?.jumlah_sks_kurikulum,
     },
     {
-      key: 'status',
-      header: 'Transkrip',
+      key: "status",
+      header: "Transkrip",
       sortable: true,
       render: (row) =>
-        row.status === 'transkrip' ? (
+        row.status === "transkrip" ? (
           <span className="badge badge-success badge-sm">Ya</span>
         ) : (
           <span className="badge badge-ghost badge-sm">Tidak</span>
         ),
     },
     {
-      header: 'Dokumen Evaluasi',
+      header: "Dokumen Evaluasi",
       render: (row) => (
         <Can I="read" a="DokumenEvaluasi">
-          <Link to={`/perkuliahan/mk-semester/${row.matakuliah_id}/dokumen`} className="btn btn-xs btn-ghost">
+          <Link
+            to={`/perkuliahan/mk-semester/${row.matakuliah_id}/dokumen`}
+            className="btn btn-xs btn-ghost"
+          >
             Dokumen
           </Link>
         </Can>
       ),
     },
     {
-      header: 'Aksi',
-      className: 'text-right',
-      cellClassName: 'text-right',
+      header: "Aksi",
+      className: "text-right",
+      cellClassName: "text-right",
       render: (row) => (
         <IconLink
           label="Kelola MK"
@@ -78,9 +90,9 @@ export const MKSemesterPage = () => {
       <PageHeader
         title="Kelola MK Semester"
         subtitle="Kelola mata kuliah per semester dan evaluasi capaian pembelajaran"
-        breadcrumbs={[{ label: 'Semester & Perkuliahan' }, { label: 'MK Semester' }]}
+        breadcrumbs={[{ label: "Kurikulum & MK" }, { label: "MK Semester" }]}
         action={
-          tab === 'transkrip' ? (
+          tab === "transkrip" ? (
             <Can I="update" a="MatakuliahKurikulum">
               <Link to="/perkuliahan/mk-semester/transkrip/atur">
                 <Button size="sm">Atur</Button>
@@ -100,19 +112,23 @@ export const MKSemesterPage = () => {
       </Card>
 
       <div className="tabs tabs-box w-fit bg-base-200">
-        <button type="button" className={`tab ${tab === 'mk' ? 'tab-active' : ''}`} onClick={() => setTab('mk')}>
+        <button
+          type="button"
+          className={`tab ${tab === "mk" ? "tab-active" : ""}`}
+          onClick={() => setTab("mk")}
+        >
           MK Semester
         </button>
         <button
           type="button"
-          className={`tab ${tab === 'transkrip' ? 'tab-active' : ''}`}
-          onClick={() => setTab('transkrip')}
+          className={`tab ${tab === "transkrip" ? "tab-active" : ""}`}
+          onClick={() => setTab("transkrip")}
         >
           MK Transkrip
         </button>
       </div>
 
-      {tab === 'mk' && (
+      {tab === "mk" && (
         <Card title="Daftar MK Semester">
           <DataTable
             resource="mk-semester"
@@ -124,13 +140,13 @@ export const MKSemesterPage = () => {
           />
         </Card>
       )}
-      {tab === 'transkrip' && (
+      {tab === "transkrip" && (
         <Card title="MK Transkrip CP">
           <DataTable
             resource="mk-transkrip"
             tableKey="tr_"
             columns={columns}
-            extraFilter={{ status: 'transkrip', ...(extraFilter || {}) }}
+            extraFilter={{ status: "transkrip", ...(extraFilter || {}) }}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari mata kuliah transkrip..."
           />

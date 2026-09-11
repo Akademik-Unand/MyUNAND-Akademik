@@ -1,12 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { useEffect, useRef } from "react";
+import { X } from "lucide-react";
 
 const SIZE_CLASS = {
-  sm: 'max-w-md',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'w-11/12 max-w-5xl',
-  full: 'w-[96vw] max-w-[110rem]',
+  sm: "max-w-md",
+  md: "max-w-lg",
+  lg: "max-w-2xl",
+  xl: "w-11/12 max-w-5xl",
+  full: "w-[96vw] max-w-[110rem]",
 };
 
 /**
@@ -21,7 +21,7 @@ export const Modal = ({
   subtitle,
   children,
   footer,
-  size = 'md',
+  size = "md",
   closeOnBackdrop = true,
 }) => {
   const dialogRef = useRef(null);
@@ -64,11 +64,19 @@ export const Modal = ({
       >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-base-200 px-5 py-3">
           <div className="min-w-0">
-            <h3 className="text-base font-semibold text-base-content">{title}</h3>
-            {subtitle && <p className="mt-0.5 text-xs text-base-content/60">{subtitle}</p>}
+            <h3 className="text-base font-semibold text-base-content">
+              {title}
+            </h3>
+            {subtitle && (
+              <p className="mt-0.5 text-xs text-base-content/60">{subtitle}</p>
+            )}
           </div>
           <form method="dialog" className="shrink-0">
-            <button className="btn btn-ghost btn-xs btn-square" aria-label="Tutup" disabled={!closeOnBackdrop}>
+            <button
+              className="btn btn-ghost btn-xs btn-square"
+              aria-label="Tutup"
+              disabled={!closeOnBackdrop}
+            >
               <X size={16} />
             </button>
           </form>

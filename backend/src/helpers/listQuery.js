@@ -1,19 +1,35 @@
-'use strict';
+"use strict";
 
-const { Op } = require('sequelize');
+const { Op } = require("sequelize");
 
-const RESERVED_PARAMS = ['page', 'limit', 'search', 'sortBy', 'sortOrder', 'filter', 'order', 'sort', 'trashed'];
+const RESERVED_PARAMS = [
+  "page",
+  "limit",
+  "search",
+  "sortBy",
+  "sortOrder",
+  "filter",
+  "order",
+  "sort",
+  "trashed",
+];
 
 const isTextType = (attribute) => {
-  const type = String(attribute?.type ?? '').toLowerCase();
-  return type.includes('char') || type.includes('text') || type.includes('string');
+  const type = String(attribute?.type ?? "").toLowerCase();
+  return (
+    type.includes("char") || type.includes("text") || type.includes("string")
+  );
 };
 
 /** Express 5 parser sederhana menyimpan `filter[field]=x` sebagai kunci literal. */
 const normalizeListQuery = (query = {}) => {
   const next = { ...query };
   const filter = {
-    ...(next.filter && typeof next.filter === 'object' && !Array.isArray(next.filter) ? next.filter : {}),
+    ...(next.filter &&
+    typeof next.filter === "object" &&
+    !Array.isArray(next.filter)
+      ? next.filter
+      : {}),
   };
   for (const [key, val] of Object.entries(query)) {
     const match = /^filter\[(.+)\]$/.exec(key);
@@ -32,19 +48,22 @@ const buildListQuery = (Model, rawQuery = {}, options = {}) => {
     sortableFields = [],
     filterableFields = [],
     virtualFilters = {},
-    defaultOrder = [['createdAt', 'DESC']],
+    defaultOrder = [["createdAt", "DESC"]],
   } = options;
 
   const attributeNames = Object.keys(Model.rawAttributes || {});
-  const allowedSort = sortableFields.length > 0 ? sortableFields : attributeNames;
-  const allowedFilter = filterableFields.length > 0 ? filterableFields : attributeNames;
+  const allowedSort =
+    sortableFields.length > 0 ? sortableFields : attributeNames;
+  const allowedFilter =
+    filterableFields.length > 0 ? filterableFields : attributeNames;
 
   const page = parseInt(query.page, 10) || 1;
   const limit = parseInt(query.limit, 10) || 100;
   const offset = (page - 1) * limit;
   const search = query.search;
   const sortBy = query.sortBy;
-  const sortOrder = String(query.sortOrder || 'asc').toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+  const sortOrder =
+    String(query.sortOrder || "asc").toUpperCase() === "DESC" ? "DESC" : "ASC";
 
   const where = {};
 
@@ -57,8 +76,8 @@ const buildListQuery = (Model, rawQuery = {}, options = {}) => {
   const virtualClauses = [];
 
   const applyFilter = (key, val) => {
-    if (val === undefined || val === '') return;
-    if (typeof virtualFilters[key] === 'function') {
+    if (val === undefined || val === "") return;
+    if (typeof virtualFilters[key] === "function") {
       virtualClauses.push(virtualFilters[key](val));
       return;
     }
@@ -73,7 +92,11 @@ const buildListQuery = (Model, rawQuery = {}, options = {}) => {
   };
 
   const nestedFilter = query.filter;
-  if (nestedFilter && typeof nestedFilter === 'object' && !Array.isArray(nestedFilter)) {
+  if (
+    nestedFilter &&
+    typeof nestedFilter === "object" &&
+    !Array.isArray(nestedFilter)
+  ) {
     for (const [key, val] of Object.entries(nestedFilter)) {
       applyFilter(key, val);
     }
@@ -98,12 +121,16 @@ const buildListQuery = (Model, rawQuery = {}, options = {}) => {
 };
 
 const paginate = async (Model, query, options = {}) => {
-  const { where, order, limit, offset, page } = buildListQuery(Model, query, options);
+  const { where, order, limit, offset, page } = buildListQuery(
+    Model,
+    query,
+    options,
+  );
   const trashed = query.trashed;
   const findOptions = { ...(options.findOptions || {}) };
   if (Model.options.paranoid) {
-    if (trashed === 'with') findOptions.paranoid = false;
-    if (trashed === 'only') {
+    if (trashed === "with") findOptions.paranoid = false;
+    if (trashed === "only") {
       findOptions.paranoid = false;
       where.deletedAt = { [Op.ne]: null };
     }

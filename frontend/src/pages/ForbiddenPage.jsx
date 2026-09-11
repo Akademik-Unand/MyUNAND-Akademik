@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
-import { ShieldX } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { Button } from "../components/ui/Button";
+import { ShieldX } from "lucide-react";
 
 export const ForbiddenPage = () => {
   return (

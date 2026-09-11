@@ -1,84 +1,87 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const rekapCpValidation = require('../../validations/evaluasi/rekap-cp.validation');
-const rekapCpController = require('../../controllers/evaluasi/rekap-cp.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const rekapCpValidation = require("../../validations/evaluasi/rekap-cp.validation");
+const rekapCpController = require("../../controllers/evaluasi/rekap-cp.controller");
 
-const subject = 'RekapCp';
+const subject = "RekapCp";
 
 /** GET /rekap-cp */
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: rekapCpValidation.list }),
-  rekapCpController.list
+  rekapCpController.list,
 );
 
 /** GET /rekap-cp/detail */
 router.get(
-  '/detail',
+  "/detail",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: rekapCpValidation.listDetail }),
-  rekapCpController.listDetail
+  rekapCpController.listDetail,
 );
 
 /** GET /rekap-cp/grafik */
 router.get(
-  '/grafik',
+  "/grafik",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: rekapCpValidation.listDetail }),
-  rekapCpController.listGrafik
+  rekapCpController.listGrafik,
 );
 
 /** POST /rekap-cp */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: rekapCpValidation.create }),
-  rekapCpController.create
+  rekapCpController.create,
 );
 
 /** GET /rekap-cp/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: rekapCpValidation.idParam }),
-  rekapCpController.getById
+  rekapCpController.getById,
 );
 
 /** PUT /rekap-cp/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
-  validate({ params: rekapCpValidation.idParam, body: rekapCpValidation.update }),
-  rekapCpController.update
+  checkPermission("update", subject),
+  validate({
+    params: rekapCpValidation.idParam,
+    body: rekapCpValidation.update,
+  }),
+  rekapCpController.update,
 );
 
 /** DELETE /rekap-cp/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: rekapCpValidation.idParam }),
-  rekapCpController.remove
+  rekapCpController.remove,
 );
 
 module.exports = router;

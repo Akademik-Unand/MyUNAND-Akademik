@@ -1,7 +1,14 @@
 /**
  * StatCard component - minimalis, ikon pill kecil di kiri
  */
-export const StatCard = ({ title, value, subtitle, icon: Icon, trend, className = '' }) => {
+export const StatCard = ({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  trend,
+  className = "",
+}) => {
   return (
     <div className={`card bg-base-100 shadow-xs ${className}`}>
       <div className="card-body p-4 md:p-5 flex flex-row items-center gap-4">
@@ -11,13 +18,23 @@ export const StatCard = ({ title, value, subtitle, icon: Icon, trend, className 
           </div>
         )}
         <div className="space-y-0.5 min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wider text-base-content/60">{title}</p>
-          <div className="text-2xl md:text-3xl font-semibold text-base-content tracking-tight">{value}</div>
+          <p className="text-xs font-medium uppercase tracking-wider text-base-content/60">
+            {title}
+          </p>
+          <div className="text-2xl md:text-3xl font-semibold text-base-content tracking-tight">
+            {value}
+          </div>
           {(subtitle || trend) && (
             <div className="flex items-center gap-1.5 text-xs text-base-content/70">
               {trend && (
-                <span className={trend.isPositive ? 'text-success font-medium' : 'text-error font-medium'}>
-                  {trend.isPositive ? '↑' : '↓'} {trend.value}
+                <span
+                  className={
+                    trend.isPositive
+                      ? "text-success font-medium"
+                      : "text-error font-medium"
+                  }
+                >
+                  {trend.isPositive ? "↑" : "↓"} {trend.value}
                 </span>
               )}
               {subtitle && <span>{subtitle}</span>}

@@ -19,17 +19,17 @@ const getById = asyncHandler(async (req, res) => {
 });
 
 const create = asyncHandler(async (req, res) => {
-  const data = await krsDetilService.create(req.body);
+  const data = await krsDetilService.create(req.body, req.user);
   return success(res, { code: 201, message: 'KRS Detil berhasil ditambahkan', data });
 });
 
 const update = asyncHandler(async (req, res) => {
-  const data = await krsDetilService.update(req.params.id, req.body);
+  const data = await krsDetilService.update(req.params.id, req.body, req.user);
   return success(res, { message: 'KRS Detil berhasil diperbarui', data });
 });
 
 const remove = asyncHandler(async (req, res) => {
-  const data = await krsDetilService.remove(req.params.id);
+  const data = await krsDetilService.remove(req.params.id, req.user);
   return success(res, { message: 'KRS Detil berhasil dihapus', data });
 });
 

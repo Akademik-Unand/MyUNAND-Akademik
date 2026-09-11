@@ -1,4 +1,4 @@
-import { Skeleton } from '../ui/Skeleton';
+import { Skeleton } from "../ui/Skeleton";
 
 /**
  * Table-shaped skeleton matching DataTable layout.

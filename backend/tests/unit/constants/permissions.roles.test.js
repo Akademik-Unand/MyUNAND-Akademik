@@ -2,6 +2,7 @@
 
 const {
   buildCatalog,
+  isDosenAllowed,
   isDosenPaAllowed,
   isOrangTuaAllowed,
   isPimpinanAllowed,
@@ -23,38 +24,58 @@ describe('organizational role grants', () => {
       'penawaran-matakuliah.catalog', 'penawaran-matakuliah.schedule',
       'penawaran-matakuliah.sync',
       'cross-enrollment.read', 'cross-enrollment.enroll',
-      'cross-enrollment.cancel', 'cross-enrollment.approve-host',
+      'cross-enrollment.approve-pa',
     ]));
+    expect(names).not.toContain('cross-enrollment.cancel');
   });
 
   it('gives mahasiswa only catalog and own cross-enrollment actions', () => {
     const names = namesOf(require('../../../src/constants/permissions').isMahasiswaAllowed);
     expect(names).toEqual(expect.arrayContaining([
+      'krs.read',
+      'krs.create',
+      'krs.update',
+      'krs-detil.create',
+      'krs-detil.delete',
       'penawaran-matakuliah.catalog',
       'cross-enrollment.read',
       'cross-enrollment.enroll',
-      'cross-enrollment.cancel',
     ]));
-    expect(names).not.toContain('cross-enrollment.approve-host');
+    expect(names).not.toContain('cross-enrollment.cancel');
+    expect(names).not.toContain('cross-enrollment.approve-pa');
     expect(names).not.toContain('penawaran-matakuliah.publish');
+    // `krs-detil.read` sengaja tidak diberikan: GET /krs-detil belum dibatasi per pemilik.
+    expect(names).not.toContain('krs-detil.read');
+    expect(names).not.toContain('krs-detil.update');
   });
 
-  it('gives dosen the host approval action', () => {
-    const names = namesOf(require('../../../src/constants/permissions').isDosenAllowed);
-    expect(names).toContain('cross-enrollment.approve-host');
+  it('gives dosen the PA-facing read + approve actions, but no PA write', () => {
+    const names = namesOf(isDosenAllowed);
+    expect(names).toEqual(expect.arrayContaining([
+      'bimbingan-akademik.read',
+      'cross-enrollment.approve-pa',
+    ]));
+    // Penetapan/pengubahan/pelepasan PA tetap wewenang admin unit.
+    expect(names).not.toContain('bimbingan-akademik.create');
+    expect(names).not.toContain('bimbingan-akademik.update');
+    expect(names).not.toContain('bimbingan-akademik.delete');
   });
 
-  it('gives dosen-pa bimbingan plus dosen grants', () => {
+  it('gives dosen-pa bimbingan read plus dosen grants, tanpa kewenangan tulis PA', () => {
     const names = namesOf(isDosenPaAllowed);
     expect(names).toEqual(expect.arrayContaining([
       'krs.read',
       'krs.approve',
       'nilai.upload',
       'bimbingan-akademik.read',
+      'cross-enrollment.approve-pa',
       'mahasiswa.read',
       'rekap-cp.read',
       'periode.read',
     ]));
+    expect(names).not.toContain('bimbingan-akademik.create');
+    expect(names).not.toContain('bimbingan-akademik.update');
+    expect(names).not.toContain('bimbingan-akademik.delete');
     expect(names).not.toContain('fakultas.delete');
   });
 

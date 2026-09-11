@@ -1,74 +1,77 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const fakultasValidation = require('../../validations/institusi/fakultas.validation');
-const fakultasController = require('../../controllers/institusi/fakultas.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const fakultasValidation = require("../../validations/institusi/fakultas.validation");
+const fakultasController = require("../../controllers/institusi/fakultas.controller");
 
-const subject = 'Fakultas';
+const subject = "Fakultas";
 
-/fakultas */
+/fakultas */;
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: fakultasValidation.list }),
-  fakultasController.list
+  fakultasController.list,
 );
 
 /** POST /fakultas */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: fakultasValidation.create }),
-  fakultasController.create
+  fakultasController.create,
 );
 
 /** POST /fakultas/:id/restore */
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: fakultasValidation.idParam }),
-  fakultasController.restore
+  fakultasController.restore,
 );
 
 /** GET /fakultas/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: fakultasValidation.idParam }),
-  fakultasController.getById
+  fakultasController.getById,
 );
 
 /** PUT /fakultas/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
-  validate({ params: fakultasValidation.idParam, body: fakultasValidation.update }),
-  fakultasController.update
+  checkPermission("update", subject),
+  validate({
+    params: fakultasValidation.idParam,
+    body: fakultasValidation.update,
+  }),
+  fakultasController.update,
 );
 
 /** DELETE /fakultas/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: fakultasValidation.idParam }),
-  fakultasController.remove
+  fakultasController.remove,
 );
 
 module.exports = router;

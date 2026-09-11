@@ -8,7 +8,7 @@ export const DetailList = ({ items = [] }) => {
         <div key={item.label} className="grid grid-cols-3 gap-2 text-sm">
           <dt className="text-base-content/60 col-span-1">{item.label}</dt>
           <dd className="col-span-2 font-medium text-base-content break-words">
-            {item.value ?? '—'}
+            {item.value ?? "—"}
           </dd>
         </div>
       ))}

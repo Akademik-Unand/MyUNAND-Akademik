@@ -1,32 +1,36 @@
-import { useMemo } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { Plus } from 'lucide-react';
-import { PageHeader } from '../../components/common/PageHeader';
-import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { ConfirmDeleteModal } from '../../components/common/ConfirmDeleteModal';
-import { CpmkKelolaTable } from '../../components/kurikulum/CpmkKelolaTable';
-import { useResourceItem, useResourceQuery } from '../../hooks/useResourceQuery';
-import { useResourceMutations } from '../../hooks/useResourceMutations';
-import { useConfirmDelete } from '../../hooks/useConfirmDelete';
-import { PageSkeleton } from '../../components/common/PageSkeleton';
-import { Can } from '../../components/auth/Can';
-import { useCpmkPeriodOpen } from '../../hooks/usePeriodes';
+import { useMemo } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Plus } from "lucide-react";
+import { PageHeader } from "../../components/common/PageHeader";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { ConfirmDeleteModal } from "../../components/common/ConfirmDeleteModal";
+import { CpmkKelolaTable } from "../../components/kurikulum/CpmkKelolaTable";
+import {
+  useResourceItem,
+  useResourceQuery,
+} from "../../hooks/useResourceQuery";
+import { useResourceMutations } from "../../hooks/useResourceMutations";
+import { useConfirmDelete } from "../../hooks/useConfirmDelete";
+import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { Can } from "../../components/auth/Can";
+import { useCpmkPeriodOpen } from "../../hooks/usePeriodes";
 
-const querySuffix = (kurikulumId) => (kurikulumId ? `?kurikulum_id=${kurikulumId}` : '');
+const querySuffix = (kurikulumId) =>
+  kurikulumId ? `?kurikulum_id=${kurikulumId}` : "";
 
 export const AturCPMKPage = () => {
   const { id } = useParams();
   const [params] = useSearchParams();
-  const kurikulumId = params.get('kurikulum_id') || '';
+  const kurikulumId = params.get("kurikulum_id") || "";
   const suffix = querySuffix(kurikulumId);
-  const mk = useResourceItem('matakuliah', id);
-  const query = useResourceQuery('cpmk-detail', {
+  const mk = useResourceItem("matakuliah", id);
+  const query = useResourceQuery("cpmk-detail", {
     params: id ? { filter: { matakuliah_id: id } } : {},
     enabled: Boolean(id),
   });
-  const mutations = useResourceMutations('cpmk-detail', {
-    remove: 'CPMK berhasil dihapus.',
+  const mutations = useResourceMutations("cpmk-detail", {
+    remove: "CPMK berhasil dihapus.",
   });
   const del = useConfirmDelete();
   const cpmkOpen = useCpmkPeriodOpen().open;
@@ -41,22 +45,25 @@ export const AturCPMKPage = () => {
       grouped.set(item.parent_cpmk_id, list);
     }
     return {
-      roots: data.filter((item) => !item.parent_cpmk_id || !byId.has(item.parent_cpmk_id)),
+      roots: data.filter(
+        (item) => !item.parent_cpmk_id || !byId.has(item.parent_cpmk_id),
+      ),
       childrenByParent: grouped,
     };
   }, [data]);
 
-  if (mk.isPending || query.isPending) return <PageSkeleton showFilter={false} tableCols={4} />;
+  if (mk.isPending || query.isPending)
+    return <PageSkeleton showFilter={false} tableCols={4} />;
 
   return (
     <div className="space-y-4">
       <PageHeader
         title="Kelola CPMK"
-        subtitle={`${mk.data?.nama_resmi || ''} | ${mk.data?.kode_matakuliah || ''} | ${mk.data?.jumlah_sks_kurikulum || 0} sks`}
+        subtitle={`${mk.data?.nama_resmi || ""} | ${mk.data?.kode_matakuliah || ""} | ${mk.data?.jumlah_sks_kurikulum || 0} sks`}
         breadcrumbs={[
-          { label: 'Kurikulum' },
-          { label: 'CPMK Kurikulum', path: '/kurikulum/cpmk' },
-          { label: 'Kelola CPMK' },
+          { label: "Kurikulum & MK" },
+          { label: "CPMK Kurikulum", path: "/kurikulum/cpmk" },
+          { label: "Kelola CPMK" },
         ]}
         action={
           <div className="flex gap-2">
@@ -100,7 +107,9 @@ export const AturCPMKPage = () => {
         open={del.isOpen}
         onClose={del.close}
         isLoading={del.pending}
-        onConfirm={() => del.confirm((item) => mutations.remove.mutateAsync(item.id))}
+        onConfirm={() =>
+          del.confirm((item) => mutations.remove.mutateAsync(item.id))
+        }
       />
     </div>
   );

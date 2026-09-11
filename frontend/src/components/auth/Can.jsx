@@ -1,5 +1,5 @@
-import { useAuthStore } from '../../store/auth.store';
-import { can } from '../../policies/defineAbility';
+import { useAuthStore } from "../../store/auth.store";
+import { can } from "../../policies/defineAbility";
 
 /**
  * @param {{ I?: string, a?: string, any?: { I: string, a: string }[], children: import('react').ReactNode }} props

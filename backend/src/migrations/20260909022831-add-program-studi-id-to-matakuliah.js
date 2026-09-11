@@ -1,13 +1,13 @@
-'use strict';
-const { DataTypes } = require('sequelize');
+"use strict";
+const { DataTypes } = require("sequelize");
 module.exports = {
   async up(queryInterface) {
-    await queryInterface.addColumn('matakuliah', 'program_studi_id', {
+    await queryInterface.addColumn("matakuliah", "program_studi_id", {
       type: DataTypes.UUID,
       allowNull: true,
-      references: { model: 'program_studi', key: 'id' },
-      onUpdate: 'CASCADE',
-      onDelete: 'RESTRICT',
+      references: { model: "program_studi", key: "id" },
+      onUpdate: "CASCADE",
+      onDelete: "RESTRICT",
     });
     await queryInterface.sequelize.query(`
       UPDATE matakuliah m
@@ -20,10 +20,15 @@ module.exports = {
       SET m.program_studi_id = owner.program_studi_id
       WHERE m.program_studi_id IS NULL
     `);
-    await queryInterface.addIndex('matakuliah', ['program_studi_id'], { name: 'idx_matakuliah_program_studi' });
+    await queryInterface.addIndex("matakuliah", ["program_studi_id"], {
+      name: "idx_matakuliah_program_studi",
+    });
   },
   async down(queryInterface) {
-    await queryInterface.removeIndex('matakuliah', 'idx_matakuliah_program_studi');
-    await queryInterface.removeColumn('matakuliah', 'program_studi_id');
+    await queryInterface.removeIndex(
+      "matakuliah",
+      "idx_matakuliah_program_studi",
+    );
+    await queryInterface.removeColumn("matakuliah", "program_studi_id");
   },
 };

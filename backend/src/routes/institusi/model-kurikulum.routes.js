@@ -1,74 +1,77 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const modelKurikulumValidation = require('../../validations/institusi/model-kurikulum.validation');
-const modelKurikulumController = require('../../controllers/institusi/model-kurikulum.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const modelKurikulumValidation = require("../../validations/institusi/model-kurikulum.validation");
+const modelKurikulumController = require("../../controllers/institusi/model-kurikulum.controller");
 
-const subject = 'ModelKurikulum';
+const subject = "ModelKurikulum";
 
-/model-kurikulum */
+/model-kurikulum */;
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: modelKurikulumValidation.list }),
-  modelKurikulumController.list
+  modelKurikulumController.list,
 );
 
 /** POST /model-kurikulum */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: modelKurikulumValidation.create }),
-  modelKurikulumController.create
+  modelKurikulumController.create,
 );
 
 /** POST /model-kurikulum/:id/restore */
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: modelKurikulumValidation.idParam }),
-  modelKurikulumController.restore
+  modelKurikulumController.restore,
 );
 
 /** GET /model-kurikulum/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: modelKurikulumValidation.idParam }),
-  modelKurikulumController.getById
+  modelKurikulumController.getById,
 );
 
 /** PUT /model-kurikulum/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
-  validate({ params: modelKurikulumValidation.idParam, body: modelKurikulumValidation.update }),
-  modelKurikulumController.update
+  checkPermission("update", subject),
+  validate({
+    params: modelKurikulumValidation.idParam,
+    body: modelKurikulumValidation.update,
+  }),
+  modelKurikulumController.update,
 );
 
 /** DELETE /model-kurikulum/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: modelKurikulumValidation.idParam }),
-  modelKurikulumController.remove
+  modelKurikulumController.remove,
 );
 
 module.exports = router;

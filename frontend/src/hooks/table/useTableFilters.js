@@ -1,6 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from "react";
 
-const FILTER_PREFIX = 'filter.';
+const FILTER_PREFIX = "filter.";
 
 /**
  * Filter per kolom disimpan di URL sebagai `filter.<kolom>=<nilai>` dan dikirim
@@ -11,7 +11,7 @@ export const useTableFilters = ({ searchParams, setParams, key }) => {
     const result = {};
     const prefix = key(FILTER_PREFIX);
     searchParams.forEach((value, name) => {
-      if (name.startsWith(prefix) && value !== '') {
+      if (name.startsWith(prefix) && value !== "") {
         result[name.slice(prefix.length)] = value;
       }
     });
@@ -19,17 +19,23 @@ export const useTableFilters = ({ searchParams, setParams, key }) => {
   }, [searchParams, key]);
 
   const setFilter = useCallback(
-    (field, value) => setParams({ [`${FILTER_PREFIX}${field}`]: value, page: '' }),
-    [setParams]
+    (field, value) =>
+      setParams({ [`${FILTER_PREFIX}${field}`]: value, page: "" }),
+    [setParams],
   );
 
   const clearFilters = useCallback(() => {
-    const patch = { page: '' };
+    const patch = { page: "" };
     Object.keys(filter).forEach((field) => {
-      patch[`${FILTER_PREFIX}${field}`] = '';
+      patch[`${FILTER_PREFIX}${field}`] = "";
     });
     setParams(patch);
   }, [filter, setParams]);
 
-  return { filter, setFilter, clearFilters, activeCount: Object.keys(filter).length };
+  return {
+    filter,
+    setFilter,
+    clearFilters,
+    activeCount: Object.keys(filter).length,
+  };
 };

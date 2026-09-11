@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from "vitest";
 import {
   EMPTY_ACADEMIC_FILTER,
   academicScopeLock,
@@ -7,130 +7,144 @@ import {
   cascadeAcademicOptions,
   isAcademicDraftReady,
   toAcademicExtraFilter,
-} from './academicFilter';
+} from "./academicFilter";
 
-describe('academicFilter', () => {
-  it('clears child fields when a parent changes', () => {
+describe("academicFilter", () => {
+  it("clears child fields when a parent changes", () => {
     const next = applyAcademicField(
       {
         ...EMPTY_ACADEMIC_FILTER,
-        fakultasId: 'f1',
-        departemenId: 'd1',
-        prodiId: 'p1',
-        kurikulumId: 'k1',
+        fakultasId: "f1",
+        departemenId: "d1",
+        prodiId: "p1",
+        kurikulumId: "k1",
       },
-      'departemenId',
-      'd2'
+      "departemenId",
+      "d2",
     );
-    expect(next.departemenId).toBe('d2');
-    expect(next.prodiId).toBe('');
-    expect(next.kurikulumId).toBe('');
+    expect(next.departemenId).toBe("d2");
+    expect(next.prodiId).toBe("");
+    expect(next.kurikulumId).toBe("");
   });
 
-  it('maps the deepest applied org filter', () => {
-    expect(
-      toAcademicExtraFilter({ ...EMPTY_ACADEMIC_FILTER, fakultasId: 'f1', prodiId: 'p1' }, [
-        'fakultas',
-        'departemen',
-        'prodi',
-        'kurikulum',
-      ])
-    ).toEqual({ program_studi_id: 'p1' });
-  });
-
-  it('adds semester without replacing the org filter', () => {
+  it("maps the deepest applied org filter", () => {
     expect(
       toAcademicExtraFilter(
-        { ...EMPTY_ACADEMIC_FILTER, kurikulumId: 'k1', semesterId: 's1' },
-        ['fakultas', 'departemen', 'prodi', 'kurikulum', 'semester']
-      )
-    ).toEqual({ kurikulum_id: 'k1', semester_id: 's1' });
+        { ...EMPTY_ACADEMIC_FILTER, fakultasId: "f1", prodiId: "p1" },
+        ["fakultas", "departemen", "prodi", "kurikulum"],
+      ),
+    ).toEqual({ program_studi_id: "p1" });
   });
 
-  it('cascades prodi by departemen', () => {
+  it("adds semester without replacing the org filter", () => {
+    expect(
+      toAcademicExtraFilter(
+        { ...EMPTY_ACADEMIC_FILTER, kurikulumId: "k1", semesterId: "s1" },
+        ["fakultas", "departemen", "prodi", "kurikulum", "semester"],
+      ),
+    ).toEqual({ kurikulum_id: "k1", semester_id: "s1" });
+  });
+
+  it("cascades prodi by departemen", () => {
     const options = cascadeAcademicOptions(
       {
-        fakultas: [{ id: 'f1', nama_resmi: 'FT' }],
+        fakultas: [{ id: "f1", nama_resmi: "FT" }],
         departemen: [
-          { id: 'd1', fakultas_id: 'f1', nama_resmi: 'Informatika' },
-          { id: 'd2', fakultas_id: 'f2', nama_resmi: 'Lain' },
+          { id: "d1", fakultas_id: "f1", nama_resmi: "Informatika" },
+          { id: "d2", fakultas_id: "f2", nama_resmi: "Lain" },
         ],
         prodi: [
-          { id: 'p1', departemen_id: 'd1', nama_resmi: 'SI' },
-          { id: 'p2', departemen_id: 'd2', nama_resmi: 'TI' },
+          { id: "p1", departemen_id: "d1", nama_resmi: "SI" },
+          { id: "p2", departemen_id: "d2", nama_resmi: "TI" },
         ],
         kurikulum: [],
         semester: [],
       },
-      { ...EMPTY_ACADEMIC_FILTER, fakultasId: 'f1', departemenId: 'd1' }
+      { ...EMPTY_ACADEMIC_FILTER, fakultasId: "f1", departemenId: "d1" },
     );
-    expect(options.departemen.map((row) => row.value)).toEqual(['d1']);
-    expect(options.prodi.map((row) => row.value)).toEqual(['p1']);
+    expect(options.departemen.map((row) => row.value)).toEqual(["d1"]);
+    expect(options.prodi.map((row) => row.value)).toEqual(["p1"]);
   });
 
-  it('uses nama_singkat for prodi option labels', () => {
+  it("uses nama_singkat for prodi option labels", () => {
     const options = cascadeAcademicOptions({
       fakultas: [],
       departemen: [],
-      prodi: [{ id: 'p1', nama_resmi: 'Teknik Pertanian dan Biosistem', nama_singkat: 'S1 Teknik Pertanian dan Biosistem' }],
+      prodi: [
+        {
+          id: "p1",
+          nama_resmi: "Teknik Pertanian dan Biosistem",
+          nama_singkat: "S1 Teknik Pertanian dan Biosistem",
+        },
+      ],
       kurikulum: [],
       semester: [],
     });
-    expect(options.prodi[0].label).toBe('S1 Teknik Pertanian dan Biosistem');
+    expect(options.prodi[0].label).toBe("S1 Teknik Pertanian dan Biosistem");
   });
 
-  it('treats empty draft as not ready to apply', () => {
+  it("treats empty draft as not ready to apply", () => {
     expect(isAcademicDraftReady(EMPTY_ACADEMIC_FILTER)).toBe(false);
-    expect(isAcademicDraftReady({ ...EMPTY_ACADEMIC_FILTER, fakultasId: 'f1' })).toBe(true);
+    expect(
+      isAcademicDraftReady({ ...EMPTY_ACADEMIC_FILTER, fakultasId: "f1" }),
+    ).toBe(true);
   });
 
-  it('locks filter state for a single-unit prodi scope', () => {
-    expect(academicScopeLock({ level: 'prodi', prodi_ids: ['p1'] })).toEqual({
-      fakultasId: '',
-      departemenId: '',
-      prodiId: 'p1',
+  it("locks filter state for a single-unit prodi scope", () => {
+    expect(academicScopeLock({ level: "prodi", prodi_ids: ["p1"] })).toEqual({
+      fakultasId: "",
+      departemenId: "",
+      prodiId: "p1",
     });
   });
 
-  it('leaves prodi empty for multi-unit prodi scope', () => {
-    expect(academicScopeLock({ level: 'prodi', prodi_ids: ['p1', 'p2'] }).prodiId).toBe('');
+  it("leaves prodi empty for multi-unit prodi scope", () => {
+    expect(
+      academicScopeLock({ level: "prodi", prodi_ids: ["p1", "p2"] }).prodiId,
+    ).toBe("");
   });
 
-  it('does not lock anything for university admin', () => {
-    expect(academicScopeLock({ level: 'universitas' })).toEqual({ fakultasId: '', departemenId: '', prodiId: '' });
+  it("does not lock anything for university admin", () => {
+    expect(academicScopeLock({ level: "universitas" })).toEqual({
+      fakultasId: "",
+      departemenId: "",
+      prodiId: "",
+    });
   });
 
-  it('limits options to the user prodi scope', () => {
+  it("limits options to the user prodi scope", () => {
     const options = cascadeAcademicOptions(
       {
-        fakultas: [{ id: 'f1', nama_resmi: 'FT' }],
-        departemen: [{ id: 'd1', fakultas_id: 'f1', nama_resmi: 'Informatika' }],
+        fakultas: [{ id: "f1", nama_resmi: "FT" }],
+        departemen: [
+          { id: "d1", fakultas_id: "f1", nama_resmi: "Informatika" },
+        ],
         prodi: [
-          { id: 'p1', departemen_id: 'd1', nama_resmi: 'SI' },
-          { id: 'p2', departemen_id: 'd1', nama_resmi: 'TI' },
+          { id: "p1", departemen_id: "d1", nama_resmi: "SI" },
+          { id: "p2", departemen_id: "d1", nama_resmi: "TI" },
         ],
         kurikulum: [
-          { id: 'k1', program_studi_id: 'p1', nama: 'Kurikulum A' },
-          { id: 'k2', program_studi_id: 'p2', nama: 'Kurikulum B' },
+          { id: "k1", program_studi_id: "p1", nama: "Kurikulum A" },
+          { id: "k2", program_studi_id: "p2", nama: "Kurikulum B" },
         ],
         semester: [],
       },
       EMPTY_ACADEMIC_FILTER,
-      { level: 'prodi', prodi_ids: ['p1'] }
+      { level: "prodi", prodi_ids: ["p1"] },
     );
-    expect(options.prodi.map((row) => row.value)).toEqual(['p1']);
-    expect(options.kurikulum.map((row) => row.value)).toEqual(['k1']);
+    expect(options.prodi.map((row) => row.value)).toEqual(["p1"]);
+    expect(options.kurikulum.map((row) => row.value)).toEqual(["k1"]);
   });
 
-  it('disables fields above the user scope level', () => {
-    const scope = { level: 'prodi', prodi_ids: ['p1'] };
+  it("disables fields above the user scope level", () => {
+    const scope = { level: "prodi", prodi_ids: ["p1"] };
     const fields = buildAcademicFilterFields({
-      keys: ['fakultas', 'departemen', 'prodi', 'kurikulum'],
+      keys: ["fakultas", "departemen", "prodi", "kurikulum"],
       draft: EMPTY_ACADEMIC_FILTER,
       options: {
         fakultas: [],
         departemen: [],
-        prodi: [{ value: 'p1', label: 'SI' }],
+        prodi: [{ value: "p1", label: "SI" }],
         kurikulum: [],
       },
       onChange: () => {},
@@ -139,6 +153,6 @@ describe('academicFilter', () => {
     expect(fields[0].disabled).toBe(true); // fakultas
     expect(fields[1].disabled).toBe(true); // departemen
     expect(fields[2].disabled).toBe(false); // prodi
-    expect(fields[2].value).toBe('p1');
+    expect(fields[2].value).toBe("p1");
   });
 });

@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Eye, Pencil, Plus, Power, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { IconButton, IconLink } from '../../components/common/IconButton';
-import { PageHeader } from '../../components/common/PageHeader';
-import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { DataTable } from '../../components/common/DataTable';
-import { ConfirmDeleteModal } from '../../components/common/ConfirmDeleteModal';
-import { Drawer } from '../../components/ui/Drawer';
-import { DetailList } from '../../components/common/DetailList';
-import { Can } from '../../components/auth/Can';
-import { useResourceMutations } from '../../hooks/useResourceMutations';
-import { useResourceQuery } from '../../hooks/useResourceQuery';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Eye, Pencil, Plus, Power, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { IconButton, IconLink } from "../../components/common/IconButton";
+import { PageHeader } from "../../components/common/PageHeader";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { DataTable } from "../../components/common/DataTable";
+import { ConfirmDeleteModal } from "../../components/common/ConfirmDeleteModal";
+import { Drawer } from "../../components/ui/Drawer";
+import { DetailList } from "../../components/common/DetailList";
+import { Can } from "../../components/auth/Can";
+import { useResourceMutations } from "../../hooks/useResourceMutations";
+import { useResourceQuery } from "../../hooks/useResourceQuery";
 
 export const SettingSemesterPage = () => {
-  const mutations = useResourceMutations('setting-semester', {
-    remove: 'Setting semester berhasil dihapus.',
+  const mutations = useResourceMutations("setting-semester", {
+    remove: "Setting semester berhasil dihapus.",
   });
-  const allRows = useResourceQuery('setting-semester');
+  const allRows = useResourceQuery("setting-semester");
   const [detail, setDetail] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [activating, setActivating] = useState(false);
@@ -31,27 +31,33 @@ export const SettingSemesterPage = () => {
       for (const item of rows) {
         const next = item.id === row.id;
         if (Boolean(item.is_aktif) === next) continue;
-        await mutations.update.mutateAsync({ id: item.id, payload: { is_aktif: next } });
+        await mutations.update.mutateAsync({
+          id: item.id,
+          payload: { is_aktif: next },
+        });
       }
-      toast.success(`${row.jenisSemester?.nama || 'Semester'} ${row.tahun} diaktifkan`);
+      toast.success(
+        `${row.jenisSemester?.nama || "Semester"} ${row.tahun} diaktifkan`,
+      );
     } catch (err) {
-      toast.error(err.message || 'Gagal mengaktifkan semester');
+      toast.error(err.message || "Gagal mengaktifkan semester");
     } finally {
       setActivating(false);
     }
   };
 
   const columns = [
-    { key: 'tahun', header: 'Tahun', sortable: true },
+    { key: "tahun", header: "Tahun", sortable: true },
     {
-      key: 'jenis_semester_id',
-      header: 'Jenis',
+      key: "jenis_semester_id",
+      header: "Jenis",
       sortable: true,
-      render: (row) => row.jenisSemester?.nama || row.jenisSemester?.alias || '—',
+      render: (row) =>
+        row.jenisSemester?.nama || row.jenisSemester?.alias || "—",
     },
     {
-      key: 'is_aktif',
-      header: 'Status',
+      key: "is_aktif",
+      header: "Status",
       sortable: true,
       render: (row) =>
         row.is_aktif ? (
@@ -60,15 +66,20 @@ export const SettingSemesterPage = () => {
           <span className="badge badge-ghost badge-sm">Tidak Aktif</span>
         ),
     },
-    { key: 'tanggal_mulai', header: 'Mulai', sortable: true },
-    { key: 'tanggal_selesai', header: 'Selesai', sortable: true },
+    { key: "tanggal_mulai", header: "Mulai", sortable: true },
+    { key: "tanggal_selesai", header: "Selesai", sortable: true },
     {
-      header: 'Aksi',
-      className: 'text-right',
-      cellClassName: 'text-right',
+      header: "Aksi",
+      className: "text-right",
+      cellClassName: "text-right",
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
-          <IconButton label="Lihat detail" icon={Eye} tone="text-info" onClick={() => setDetail(row)} />
+          <IconButton
+            label="Lihat detail"
+            icon={Eye}
+            tone="text-info"
+            onClick={() => setDetail(row)}
+          />
           <Can I="update" a="Semester">
             {!row.is_aktif && (
               <IconButton
@@ -104,7 +115,11 @@ export const SettingSemesterPage = () => {
       <PageHeader
         title="Setting Semester"
         subtitle="Kelola semester aktif pada SIAKAD Kurikulum"
-        breadcrumbs={[{ label: 'Master Data' }, { label: 'Semester' }, { label: 'Setting Semester' }]}
+        breadcrumbs={[
+          { label: "Master Data" },
+          { label: "Semester" },
+          { label: "Setting Semester" },
+        ]}
         action={
           <Can I="create" a="Semester">
             <Link to="/master/semester/setting/baru">
@@ -129,16 +144,21 @@ export const SettingSemesterPage = () => {
         open={Boolean(detail)}
         onClose={() => setDetail(null)}
         title="Detail Setting Semester"
-        subtitle={detail ? `${detail.jenisSemester?.nama || ''} ${detail.tahun}` : ''}
+        subtitle={
+          detail ? `${detail.jenisSemester?.nama || ""} ${detail.tahun}` : ""
+        }
       >
         {detail && (
           <DetailList
             items={[
-              { label: 'Tahun', value: detail.tahun },
-              { label: 'Jenis', value: detail.jenisSemester?.nama },
-              { label: 'Status', value: detail.is_aktif ? 'Aktif' : 'Tidak Aktif' },
-              { label: 'Mulai', value: detail.tanggal_mulai },
-              { label: 'Selesai', value: detail.tanggal_selesai },
+              { label: "Tahun", value: detail.tahun },
+              { label: "Jenis", value: detail.jenisSemester?.nama },
+              {
+                label: "Status",
+                value: detail.is_aktif ? "Aktif" : "Tidak Aktif",
+              },
+              { label: "Mulai", value: detail.tanggal_mulai },
+              { label: "Selesai", value: detail.tanggal_selesai },
             ]}
           />
         )}
@@ -150,8 +170,8 @@ export const SettingSemesterPage = () => {
         title="Hapus Setting Semester"
         message={
           deleteTarget
-            ? `Yakin ingin menghapus ${deleteTarget.jenisSemester?.nama || 'semester'} ${deleteTarget.tahun}?`
-            : ''
+            ? `Yakin ingin menghapus ${deleteTarget.jenisSemester?.nama || "semester"} ${deleteTarget.tahun}?`
+            : ""
         }
         onConfirm={async () => {
           await mutations.remove.mutateAsync(deleteTarget.id);

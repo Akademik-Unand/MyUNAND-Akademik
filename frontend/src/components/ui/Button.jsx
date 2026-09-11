@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState } from "react";
 
 /**
  * Atomic Button. Saat isLoading atau onClick mengembalikan Promise,
@@ -6,35 +6,38 @@ import { useRef, useState } from 'react';
  */
 export const Button = ({
   children,
-  variant = 'primary',
-  size = 'md',
+  variant = "primary",
+  size = "md",
   isLoading = false,
-  className = '',
+  className = "",
   disabled,
   onClick,
-  type = 'button',
+  type = "button",
   ...props
 }) => {
   const [innerBusy, setInnerBusy] = useState(false);
   const lockRef = useRef(false);
   const busy = Boolean(disabled || isLoading || innerBusy);
 
-  const variantClass = {
-    primary: 'btn-primary',
-    secondary: 'btn-secondary',
-    accent: 'btn-accent',
-    neutral: 'btn-neutral',
-    ghost: 'btn-ghost',
-    outline: 'btn-outline',
-    error: 'btn-error',
-  }[variant] || 'btn-primary';
+  const variantClass =
+    {
+      primary: "btn-primary",
+      secondary: "btn-secondary",
+      accent: "btn-accent",
+      neutral: "btn-neutral",
+      info: "btn-info",
+      ghost: "btn-ghost",
+      outline: "btn-outline",
+      error: "btn-error",
+    }[variant] || "btn-primary";
 
-  const sizeClass = {
-    xs: 'btn-xs',
-    sm: 'btn-sm',
-    md: 'btn-md',
-    lg: 'btn-lg',
-  }[size] || 'btn-md';
+  const sizeClass =
+    {
+      xs: "btn-xs",
+      sm: "btn-sm",
+      md: "btn-md",
+      lg: "btn-lg",
+    }[size] || "btn-md";
 
   const handleClick = async (event) => {
     if (busy || lockRef.current) {
@@ -46,7 +49,7 @@ export const Button = ({
     lockRef.current = true;
     try {
       const result = onClick?.(event);
-      if (result && typeof result.then === 'function') {
+      if (result && typeof result.then === "function") {
         setInnerBusy(true);
         try {
           await result;
@@ -64,13 +67,15 @@ export const Button = ({
   return (
     <button
       type={type}
-      className={`btn ${variantClass} ${sizeClass} ${busy ? 'pointer-events-none' : ''} ${className}`}
+      className={`btn ${variantClass} ${sizeClass} ${busy ? "pointer-events-none" : ""} ${className}`}
       {...props}
       disabled={busy}
       aria-busy={isLoading || innerBusy}
       onClick={handleClick}
     >
-      {(isLoading || innerBusy) && <span className="loading loading-spinner loading-xs" />}
+      {(isLoading || innerBusy) && (
+        <span className="loading loading-spinner loading-xs" />
+      )}
       {children}
     </button>
   );

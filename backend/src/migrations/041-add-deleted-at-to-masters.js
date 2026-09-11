@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const { MASTER_TABLES } = require('../constants/permissions');
+const { MASTER_TABLES } = require("../constants/permissions");
 
 module.exports = {
   // Idempotent: lewati tabel yang belum ada (mis. jenis_dokumen_evaluasi dibuat
@@ -12,7 +12,7 @@ module.exports = {
       if (!exists) continue;
       const attrs = await queryInterface.describeTable(table);
       if (attrs.deletedAt) continue;
-      await queryInterface.addColumn(table, 'deletedAt', {
+      await queryInterface.addColumn(table, "deletedAt", {
         type: Sequelize.DATE,
         allowNull: true,
       });
@@ -25,7 +25,7 @@ module.exports = {
       if (!exists) continue;
       const attrs = await queryInterface.describeTable(table);
       if (!attrs.deletedAt) continue;
-      await queryInterface.removeColumn(table, 'deletedAt');
+      await queryInterface.removeColumn(table, "deletedAt");
     }
   },
 };

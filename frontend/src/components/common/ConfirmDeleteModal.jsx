@@ -1,6 +1,6 @@
-import { AlertTriangle } from 'lucide-react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
+import { AlertTriangle } from "lucide-react";
+import { Modal } from "../ui/Modal";
+import { Button } from "../ui/Button";
 
 /**
  * Konfirmasi hapus. Memakai komponen Modal yang sama dengan form create/edit
@@ -10,8 +10,8 @@ export const ConfirmDeleteModal = ({
   open,
   onClose,
   onConfirm,
-  title = 'Hapus data',
-  message = 'Yakin ingin menghapus data ini? Data master akan diarsipkan.',
+  title = "Hapus data",
+  message = "Yakin ingin menghapus data ini? Data master akan diarsipkan.",
   isLoading = false,
 }) => {
   return (
@@ -23,10 +23,20 @@ export const ConfirmDeleteModal = ({
       closeOnBackdrop={!isLoading}
       footer={
         <>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={isLoading}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            disabled={isLoading}
+          >
             Batal
           </Button>
-          <Button variant="error" size="sm" onClick={onConfirm} isLoading={isLoading}>
+          <Button
+            variant="error"
+            size="sm"
+            onClick={onConfirm}
+            isLoading={isLoading}
+          >
             Hapus
           </Button>
         </>

@@ -1,7 +1,12 @@
-import { useResourceQuery } from '../../hooks/useResourceQuery';
+import { useResourceQuery } from "../../hooks/useResourceQuery";
 
-export const ScpPicker = ({ kurikulumId, value = [], onChange, required = false }) => {
-  const query = useResourceQuery('kurikulum-cp', {
+export const ScpPicker = ({
+  kurikulumId,
+  value = [],
+  onChange,
+  required = false,
+}) => {
+  const query = useResourceQuery("kurikulum-cp", {
     params: kurikulumId ? { filter: { kurikulum_id: kurikulumId } } : {},
     enabled: Boolean(kurikulumId),
   });
@@ -17,7 +22,8 @@ export const ScpPicker = ({ kurikulumId, value = [], onChange, required = false 
   if (!kurikulumId) {
     return (
       <p className="text-sm text-base-content/60">
-        Buka halaman ini dari daftar CPMK setelah memilih kurikulum, supaya CP/SCP bisa dipilih.
+        Buka halaman ini dari daftar CPMK setelah memilih kurikulum, supaya
+        CP/SCP bisa dipilih.
       </p>
     );
   }
@@ -29,7 +35,8 @@ export const ScpPicker = ({ kurikulumId, value = [], onChange, required = false 
   if (!cps.length) {
     return (
       <p className="text-sm text-base-content/60">
-        Belum ada CP/SCP pada kurikulum ini. Tambah dulu di halaman CP Kurikulum.
+        Belum ada CP/SCP pada kurikulum ini. Tambah dulu di halaman CP
+        Kurikulum.
       </p>
     );
   }
@@ -37,7 +44,7 @@ export const ScpPicker = ({ kurikulumId, value = [], onChange, required = false 
   return (
     <fieldset className="fieldset p-0 gap-2">
       <legend className="text-xs font-medium text-base-content/80">
-        CP / SCP terkait{required ? ' *' : ' (opsional)'}
+        CP / SCP terkait{required ? " *" : " (opsional)"}
       </legend>
       <p className="text-xs text-base-content/60">
         Pilih SCP di bawah CP yang terkait. Boleh lebih dari satu.
@@ -45,7 +52,9 @@ export const ScpPicker = ({ kurikulumId, value = [], onChange, required = false 
       <div className="space-y-3 rounded-box border border-base-300 p-3">
         {cps.map((cp) => (
           <div key={cp.id} className="space-y-1">
-            <p className="text-xs font-semibold text-base-content/80">{cp.nama_cp}</p>
+            <p className="text-xs font-semibold text-base-content/80">
+              {cp.nama_cp}
+            </p>
             {(cp.scp || []).map((scp) => (
               <label key={scp.id} className="flex items-start gap-2 py-0.5">
                 <input
@@ -56,12 +65,14 @@ export const ScpPicker = ({ kurikulumId, value = [], onChange, required = false 
                 />
                 <span className="text-sm leading-snug">
                   {scp.nama_scp}
-                  {scp.deskripsi ? ` — ${scp.deskripsi}` : ''}
+                  {scp.deskripsi ? ` — ${scp.deskripsi}` : ""}
                 </span>
               </label>
             ))}
             {!(cp.scp || []).length && (
-              <p className="text-xs text-base-content/50">Belum ada SCP pada CP ini.</p>
+              <p className="text-xs text-base-content/50">
+                Belum ada SCP pada CP ini.
+              </p>
             )}
           </div>
         ))}

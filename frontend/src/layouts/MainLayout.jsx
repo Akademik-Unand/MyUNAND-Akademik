@@ -1,15 +1,15 @@
-import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import { Sidebar } from './Sidebar';
-import { Navbar } from './Navbar';
-import { Footer } from './Footer';
-import { useUIStore } from '../store/ui.store';
+import { useEffect } from "react";
+import { Outlet } from "react-router-dom";
+import { Sidebar } from "./Sidebar";
+import { Navbar } from "./Navbar";
+import { Footer } from "./Footer";
+import { useUIStore } from "../store/ui.store";
 export const MainLayout = () => {
   const { theme } = useUIStore();
 
   useEffect(() => {
     // Ensure document element has current theme on mount
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
   return (

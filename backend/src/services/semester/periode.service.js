@@ -7,7 +7,7 @@ const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
 
 const LIST_OPTIONS = {
-  searchFields: ['jenis'],
+  searchFields: ['jenis', '$semester.tahun$', '$semester.jenisSemester.nama$'],
   sortableFields: ['jenis', 'tanggal_mulai', 'tanggal_selesai', 'createdAt'],
   filterableFields: ['semester_id', 'jenis'],
   defaultInclude: [

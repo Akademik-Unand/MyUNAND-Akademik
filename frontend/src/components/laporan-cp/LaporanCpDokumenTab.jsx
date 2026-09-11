@@ -1,8 +1,12 @@
-import { FileText, ExternalLink } from 'lucide-react';
+import { FileText, ExternalLink } from "lucide-react";
 
 export const LaporanCpDokumenTab = ({ dokumen = [] }) => {
   if (!dokumen.length) {
-    return <p className="text-sm text-base-content/60">Belum ada dokumen evaluasi.</p>;
+    return (
+      <p className="text-sm text-base-content/60">
+        Belum ada dokumen evaluasi.
+      </p>
+    );
   }
 
   return (
@@ -25,8 +29,10 @@ export const LaporanCpDokumenTab = ({ dokumen = [] }) => {
                   {row.nama}
                 </span>
               </td>
-              <td>{row.jenis_nama || '—'}</td>
-              <td className="max-w-xs whitespace-normal">{row.keterangan || '—'}</td>
+              <td>{row.jenis_nama || "—"}</td>
+              <td className="max-w-xs whitespace-normal">
+                {row.keterangan || "—"}
+              </td>
               <td>
                 {row.file_path ? (
                   <a
@@ -39,7 +45,7 @@ export const LaporanCpDokumenTab = ({ dokumen = [] }) => {
                     <ExternalLink size={12} />
                   </a>
                 ) : (
-                  '—'
+                  "—"
                 )}
               </td>
             </tr>
