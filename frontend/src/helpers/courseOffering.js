@@ -19,7 +19,8 @@ export const buildBulkOfferingPayload = (
 ) => {
   const byId = new Map((courses || []).map((course) => [course.id, course]));
   return {
-    semester_prodi_id: settings.semester_prodi_id,
+    semester_id: settings.semester_id,
+    program_studi_id: settings.program_studi_id,
     kuota_lintas_prodi_default: Number(settings.kuota_lintas_prodi || 0),
     akses: settings.akses,
     prodi_tujuan: settings.akses === "terpilih" ? settings.prodi_tujuan : [],

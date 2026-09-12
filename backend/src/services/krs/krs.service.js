@@ -1,11 +1,15 @@
 'use strict';
 
 const { Op } = require('sequelize');
-const { sequelize, Krs, KrsDetil, Kelas, Matakuliah, JadwalKelas, DosenKelas, Ruang, Shift, Dosen, Cpmk, Scp, Cp, Mahasiswa, ProgramStudi, SemesterProdi, Semester, JenisSemester, User, BimbinganAkademik } = require('../../models');
+const { sequelize, Krs, KrsDetil, Kelas, Matakuliah, JadwalKelas, DosenKelas, Ruang, Shift, Dosen, Cpmk, Scp, Cp, Mahasiswa, ProgramStudi, Semester, JenisSemester, User, BimbinganAkademik } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const logger = require('../../utils/logger');
-const { assertKrsPeriodForSemesterProdi } = require('../../helpers/academicPeriod');
+const {
+  assertKrsPeriodForSemester,
+  getPeriod,
+  JENIS,
+} = require('../../helpers/academicPeriod');
 const { assertActivePa } = require('../../helpers/activePa');
 
 /**
@@ -43,16 +47,17 @@ const CPMK_INCLUDE = {
 const LIST_OPTIONS = {
   searchFields: ['$mahasiswa.nama$', '$mahasiswa.niu$'],
   sortableFields: ['approval_ke', 'createdAt'],
-  filterableFields: ['mahasiswa_id', 'semester_prodi_id'],
+  filterableFields: ['mahasiswa_id', 'semester_id'],
   defaultInclude: [
-    { model: Mahasiswa, as: 'mahasiswa' },
     {
-      model: SemesterProdi,
-      as: 'semesterProdi',
-      include: [
-        { model: ProgramStudi, as: 'programStudi' },
-        { model: Semester, as: 'semester', include: [{ model: JenisSemester, as: 'jenisSemester' }] },
-      ],
+      model: Mahasiswa,
+      as: 'mahasiswa',
+      include: [{ model: ProgramStudi, as: 'programStudi' }],
+    },
+    {
+      model: Semester,
+      as: 'semester',
+      include: [{ model: JenisSemester, as: 'jenisSemester' }],
     },
     {
       model: KrsDetil,
@@ -128,7 +133,7 @@ const create = async (payload, user) => {
       await assertActivePa(actor.mahasiswa_id);
     }
   }
-  await assertKrsPeriodForSemesterProdi(resolved.semester_prodi_id);
+  await assertKrsPeriodForSemester(resolved.semester_id);
   const item = await Krs.create(resolved);
   logger.info({ krsId: item.id, mahasiswaId: resolved.mahasiswa_id }, 'User submit KRS');
   return Krs.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude });
@@ -146,7 +151,7 @@ const remove = async (id) => {
   return { id };
 };
 
-const approve = async (id, { approval_ke } = {}) => {
+const approve = async (id, { approval_ke } = {}, user = {}) => {
   return sequelize.transaction(async (transaction) => {
     const krs = await Krs.findByPk(id, {
       include: [{ model: KrsDetil, as: 'krsDetil' }],
@@ -157,18 +162,43 @@ const approve = async (id, { approval_ke } = {}) => {
       throw new AppError('KRS tidak ditemukan', 404);
     }
 
+    const now = new Date();
     await krs.update({
       approval_ke: approval_ke !== undefined ? approval_ke : krs.approval_ke + 1,
-      jam_selesai: new Date(),
+      jam_selesai: now,
     }, { transaction });
 
-    // Hanya baris KRS reguler yang ikut disetujui. Pengajuan lintas prodi punya
-    // keputusan PA sendiri (`cross_enrollment_status`), jadi jangan ditimpa agar
-    // statusnya tidak bertentangan (mis. `approved='1'` tapi masih menunggu PA).
     if (krs.krsDetil && krs.krsDetil.length > 0) {
+      // Baris KRS reguler ikut disetujui bersama KRS-nya.
       await KrsDetil.update(
         { approved: '1' },
         { where: { krs_id: krs.id, is_cross_enrollment: false, approved: '0' }, transaction }
+      );
+
+      // Pengajuan lintas prodi tidak punya antrean persetujuan terpisah lagi:
+      // keputusan PA diambil bersamaan dengan persetujuan KRS, jadi seluruh
+      // baris lintas prodi yang BELUM diputuskan ikut ditetapkan di sini —
+      // `pending_pa` maupun status kosong (NULL) yang terwarisi dari data lama.
+      // Baris yang sudah diputuskan (approved/rejected) tidak ditimpa agar
+      // riwayatnya tetap utuh.
+      await KrsDetil.update(
+        {
+          approved: '1',
+          cross_enrollment_status: 'approved',
+          pa_approved_by: user?.id || null,
+          pa_approved_at: now,
+        },
+        {
+          where: {
+            krs_id: krs.id,
+            is_cross_enrollment: true,
+            [Op.or]: [
+              { cross_enrollment_status: 'pending_pa' },
+              { cross_enrollment_status: { [Op.is]: null } },
+            ],
+          },
+          transaction,
+        }
       );
     }
 
@@ -194,9 +224,8 @@ const getByMahasiswa = async (mahasiswaId) => {
   });
 };
 
-const SEMESTER_PRODI_INCLUDE = [
-  { model: ProgramStudi, as: 'programStudi' },
-  { model: Semester, as: 'semester', include: [{ model: JenisSemester, as: 'jenisSemester' }] },
+const SEMESTER_INCLUDE = [
+  { model: JenisSemester, as: 'jenisSemester' },
 ];
 
 const getContext = async (userId) => {
@@ -208,22 +237,19 @@ const getContext = async (userId) => {
     throw new AppError('Akun tidak terhubung ke mahasiswa', 403);
   }
 
-  const semesterProdi = await SemesterProdi.findOne({
-    where: { program_studi_id: mahasiswa.program_studi_id },
-    include: SEMESTER_PRODI_INCLUDE.map((item) =>
-      item.as === 'semester'
-        ? { ...item, where: { is_aktif: true }, required: true }
-        : item
-    ),
-    order: [['updatedAt', 'DESC']],
+  // Semester berjalan bersifat global universitas (`semester.is_aktif`).
+  const semester = await Semester.findOne({
+    where: { is_aktif: true },
+    include: SEMESTER_INCLUDE,
+    order: [['tahun', 'DESC']],
   });
 
-  const krs = semesterProdi
+  const krs = semester
     ? await Krs.findOne({
-      where: { mahasiswa_id: mahasiswa.id, semester_prodi_id: semesterProdi.id },
+      where: { mahasiswa_id: mahasiswa.id, semester_id: semester.id },
       include: [
         { model: Mahasiswa, as: 'mahasiswa' },
-        { model: SemesterProdi, as: 'semesterProdi', include: SEMESTER_PRODI_INCLUDE },
+        { model: Semester, as: 'semester', include: SEMESTER_INCLUDE },
         {
           model: KrsDetil,
           as: 'krsDetil',
@@ -239,7 +265,17 @@ const getContext = async (userId) => {
     })
     : null;
 
-  return { mahasiswa, semesterProdi, krs };
+  // Jendela pengambilan KRS satu semester untuk seluruh universitas (periode
+  // global) — sumber kebenaran tunggal yang menggantikan tanggal per prodi.
+  const periode = semester ? await getPeriod(semester.id, JENIS.KRS) : null;
+
+  return {
+    mahasiswa,
+    semester,
+    sks_maksimal: mahasiswa.programStudi?.sks_maksimal ?? null,
+    krs,
+    periode,
+  };
 };
 
 module.exports = { list, getById, create, update, remove, approve, updateDetilStatus, getByMahasiswa, getContext };

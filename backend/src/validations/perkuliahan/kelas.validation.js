@@ -3,9 +3,10 @@
 const Joi = require('joi');
 const { idParam, listQuery, ORG_FILTER_FIELDS, uniqueFields } = require('../common');
 
-const list = listQuery(["nama","createdAt"], uniqueFields(["matakuliah_id","semester_prodi_id","has_peserta"], ORG_FILTER_FIELDS));
+const list = listQuery(["nama","createdAt"], uniqueFields(["matakuliah_id","semester_id","has_peserta"], ORG_FILTER_FIELDS));
 const create = Joi.object({
-    semester_prodi_id: Joi.string().uuid().allow(null),
+    semester_id: Joi.string().uuid().required(),
+    program_studi_id: Joi.string().uuid().required(),
     matakuliah_id: Joi.string().uuid().required(),
     penawaran_matakuliah_id: Joi.string().uuid().allow(null),
     nama: Joi.string().max(10).required(),
@@ -13,7 +14,8 @@ const create = Joi.object({
     jumlah_peserta_max: Joi.number().allow(null),
 });
 const update = Joi.object({
-    semester_prodi_id: Joi.string().uuid().allow(null),
+    semester_id: Joi.string().uuid().allow(null),
+    program_studi_id: Joi.string().uuid().allow(null),
     matakuliah_id: Joi.string().uuid().allow(null),
     penawaran_matakuliah_id: Joi.string().uuid().allow(null),
     nama: Joi.string().max(10).allow(null),

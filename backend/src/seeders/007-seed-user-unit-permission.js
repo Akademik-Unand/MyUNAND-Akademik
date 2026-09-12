@@ -12,7 +12,6 @@ const PERMISSION = {
 };
 
 const GRANTED_ROLES = [
-  "admin",
   "admin-fakultas",
   "admin-departemen",
   "admin-prodi",

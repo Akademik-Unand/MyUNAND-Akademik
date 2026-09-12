@@ -72,8 +72,7 @@ const listPreview = async ({ kurikulum_id, semester_id } = {}) => {
       AND cp.kurikulum_id = ${sequelize.escape(kurikulum_id)}
     LEFT JOIN sumber_penilaian AS sp ON sp.cpmk_id = cpmk.id
     LEFT JOIN kelas AS k ON k.matakuliah_id = mk.id AND k.deletedAt IS NULL
-    LEFT JOIN semester_prodi AS smp ON smp.id = k.semester_prodi_id
-    LEFT JOIN semester AS sm ON sm.id = smp.semester_id AND sm.deletedAt IS NULL
+    LEFT JOIN semester AS sm ON sm.id = k.semester_id AND sm.deletedAt IS NULL
     LEFT JOIN jenis_semester AS js ON js.id = sm.jenis_semester_id AND js.deletedAt IS NULL
     LEFT JOIN krs_detil AS kd ON kd.kelas_id = k.id
     LEFT JOIN nilai_mahasiswa AS nm ON nm.krs_detil_id = kd.id AND nm.sumber_penilaian_id = sp.id

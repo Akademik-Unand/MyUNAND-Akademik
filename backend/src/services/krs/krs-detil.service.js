@@ -67,7 +67,7 @@ const assertKelasOwnCapacity = async (kelasId, transaction) => {
  * dibuka lewat penawaran yang berstatus `published` pada semester yang sama
  * dengan KRS. MK yang tidak dibuka => tidak ada kelas tersedia.
  */
-const assertKelasPublishedOffering = async (kelasId, semesterProdiId, transaction) => {
+const assertKelasPublishedOffering = async (kelasId, semesterId, transaction) => {
   const kelas = await Kelas.findByPk(kelasId, {
     include: [
       {
@@ -83,7 +83,7 @@ const assertKelasPublishedOffering = async (kelasId, semesterProdiId, transactio
   if (!kelas) {
     throw new AppError('Kelas dengan ID tersebut tidak ditemukan', 404);
   }
-  if (semesterProdiId && kelas.semester_prodi_id !== semesterProdiId) {
+  if (semesterId && kelas.semester_id !== semesterId) {
     throw new AppError('Kelas tidak sesuai dengan semester KRS', 422);
   }
   const offering = kelas.penawaranMatakuliah?.penawaran;
@@ -121,7 +121,7 @@ const assertKrsJadwalTidakBentrok = async (krsId, kelas, transaction) => {
 
 const assertKrsEditable = async (krsId, transaction) => {
   const krs = await Krs.findByPk(krsId, {
-    attributes: ['id', 'semester_prodi_id', 'approval_ke'],
+    attributes: ['id', 'semester_id', 'approval_ke'],
     transaction,
   });
   if (!krs) throw new AppError('KRS tidak ditemukan', 404);
@@ -153,7 +153,7 @@ const create = async (payload, user) => {
   if (mahasiswaId) await assertActivePa(mahasiswaId);
   await assertKrsPeriodForKrs(payload.krs_id);
   const krs = await assertKrsEditable(payload.krs_id);
-  const kelas = await assertKelasPublishedOffering(payload.kelas_id, krs.semester_prodi_id);
+  const kelas = await assertKelasPublishedOffering(payload.kelas_id, krs.semester_id);
   await assertKelasOwnCapacity(payload.kelas_id);
   await assertKrsJadwalTidakBentrok(payload.krs_id, kelas);
   const item = await KrsDetil.create(payload);
@@ -166,7 +166,7 @@ const update = async (id, payload, user) => {
   await assertKrsPeriodForKrs(payload.krs_id || item.krs_id);
   const krs = await assertKrsEditable(payload.krs_id || item.krs_id);
   if (payload.kelas_id && payload.kelas_id !== item.kelas_id) {
-    const kelas = await assertKelasPublishedOffering(payload.kelas_id, krs.semester_prodi_id);
+    const kelas = await assertKelasPublishedOffering(payload.kelas_id, krs.semester_id);
     await assertKelasOwnCapacity(payload.kelas_id);
     await assertKrsJadwalTidakBentrok(payload.krs_id || item.krs_id, kelas);
   }

@@ -4,7 +4,7 @@ import { Can } from "../auth/Can";
 import {
   semesterAkademikLabel,
   prodiDepartemenLabel,
-} from "../../helpers/semesterProdi";
+} from "../../helpers/academicLabel";
 import {
   kelasDisplayName,
   kelasDosenNames,
@@ -72,10 +72,10 @@ export const KelasInfoCard = ({ kelas }) => {
             </div>
           </Field>
           <Field label="Semester">
-            {semesterAkademikLabel(kelas?.semesterProdi?.semester)}
+            {semesterAkademikLabel(kelas?.semester)}
           </Field>
           <Field label="Program Studi">
-            {prodiDepartemenLabel(kelas?.semesterProdi?.programStudi)}
+            {prodiDepartemenLabel(kelas?.programStudi)}
           </Field>
           <Field label="Kurikulum">
             {kurikulumLabel(pickKurikulum(kelas))}

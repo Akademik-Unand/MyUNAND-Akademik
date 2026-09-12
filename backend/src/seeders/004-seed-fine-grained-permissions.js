@@ -3,7 +3,6 @@
 const { randomUUID } = require("crypto");
 const {
   buildCatalog,
-  isAdminAllowed,
   isDosenAllowed,
   isMahasiswaAllowed,
 } = require("../constants/permissions");
@@ -82,7 +81,6 @@ module.exports = {
     };
 
     const grants = [
-      ...grantFor("admin", isAdminAllowed),
       ...grantFor("dosen", isDosenAllowed),
       ...grantFor("mahasiswa", isMahasiswaAllowed),
     ];

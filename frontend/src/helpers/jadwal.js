@@ -196,7 +196,11 @@ export const deteksiKonflikJadwal = (kelasList = []) => {
       if (kapasitasKurang(jadwal, kelas)) tandai(jadwal.id, "kapasitas");
       rows.push({
         id: jadwal.id,
-        semesterProdiId: kelas.semester_prodi_id,
+        // Kelas pada semester & prodi yang sama tidak boleh berjalan bersamaan.
+        semesterKey:
+          kelas.semester_id && kelas.program_studi_id
+            ? `${kelas.semester_id}:${kelas.program_studi_id}`
+            : null,
         hari: jadwal.hari,
         ruangId: jadwal.ruang_id || null,
         dosenIds,
@@ -219,7 +223,7 @@ export const deteksiKonflikJadwal = (kelasList = []) => {
         tandai(a.id, "dosen");
         tandai(b.id, "dosen");
       }
-      if (a.semesterProdiId && a.semesterProdiId === b.semesterProdiId) {
+      if (a.semesterKey && a.semesterKey === b.semesterKey) {
         tandai(a.id, "kelas");
         tandai(b.id, "kelas");
       }

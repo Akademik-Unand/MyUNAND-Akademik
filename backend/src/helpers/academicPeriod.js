@@ -4,7 +4,6 @@ const {
   Periode,
   Semester,
   Kelas,
-  SemesterProdi,
   Krs,
   KrsDetil,
 } = require("../models");
@@ -30,6 +29,27 @@ const isWithinInclusive = (
 ) => {
   if (!tanggalMulai || !tanggalSelesai) return false;
   return tanggalMulai <= today && today <= tanggalSelesai;
+};
+
+/**
+ * Jendela periode satu semester untuk satu jenis, dalam bentuk yang siap dipakai
+ * klien (`{ jenis, tanggal_mulai, tanggal_selesai }`). `null` bila belum diatur —
+ * membedakan pembaca (baca tetap boleh) dari penegak aturan (`assertPeriodOpen`).
+ */
+const getPeriod = async (semesterId, jenis) => {
+  if (!semesterId || !jenis) return null;
+
+  const row = await Periode.findOne({
+    where: { semester_id: semesterId, jenis },
+    attributes: ["jenis", "tanggal_mulai", "tanggal_selesai"],
+  });
+  if (!row) return null;
+
+  return {
+    jenis: row.jenis,
+    tanggal_mulai: row.tanggal_mulai,
+    tanggal_selesai: row.tanggal_selesai,
+  };
 };
 
 const assertPeriodOpen = async ({
@@ -68,22 +88,15 @@ const assertCpmkPeriod = async () => {
 
 const semesterIdFromKelas = async (kelasId) => {
   const kelas = await Kelas.findByPk(kelasId, {
-    include: [
-      {
-        model: SemesterProdi,
-        as: "semesterProdi",
-        attributes: ["id", "semester_id"],
-      },
-    ],
+    attributes: ["id", "semester_id"],
   });
   if (!kelas) {
     throw new AppError("Kelas dengan ID tersebut tidak ditemukan", 404);
   }
-  const semesterId = kelas.semesterProdi?.semester_id;
-  if (!semesterId) {
+  if (!kelas.semester_id) {
     throw new AppError("Kelas belum terikat semester", 422);
   }
-  return semesterId;
+  return kelas.semester_id;
 };
 
 /** Periode pengambilan KRS satu semester untuk seluruh universitas. */
@@ -95,27 +108,14 @@ const assertKrsPeriodForSemester = (semesterId) =>
     closedMessage: "Di luar periode pengambilan mata kuliah",
   });
 
-const assertKrsPeriodForSemesterProdi = async (semesterProdiId) => {
-  const row = await SemesterProdi.findByPk(semesterProdiId, {
-    attributes: ["id", "semester_id"],
-  });
-  if (!row) {
-    throw new AppError("Semester prodi tidak ditemukan", 404);
-  }
-  if (!row.semester_id) {
-    throw new AppError("Semester prodi belum terikat semester", 422);
-  }
-  return assertKrsPeriodForSemester(row.semester_id);
-};
-
 const assertKrsPeriodForKrs = async (krsId) => {
   const row = await Krs.findByPk(krsId, {
-    attributes: ["id", "semester_prodi_id"],
+    attributes: ["id", "semester_id"],
   });
   if (!row) {
     throw new AppError("KRS dengan ID tersebut tidak ditemukan", 404);
   }
-  return assertKrsPeriodForSemesterProdi(row.semester_prodi_id);
+  return assertKrsPeriodForSemester(row.semester_id);
 };
 
 const assertNilaiPeriodForKelas = async (kelasId) => {
@@ -140,9 +140,9 @@ module.exports = {
   JENIS,
   localToday,
   isWithinInclusive,
+  getPeriod,
   assertCpmkPeriod,
   assertKrsPeriodForSemester,
-  assertKrsPeriodForSemesterProdi,
   assertKrsPeriodForKrs,
   assertNilaiPeriodForKelas,
   assertNilaiPeriodForKrsDetil,

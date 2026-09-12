@@ -1,12 +1,14 @@
 export const ROLE_NAMES = {
   SUPERADMIN: "superadmin",
   ADMIN_UNIVERSITAS: "admin-universitas",
+  ADMIN_FAKULTAS: "admin-fakultas",
+  ADMIN_DEPARTEMEN: "admin-departemen",
+  ADMIN_PRODI: "admin-prodi",
 };
 
 export const ROLE_LABELS = {
   superadmin: "Admin Universitas",
   "admin-universitas": "Admin Universitas",
-  admin: "Admin",
   dosen: "Dosen",
   "dosen-pa": "Dosen PA",
   mahasiswa: "Mahasiswa",
@@ -28,12 +30,11 @@ export const isUniversityAdminRole = (name) => UNIVERSITY_ADMIN_NAMES.has(name);
 
 /** Role pengelola data (admin) — unitnya dari scope organisasi, bukan dari data akunnya. */
 export const ADMIN_ROLE_NAMES = new Set([
-  "admin-universitas",
-  "superadmin",
-  "admin",
-  "admin-fakultas",
-  "admin-departemen",
-  "admin-prodi",
+  ROLE_NAMES.ADMIN_UNIVERSITAS,
+  ROLE_NAMES.SUPERADMIN,
+  ROLE_NAMES.ADMIN_FAKULTAS,
+  ROLE_NAMES.ADMIN_DEPARTEMEN,
+  ROLE_NAMES.ADMIN_PRODI,
 ]);
 
 /** Role pimpinan — bersifat monitoring, bukan pengampu/pembimbing. */

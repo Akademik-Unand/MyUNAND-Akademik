@@ -25,4 +25,15 @@ const update = Joi.object({
     nama_singkat: Joi.string().max(255).allow(null),
 });
 
-module.exports = { list, create, update, idParam };
+/**
+ * Kuota SKS tidak ikut create/update biasa: angkanya kebijakan universitas
+ * (aturan rektor), jadi punya endpoint & permission sendiri
+ * (`program-studi.update-sks`). Field ini ikut terbuang dari payload
+ * create/update karena middleware validasi memakai `stripUnknown`.
+ */
+const sks = Joi.object({
+  sks_default: Joi.number().integer().min(0).max(60).allow(null).required(),
+  sks_maksimal: Joi.number().integer().min(0).max(60).allow(null).required(),
+});
+
+module.exports = { list, create, update, sks, idParam };

@@ -13,10 +13,11 @@ import {
 export const useResourceMutations = (resource, labels = {}) => {
   const queryClient = useQueryClient();
 
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["table", resource] });
-    queryClient.invalidateQueries({ queryKey: [resource] });
-  };
+  const invalidate = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["table", resource] }),
+      queryClient.invalidateQueries({ queryKey: [resource] }),
+    ]);
 
   const create = useMutation({
     mutationFn: (payload) => createResourceItem(resource, payload),

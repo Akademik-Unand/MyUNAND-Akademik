@@ -23,7 +23,6 @@ const initialSettings = {
   departemen_id: "",
   program_studi_id: "",
   semester_id: "",
-  semester_prodi_id: "",
   kuota_lintas_prodi: 0,
   akses: "semua",
   prodi_tujuan: [],
@@ -54,10 +53,6 @@ export const PenawaranSemesterPage = () => {
       fakultas_id: org.fakultasId,
       departemen_id: org.departemenId,
       program_studi_id: org.prodiId,
-      semester_prodi_id:
-        current.program_studi_id === org.prodiId
-          ? current.semester_prodi_id
-          : "",
     }));
     setSelected([]);
     setCourseQuotas({});
@@ -65,18 +60,6 @@ export const PenawaranSemesterPage = () => {
 
   // Default semester = semester aktif (is_aktif) selama belum dipilih manual.
   const semesterId = settings.semester_id || activeSemester?.id || "";
-  const semesterProdi = useResourceQuery("semester-prodi", {
-    params:
-      settings.program_studi_id && semesterId
-        ? {
-            filter: {
-              program_studi_id: settings.program_studi_id,
-              semester_id: semesterId,
-            },
-          }
-        : undefined,
-    enabled: Boolean(settings.program_studi_id && semesterId),
-  });
   const courses = useResourceQuery("matakuliah", {
     params: settings.program_studi_id
       ? { filter: { program_studi_id: settings.program_studi_id } }
@@ -88,12 +71,18 @@ export const PenawaranSemesterPage = () => {
     remove: "Penawaran berhasil dihapus.",
   });
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const resolvedSemesterProdiId = semesterProdi.data?.[0]?.id || "";
+  // Penawaran cukup dikenali dari (semester, prodi) — tidak ada pivot lagi.
+  const offeringKeyReady = Boolean(settings.program_studi_id && semesterId);
   const existingQuery = useResourceQuery("penawaran-matakuliah", {
-    params: resolvedSemesterProdiId
-      ? { filter: { semester_prodi_id: resolvedSemesterProdiId } }
+    params: offeringKeyReady
+      ? {
+          filter: {
+            program_studi_id: settings.program_studi_id,
+            semester_id: semesterId,
+          },
+        }
       : undefined,
-    enabled: Boolean(resolvedSemesterProdiId),
+    enabled: offeringKeyReady,
   });
   const existing = existingQuery.data?.[0] || null;
   const canEditExisting = !existing || existing.status === "draft";
@@ -130,10 +119,7 @@ export const PenawaranSemesterPage = () => {
       setSelected([]);
       setCourseQuotas({});
     }
-    setSettings({
-      ...next,
-      semester_prodi_id: academicChanged ? "" : next.semester_prodi_id,
-    });
+    setSettings(next);
   };
   const toggle = (id) =>
     setSelected((current) =>
@@ -148,7 +134,8 @@ export const PenawaranSemesterPage = () => {
   const save = async () => {
     const payloadSettings = {
       ...settings,
-      semester_prodi_id: resolvedSemesterProdiId,
+      semester_id: semesterId,
+      program_studi_id: settings.program_studi_id,
     };
     const payload = buildBulkOfferingPayload(
       payloadSettings,
@@ -164,8 +151,7 @@ export const PenawaranSemesterPage = () => {
     setSelected([]);
     setCourseQuotas({});
   };
-  const valid =
-    resolvedSemesterProdiId && selected.length > 0 && canEditExisting;
+  const valid = offeringKeyReady && selected.length > 0 && canEditExisting;
   const actionLabel = existing
     ? `Perbarui ${selected.length} Mata Kuliah`
     : `Buka ${selected.length} Mata Kuliah`;
@@ -231,8 +217,11 @@ export const PenawaranSemesterPage = () => {
       <Card title="Mata Kuliah yang Sudah Dibuka">
         <OpenedOfferingsTable
           filter={
-            resolvedSemesterProdiId
-              ? { semester_prodi_id: resolvedSemesterProdiId }
+            offeringKeyReady
+              ? {
+                  semester_id: semesterId,
+                  program_studi_id: settings.program_studi_id,
+                }
               : undefined
           }
           canPublish={can("publish", "PenawaranMatakuliah")}

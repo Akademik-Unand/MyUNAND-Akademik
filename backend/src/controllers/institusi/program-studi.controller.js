@@ -35,6 +35,11 @@ const update = asyncHandler(async (req, res) => {
   return success(res, { message: "Program Studi berhasil diperbarui", data });
 });
 
+const updateSks = asyncHandler(async (req, res) => {
+  const data = await programStudiService.updateSks(req.params.id, req.body);
+  return success(res, { message: "Kuota SKS berhasil diperbarui", data });
+});
+
 const remove = asyncHandler(async (req, res) => {
   const data = await programStudiService.remove(req.params.id);
   return success(res, { message: "Program Studi berhasil dihapus", data });
@@ -45,4 +50,4 @@ const restore = asyncHandler(async (req, res) => {
   return success(res, { message: "Program Studi berhasil dipulihkan", data });
 });
 
-module.exports = { list, getById, create, update, remove, restore };
+module.exports = { list, getById, create, update, updateSks, remove, restore };

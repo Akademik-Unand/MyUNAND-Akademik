@@ -66,8 +66,7 @@ const getMatakuliahDetail = async ({ matakuliahId, semester_id, kurikulum_id } =
       (SELECT COUNT(*) FROM krs_detil AS kd WHERE kd.kelas_id = k.id) AS jumlah_peserta,
       GROUP_CONCAT(DISTINCT d.nama ORDER BY d.nama SEPARATOR '||') AS dosen_names
     FROM kelas AS k
-    LEFT JOIN semester_prodi AS smp ON smp.id = k.semester_prodi_id
-    LEFT JOIN semester AS sm ON sm.id = smp.semester_id AND sm.deletedAt IS NULL
+    LEFT JOIN semester AS sm ON sm.id = k.semester_id AND sm.deletedAt IS NULL
     LEFT JOIN dosen_kelas AS dk ON dk.kelas_id = k.id
     LEFT JOIN dosen AS d ON d.id = dk.dosen_id AND d.deletedAt IS NULL
     WHERE k.matakuliah_id = ${mkId} AND k.deletedAt IS NULL
@@ -136,8 +135,7 @@ const getMatakuliahDetail = async ({ matakuliahId, semester_id, kurikulum_id } =
     LEFT JOIN cpmk AS cpmk_parent ON cpmk_parent.id = cpmk.parent_cpmk_id AND cpmk_parent.deletedAt IS NULL
     INNER JOIN sumber_penilaian AS sp ON sp.cpmk_id = cpmk.id
     LEFT JOIN nilai_mahasiswa AS nm ON nm.krs_detil_id = kd.id AND nm.sumber_penilaian_id = sp.id
-    INNER JOIN semester_prodi AS smp ON smp.id = k.semester_prodi_id
-    LEFT JOIN semester AS sm ON sm.id = smp.semester_id AND sm.deletedAt IS NULL
+    LEFT JOIN semester AS sm ON sm.id = k.semester_id AND sm.deletedAt IS NULL
     WHERE mk.id = ${mkId}
       ${semesterFilterSql(semester_id)}
     ORDER BY m.niu ASC, cpmk.createdAt ASC, sp.nama_sumber_penilaian ASC`,

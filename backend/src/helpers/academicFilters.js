@@ -113,34 +113,31 @@ const orgFiltersOnMahasiswaId = (sequelize) => ({
   }),
 });
 
-const semesterProdiIdsSql = (
+/**
+ * Kondisi scope unit untuk baris `kelas` (alias `k`). Kelas menyimpan
+ * `program_studi_id` pemilik dan `semester_id` langsung, jadi scope tidak perlu
+ * lagi memutar lewat pivot `semester_prodi`.
+ */
+const kelasScopeSql = (
   sequelize,
-  { fakultas_id, departemen_id, program_studi_id, semester_id } = {},
+  { program_studi_id, departemen_id, fakultas_id, semester_id } = {},
 ) => {
-  const where = [];
-  let sql = "SELECT sp.id FROM semester_prodi sp";
-  if (departemen_id || fakultas_id) {
-    sql +=
-      " INNER JOIN program_studi p ON p.id = sp.program_studi_id AND p.deletedAt IS NULL";
-  }
-  if (fakultas_id) {
-    sql += " LEFT JOIN departemen d ON d.id = p.departemen_id";
-  }
+  const conditions = [];
   if (program_studi_id)
-    where.push(
-      `sp.program_studi_id IN (${idList(sequelize, program_studi_id)})`,
+    conditions.push(
+      `k.program_studi_id IN (${idList(sequelize, program_studi_id)})`,
+    );
+  if (departemen_id)
+    conditions.push(
+      `k.program_studi_id IN (${prodiIdsSql(sequelize, { departemen_id })})`,
+    );
+  if (fakultas_id)
+    conditions.push(
+      `k.program_studi_id IN (${prodiIdsSql(sequelize, { fakultas_id })})`,
     );
   if (semester_id)
-    where.push(`sp.semester_id IN (${idList(sequelize, semester_id)})`);
-  if (departemen_id)
-    where.push(`p.departemen_id IN (${idList(sequelize, departemen_id)})`);
-  if (fakultas_id) {
-    where.push(
-      `(p.fakultas_id IN (${idList(sequelize, fakultas_id)}) OR d.fakultas_id IN (${idList(sequelize, fakultas_id)}))`,
-    );
-  }
-  if (!where.length) return "SELECT sp.id FROM semester_prodi sp";
-  return `${sql} WHERE ${where.join(" AND ")}`;
+    conditions.push(`k.semester_id IN (${idList(sequelize, semester_id)})`);
+  return conditions.join(" AND ");
 };
 
 const mkIdsByKurikulumSql = (kurikulumSql) =>
@@ -238,23 +235,6 @@ const orgFiltersOnCpId = (sequelize) => ({
   }),
 });
 
-/** Filter organisasi untuk daftar semester_prodi. */
-const orgFiltersOnSemesterProdiId = (sequelize) => ({
-  program_studi_id: (val) => ({ program_studi_id: val }),
-  departemen_id: (val) => ({
-    program_studi_id: inSql(
-      sequelize,
-      prodiIdsSql(sequelize, { departemen_id: val }),
-    ),
-  }),
-  fakultas_id: (val) => ({
-    program_studi_id: inSql(
-      sequelize,
-      prodiIdsSql(sequelize, { fakultas_id: val }),
-    ),
-  }),
-});
-
 /** Filter organisasi untuk daftar sumber_penilaian lewat cpmk → matakuliah. */
 const orgFiltersOnCpmkId = (sequelize) => ({
   program_studi_id: (val) => ({
@@ -277,38 +257,30 @@ const orgFiltersOnCpmkId = (sequelize) => ({
   }),
 });
 
-/** Filter organisasi untuk daftar evaluasi lewat kelas → semester_prodi. */
+/** Filter organisasi untuk daftar evaluasi lewat kelas → prodi/semester. */
 const orgFiltersOnKelasId = (sequelize) => ({
   program_studi_id: (val) => ({
     kelas_id: inSql(
       sequelize,
-      kelasIdsSql(
-        `k.semester_prodi_id IN (${semesterProdiIdsSql(sequelize, { program_studi_id: val })})`,
-      ),
+      kelasIdsSql(kelasScopeSql(sequelize, { program_studi_id: val })),
     ),
   }),
   departemen_id: (val) => ({
     kelas_id: inSql(
       sequelize,
-      kelasIdsSql(
-        `k.semester_prodi_id IN (${semesterProdiIdsSql(sequelize, { departemen_id: val })})`,
-      ),
+      kelasIdsSql(kelasScopeSql(sequelize, { departemen_id: val })),
     ),
   }),
   fakultas_id: (val) => ({
     kelas_id: inSql(
       sequelize,
-      kelasIdsSql(
-        `k.semester_prodi_id IN (${semesterProdiIdsSql(sequelize, { fakultas_id: val })})`,
-      ),
+      kelasIdsSql(kelasScopeSql(sequelize, { fakultas_id: val })),
     ),
   }),
   semester_id: (val) => ({
     kelas_id: inSql(
       sequelize,
-      kelasIdsSql(
-        `k.semester_prodi_id IN (${semesterProdiIdsSql(sequelize, { semester_id: val })})`,
-      ),
+      kelasIdsSql(kelasScopeSql(sequelize, { semester_id: val })),
     ),
   }),
 });
@@ -324,38 +296,27 @@ const mkKurikulumFilters = (sequelize) => ({
     matakuliah_id: inSql(
       sequelize,
       `SELECT k.matakuliah_id FROM kelas k
-       INNER JOIN semester_prodi sp ON sp.id = k.semester_prodi_id
-       WHERE sp.semester_id = ${sequelize.escape(val)} AND k.deletedAt IS NULL`,
+       WHERE k.semester_id IN (${idList(sequelize, val)}) AND k.deletedAt IS NULL`,
     ),
   }),
 });
 
 const kelasFilters = (sequelize) => ({
   kurikulum_id: orgFiltersOnMatakuliahViaKurikulum(sequelize).kurikulum_id,
-  program_studi_id: (val) => ({
-    semester_prodi_id: inSql(
-      sequelize,
-      semesterProdiIdsSql(sequelize, { program_studi_id: val }),
-    ),
-  }),
+  program_studi_id: (val) => ({ program_studi_id: val }),
   departemen_id: (val) => ({
-    semester_prodi_id: inSql(
+    program_studi_id: inSql(
       sequelize,
-      semesterProdiIdsSql(sequelize, { departemen_id: val }),
+      prodiIdsSql(sequelize, { departemen_id: val }),
     ),
   }),
   fakultas_id: (val) => ({
-    semester_prodi_id: inSql(
+    program_studi_id: inSql(
       sequelize,
-      semesterProdiIdsSql(sequelize, { fakultas_id: val }),
+      prodiIdsSql(sequelize, { fakultas_id: val }),
     ),
   }),
-  semester_id: (val) => ({
-    semester_prodi_id: inSql(
-      sequelize,
-      semesterProdiIdsSql(sequelize, { semester_id: val }),
-    ),
-  }),
+  semester_id: (val) => ({ semester_id: val }),
   has_peserta: (val) => {
     const shouldHaveParticipants =
       val === true ||
@@ -384,33 +345,25 @@ const historyUploadFilters = (sequelize) => ({
   program_studi_id: (val) => ({
     kelas_id: inSql(
       sequelize,
-      kelasIdsSql(
-        `k.semester_prodi_id IN (${semesterProdiIdsSql(sequelize, { program_studi_id: val })})`,
-      ),
+      kelasIdsSql(kelasScopeSql(sequelize, { program_studi_id: val })),
     ),
   }),
   departemen_id: (val) => ({
     kelas_id: inSql(
       sequelize,
-      kelasIdsSql(
-        `k.semester_prodi_id IN (${semesterProdiIdsSql(sequelize, { departemen_id: val })})`,
-      ),
+      kelasIdsSql(kelasScopeSql(sequelize, { departemen_id: val })),
     ),
   }),
   fakultas_id: (val) => ({
     kelas_id: inSql(
       sequelize,
-      kelasIdsSql(
-        `k.semester_prodi_id IN (${semesterProdiIdsSql(sequelize, { fakultas_id: val })})`,
-      ),
+      kelasIdsSql(kelasScopeSql(sequelize, { fakultas_id: val })),
     ),
   }),
   semester_id: (val) => ({
     kelas_id: inSql(
       sequelize,
-      kelasIdsSql(
-        `k.semester_prodi_id IN (${semesterProdiIdsSql(sequelize, { semester_id: val })})`,
-      ),
+      kelasIdsSql(kelasScopeSql(sequelize, { semester_id: val })),
     ),
   }),
 });
@@ -424,10 +377,7 @@ const rekapCpFilters = (sequelize) => ({
     ),
   }),
   semester_id: (val) => ({
-    semester_prodi_id: inSql(
-      sequelize,
-      semesterProdiIdsSql(sequelize, { semester_id: val }),
-    ),
+    semester_id: inSql(sequelize, idList(sequelize, val)),
   }),
 });
 
@@ -438,16 +388,17 @@ module.exports = {
   kurikulumIdsSql,
   prodiIdsSql,
   mahasiswaIdsSql,
-  semesterProdiIdsSql,
+  kelasScopeSql,
   orgFiltersOnKurikulumId,
   orgFiltersOnMahasiswaId,
   orgFiltersOnProgramStudiId,
   orgFiltersOnMatakuliahViaKurikulum,
   orgFiltersOnCpId,
-  orgFiltersOnSemesterProdiId,
   orgFiltersOnCpmkId,
   orgFiltersOnKelasId,
   orgFiltersOnFakultasId,
+  // Catatan: `orgFiltersOnSemesterProdiId` dihapus bersama tabel
+  // `semester_prodi` (Fase 5).
   mkKurikulumFilters,
   kelasFilters,
   historyUploadFilters,

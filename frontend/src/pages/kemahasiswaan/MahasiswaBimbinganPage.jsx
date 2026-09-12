@@ -1,12 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  AlertCircle,
-  ClipboardList,
-  Clock3,
-  Users,
-  UserRound,
-} from "lucide-react";
+import { AlertCircle, ClipboardList, Clock3, Users } from "lucide-react";
 import { DashboardSkeleton } from "../../components/dashboard/DashboardSkeleton";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
@@ -17,7 +11,7 @@ import { Badge } from "../../components/ui/Badge";
 import { DataTable } from "../../components/common/DataTable";
 import { StatCard } from "../../components/common/StatCard";
 import { getDosenDashboardSummary } from "../../services/api";
-import { semesterAkademikLabel } from "../../helpers/semesterProdi";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
 import { unitLabel } from "../../helpers/bimbinganPa";
 
 const krsStatus = (row) => {
@@ -113,7 +107,7 @@ export const MahasiswaBimbinganPage = () => {
       header: "Semester",
       render: (row) => (
         <span className="text-sm">
-          {semesterAkademikLabel(row.semesterProdi?.semester)}
+          {semesterAkademikLabel(row.semester)}
         </span>
       ),
     },
@@ -147,7 +141,8 @@ export const MahasiswaBimbinganPage = () => {
       header: "Lintas Prodi",
       render: (row) =>
         row.krs?.cross_pending > 0 ? (
-          <Link to="/perkuliahan/persetujuan/lintas-prodi">
+          // Pengajuan lintas prodi diputuskan bersamaan dengan persetujuan KRS.
+          <Link to="/perkuliahan/persetujuan/krs">
             <Badge variant="warning">{row.krs.cross_pending} menunggu</Badge>
           </Link>
         ) : (
@@ -167,7 +162,7 @@ export const MahasiswaBimbinganPage = () => {
         ]}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title="Mahasiswa Bimbingan"
           value={String(data?.mahasiswa_bimbingan ?? 0)}
@@ -183,14 +178,8 @@ export const MahasiswaBimbinganPage = () => {
         <StatCard
           title="KRS Menunggu"
           value={String(data?.krs_menunggu ?? 0)}
-          subtitle="Butuh persetujuan Anda"
+          subtitle="Termasuk pengajuan lintas prodi"
           icon={Clock3}
-        />
-        <StatCard
-          title="Lintas Prodi Menunggu"
-          value={String(data?.pengajuan_menunggu ?? 0)}
-          subtitle="Butuh keputusan Anda"
-          icon={UserRound}
         />
       </div>
 

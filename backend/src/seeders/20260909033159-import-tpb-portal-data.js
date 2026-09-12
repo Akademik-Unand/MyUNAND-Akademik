@@ -208,46 +208,8 @@ module.exports = {
           `${H.academicSemesterYear(r.tahun, r.periode)}:${typeIds[String(r.periode).toLowerCase()]}`,
         (r) => `${r.tahun}:${r.jenis_semester_id}`,
       );
-      await insert(
-        queryInterface,
-        "semester_prodi",
-        sourceSemesters
-          .filter((r) => semesterMap.has(String(r.id)))
-          .map((r) => ({
-            id: ownedId("semester_prodi", r.id),
-            program_studi_id: prodiId,
-            semester_id: semesterMap.get(String(r.id)),
-            is_aktif: false,
-            sks_default: 15,
-            sks_maksimal: 24,
-            ...stamp(r),
-          })),
-        t,
-      );
-      const semesterProdiTargets = await select(
-        queryInterface,
-        "SELECT id, semester_id FROM semester_prodi WHERE program_studi_id = :prodi",
-        { prodi: prodiId },
-        t,
-      );
-      const semesterProdiBySemester = new Map(
-        semesterProdiTargets.map((r) => [String(r.semester_id), r.id]),
-      );
-      const semesterProdiMap = new Map(
-        sourceSemesters.flatMap((r) =>
-          semesterMap.has(String(r.id)) &&
-          semesterProdiBySemester.has(String(semesterMap.get(String(r.id))))
-            ? [
-                [
-                  String(r.id),
-                  semesterProdiBySemester.get(
-                    String(semesterMap.get(String(r.id))),
-                  ),
-                ],
-              ]
-            : [],
-        ),
-      );
+      // `semesterMap` (id semester sumber → id semester target) sudah cukup:
+      // kelas/krs kini menunjuk semester langsung, tanpa pivot semester-prodi.
 
       const sourceCourses = s.mata_kuliah || [];
       await insert(
@@ -549,10 +511,9 @@ module.exports = {
       const sourceClasses = (s.kelas || []).flatMap((r) => {
         const tak = takById.get(String(r.tahunAjaranMatkulId));
         const courseId = tak && courseMap.get(String(tak.mataKuliahId));
-        const semesterProdiId =
-          tak && semesterProdiMap.get(String(tak.tahunAjaranId));
-        return tak && courseId && semesterProdiId
-          ? [{ ...r, tak, courseId, semesterProdiId }]
+        const semesterId = tak && semesterMap.get(String(tak.tahunAjaranId));
+        return tak && courseId && semesterId
+          ? [{ ...r, tak, courseId, semesterId }]
           : [];
       });
       await insert(
@@ -560,7 +521,8 @@ module.exports = {
         "kelas",
         sourceClasses.map((r) => ({
           id: ownedId("kelas", r.id),
-          semester_prodi_id: r.semesterProdiId,
+          semester_id: r.semesterId,
+          program_studi_id: prodiId,
           matakuliah_id: r.courseId,
           nama: String(r.namaKelas).slice(0, 10),
           jumlah_peserta_min: 0,
@@ -571,9 +533,10 @@ module.exports = {
       );
       const classTargets = await select(
         queryInterface,
-        "SELECT id, semester_prodi_id, matakuliah_id, nama FROM kelas WHERE semester_prodi_id IN (:semesters)",
+        "SELECT id, semester_id, program_studi_id, matakuliah_id, nama FROM kelas WHERE semester_id IN (:semesters) AND program_studi_id = :prodi",
         {
-          semesters: [...new Set(sourceClasses.map((r) => r.semesterProdiId))],
+          semesters: [...new Set(sourceClasses.map((r) => r.semesterId))],
+          prodi: prodiId,
         },
         t,
       );
@@ -581,8 +544,8 @@ module.exports = {
         sourceClasses,
         classTargets,
         (r) =>
-          `${r.semesterProdiId}:${r.courseId}:${String(r.namaKelas).slice(0, 10)}`,
-        (r) => `${r.semester_prodi_id}:${r.matakuliah_id}:${r.nama}`,
+          `${r.semesterId}:${r.courseId}:${String(r.namaKelas).slice(0, 10)}`,
+        (r) => `${r.semester_id}:${r.matakuliah_id}:${r.nama}`,
       );
       const sourceAssignments = (s.dosen_pengampu_kelas || []).filter(
         (r) =>
@@ -610,12 +573,12 @@ module.exports = {
       const krsData = new Map();
       for (const e of enrollments) {
         const cls = classSourceById.get(String(e.kelasId));
-        const key = `${studentMap.get(String(e.mahasiswaId))}:${cls.semesterProdiId}`;
+        const key = `${studentMap.get(String(e.mahasiswaId))}:${cls.semesterId}`;
         if (!krsData.has(key))
           krsData.set(key, {
             key,
             studentId: studentMap.get(String(e.mahasiswaId)),
-            semesterProdiId: cls.semesterProdiId,
+            semesterId: cls.semesterId,
             source: e,
           });
       }
@@ -625,7 +588,7 @@ module.exports = {
         [...krsData.values()].map((r) => ({
           id: ownedId("krs", r.key),
           mahasiswa_id: r.studentId,
-          semester_prodi_id: r.semesterProdiId,
+          semester_id: r.semesterId,
           approval_ke: 1,
           ...stamp(r.source),
         })),
@@ -634,7 +597,7 @@ module.exports = {
       const detailMap = new Map();
       const details = enrollments.map((e) => {
         const cls = classSourceById.get(String(e.kelasId));
-        const key = `${studentMap.get(String(e.mahasiswaId))}:${cls.semesterProdiId}`;
+        const key = `${studentMap.get(String(e.mahasiswaId))}:${cls.semesterId}`;
         const detailId = ownedId("krs_detil", e.id);
         detailMap.set(`${e.mahasiswaId}:${e.kelasId}`, detailId);
         return {
@@ -772,13 +735,6 @@ module.exports = {
           owned(
             "dosen",
             (s.dosen || []).map((r) => r.id),
-          ),
-        ],
-        [
-          "semester_prodi",
-          owned(
-            "semester_prodi",
-            (s.tahun_ajaran || []).map((r) => r.id),
           ),
         ],
         [

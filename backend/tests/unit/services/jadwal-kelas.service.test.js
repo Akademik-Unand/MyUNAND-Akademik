@@ -39,7 +39,7 @@ describe('resolveShift', () => {
 
   it('mengisi jam dari shift yang dipilih', async () => {
     Shift.findByPk.mockResolvedValue({ id: 'shift-1', fakultas_id: 'fakultas-1', jam_mulai: '08:00:00', jam_selesai: '09:40:00' });
-    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', semesterProdi: { programStudi: { fakultas_id: 'fakultas-1' } } });
+    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', programStudi: { fakultas_id: 'fakultas-1' } });
 
     const payload = { kelas_id: 'kelas-1', shift_id: 'shift-1', hari: 'Senin' };
     await expect(resolveShift(payload)).resolves.toEqual({
@@ -60,7 +60,7 @@ describe('resolveShift', () => {
 
   it('menolak saat shift bukan milik fakultas kelas', async () => {
     Shift.findByPk.mockResolvedValue({ id: 'shift-1', fakultas_id: 'fakultas-2', jam_mulai: '08:00:00', jam_selesai: '09:40:00' });
-    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', semesterProdi: { programStudi: { fakultas_id: 'fakultas-1' } } });
+    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', programStudi: { fakultas_id: 'fakultas-1' } });
 
     await expect(resolveShift({ kelas_id: 'kelas-1', shift_id: 'shift-1' })).rejects.toMatchObject({
       code: 422,

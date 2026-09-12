@@ -34,8 +34,8 @@ module.exports = (sequelize) => {
       password: { type: DataTypes.STRING(255), allowNull: false },
       role: {
         type: DataTypes.STRING(64),
-        allowNull: false,
-        defaultValue: "admin",
+        allowNull: true,
+        defaultValue: null,
       },
       dosen_id: { type: DataTypes.UUID, allowNull: true },
       mahasiswa_id: { type: DataTypes.UUID, allowNull: true },

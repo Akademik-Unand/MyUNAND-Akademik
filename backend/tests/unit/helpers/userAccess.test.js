@@ -16,7 +16,7 @@ describe('userAccess', () => {
     id: 'u1',
     name: 'Admin',
     email: 'admin@email.com',
-    role: 'admin',
+    role: 'admin-universitas',
     dosen_id: null,
     mahasiswa_id: null,
     dosen: null,
@@ -25,7 +25,7 @@ describe('userAccess', () => {
     roles: [
       {
         id: 'r1',
-        name: 'admin',
+        name: 'admin-universitas',
         permissions: [{ name: 'fakultas.read' }, { name: 'krs.approve' }],
       },
       {
@@ -43,12 +43,12 @@ describe('userAccess', () => {
   it('builds complete user payload', () => {
     const payload = toAccessPayload(user);
     expect(payload.roles).toEqual([
-      { id: 'r1', name: 'admin', label: 'Admin' },
+      { id: 'r1', name: 'admin-universitas', label: 'Admin Universitas' },
       { id: 'r2', name: 'dosen', label: 'Dosen' },
     ]);
     expect(payload.permissions).toContain('nilai.upload');
-    expect(payload.role).toBe('admin');
-    expect(payload.org_scope).toEqual({ level: null });
+    expect(payload.role).toBe('admin-universitas');
+    expect(payload.org_scope).toEqual({ level: 'universitas' });
   });
 
   it('maps mahasiswa program studi into the auth payload', () => {

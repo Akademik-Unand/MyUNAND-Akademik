@@ -12,7 +12,6 @@ const {
   KrsDetil,
   Kelas,
   Matakuliah,
-  SemesterProdi,
   Semester,
   JenisSemester,
 } = require('../../models');
@@ -415,30 +414,19 @@ const sksMatakuliah = (detil) => Number(detil.kelas?.matakuliah?.jumlah_sks_kuri
  * melihat siapa yang belum mengisi KRS dan siapa yang menunggu keputusannya.
  */
 const ringkasKrsUntukMahasiswa = async (mahasiswaIds) => {
-  const kosong = { krs: new Map(), spByProdi: new Map() };
-  if (!mahasiswaIds.length) return kosong;
+  if (!mahasiswaIds.length) return { krs: new Map(), semester: null };
 
   // Semester berjalan mengikuti `semester.is_aktif` (sama seperti
-  // krs.service.getContext), bukan flag `semester_prodi.is_aktif` yang banyak
-  // tidak di-set sehingga KRS mahasiswa terbaca seolah belum diisi.
-  const semesterAktif = await SemesterProdi.findAll({
-    attributes: ['id', 'program_studi_id', 'sks_maksimal'],
-    include: [
-      {
-        model: Semester,
-        as: 'semester',
-        required: true,
-        where: { is_aktif: true },
-        include: [{ model: JenisSemester, as: 'jenisSemester' }],
-      },
-    ],
+  // krs.service.getContext) dan bersifat global universitas.
+  const semesterAktif = await Semester.findOne({
+    where: { is_aktif: true },
+    include: [{ model: JenisSemester, as: 'jenisSemester' }],
+    order: [['tahun', 'DESC']],
   });
-  const spByProdi = new Map(semesterAktif.map((sp) => [sp.program_studi_id, sp]));
-  const spIds = semesterAktif.map((sp) => sp.id);
-  if (!spIds.length) return { krs: new Map(), spByProdi };
+  if (!semesterAktif) return { krs: new Map(), semester: null };
 
   const krsRows = await Krs.findAll({
-    where: { mahasiswa_id: { [Op.in]: mahasiswaIds }, semester_prodi_id: { [Op.in]: spIds } },
+    where: { mahasiswa_id: { [Op.in]: mahasiswaIds }, semester_id: semesterAktif.id },
     include: [
       {
         model: KrsDetil,
@@ -467,7 +455,7 @@ const ringkasKrsUntukMahasiswa = async (mahasiswaIds) => {
     });
   }
 
-  return { krs: hasil, spByProdi };
+  return { krs: hasil, semester: semesterAktif };
 };
 
 /**
@@ -492,30 +480,25 @@ const listSaya = async (query, actor = {}) => {
   });
 
   const polos = rows.map(toPlain);
-  const { krs: krsMap, spByProdi } = await ringkasKrsUntukMahasiswa(
+  const { krs: krsMap, semester } = await ringkasKrsUntukMahasiswa(
     polos.map((row) => row.mahasiswa_id)
   );
 
+  const semesterBlock = semester
+    ? {
+        id: semester.id,
+        tahun: semester.tahun,
+        jenisSemester: semester.jenisSemester,
+      }
+    : null;
+
   return {
-    rows: polos.map((row) => {
-      const semesterProdi = spByProdi.get(row.mahasiswa?.program_studi_id) || null;
-      return {
-        ...row,
-        semesterProdi: semesterProdi
-          ? {
-              id: semesterProdi.id,
-              sks_maksimal: semesterProdi.sks_maksimal,
-              semester: semesterProdi.semester
-                ? {
-                    tahun: semesterProdi.semester.tahun,
-                    jenisSemester: semesterProdi.semester.jenisSemester,
-                  }
-                : null,
-            }
-          : null,
-        krs: krsMap.get(row.mahasiswa_id) || null,
-      };
-    }),
+    rows: polos.map((row) => ({
+      ...row,
+      semester: semesterBlock,
+      sks_maksimal: row.mahasiswa?.programStudi?.sks_maksimal ?? null,
+      krs: krsMap.get(row.mahasiswa_id) || null,
+    })),
     pagination,
   };
 };

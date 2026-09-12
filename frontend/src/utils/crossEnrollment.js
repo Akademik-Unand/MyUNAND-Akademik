@@ -21,8 +21,7 @@ export const participantProgram = (row) =>
   "Program studi tidak tersedia";
 
 export const hostProgram = (row) =>
-  row?.kelas?.penawaranMatakuliah?.penawaran?.semesterProdi?.programStudi
-    ?.nama_resmi || "—";
+  row?.kelas?.penawaranMatakuliah?.penawaran?.programStudi?.nama_resmi || "—";
 
 export const approvalStatusLabel = (status) =>
   ({

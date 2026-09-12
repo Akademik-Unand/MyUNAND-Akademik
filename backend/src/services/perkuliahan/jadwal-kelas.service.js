@@ -1,6 +1,6 @@
 'use strict';
 
-const { JadwalKelas, Kelas, Ruang, Shift, SemesterProdi, ProgramStudi } = require('../../models');
+const { JadwalKelas, Kelas, Ruang, Shift, ProgramStudi } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { assertJadwalValid } = require('../../helpers/jadwalConflict');
@@ -35,11 +35,11 @@ const resolveShift = async (payload, transaction) => {
   const shift = await Shift.findByPk(payload.shift_id, { transaction });
   if (!shift) throw new AppError('Shift tidak ditemukan', 404);
   const kelas = await Kelas.findByPk(payload.kelas_id, {
-    include: [{ model: SemesterProdi, as: 'semesterProdi', include: [{ model: ProgramStudi, as: 'programStudi' }] }],
+    include: [{ model: ProgramStudi, as: 'programStudi' }],
     transaction,
   });
   if (!kelas) throw new AppError('Kelas tidak ditemukan', 404);
-  const fakultasId = kelas.semesterProdi?.programStudi?.fakultas_id;
+  const fakultasId = kelas.programStudi?.fakultas_id;
   if (fakultasId && shift.fakultas_id !== fakultasId) {
     throw new AppError('Shift tidak sesuai dengan fakultas kelas', 422);
   }

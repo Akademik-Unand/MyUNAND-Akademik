@@ -3,11 +3,11 @@
 const Joi = require('joi');
 const { idParam, listQuery } = require('../common');
 
-const list = listQuery(['approval_ke', 'createdAt'], ['mahasiswa_id', 'semester_prodi_id']);
+const list = listQuery(['approval_ke', 'createdAt'], ['mahasiswa_id', 'semester_id']);
 
 const create = Joi.object({
   mahasiswa_id: Joi.string().uuid().required(),
-  semester_prodi_id: Joi.string().uuid().required(),
+  semester_id: Joi.string().uuid().required(),
   jam_mulai: Joi.date().allow(null),
   jam_selesai: Joi.date().allow(null),
   approval_ke: Joi.number().allow(null),
@@ -15,7 +15,7 @@ const create = Joi.object({
 
 const update = Joi.object({
   mahasiswa_id: Joi.string().uuid().allow(null),
-  semester_prodi_id: Joi.string().uuid().allow(null),
+  semester_id: Joi.string().uuid().allow(null),
   jam_mulai: Joi.date().allow(null),
   jam_selesai: Joi.date().allow(null),
   approval_ke: Joi.number().allow(null),

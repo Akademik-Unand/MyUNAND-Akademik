@@ -76,20 +76,20 @@ describe('assertKelasPublishedOffering', () => {
 
   const kelasDenganPenawaran = (status) => ({
     id: 'kelas-1',
-    semester_prodi_id: 'sp-1',
+    semester_id: 'sem-1',
     penawaranMatakuliah: status ? { penawaran: { status } } : null,
   });
 
   it('mengizinkan kelas dari penawaran published', async () => {
     Kelas.findByPk.mockResolvedValue(kelasDenganPenawaran('published'));
 
-    await expect(assertKelasPublishedOffering('kelas-1', 'sp-1')).resolves.toMatchObject({ id: 'kelas-1' });
+    await expect(assertKelasPublishedOffering('kelas-1', 'sem-1')).resolves.toMatchObject({ id: 'kelas-1' });
   });
 
   it('menolak kelas dari penawaran draft atau closed', async () => {
     Kelas.findByPk.mockResolvedValue(kelasDenganPenawaran('draft'));
 
-    await expect(assertKelasPublishedOffering('kelas-1', 'sp-1')).rejects.toMatchObject({
+    await expect(assertKelasPublishedOffering('kelas-1', 'sem-1')).rejects.toMatchObject({
       code: 409,
       message: 'Mata kuliah belum dibuka pada semester ini',
     });
@@ -98,16 +98,16 @@ describe('assertKelasPublishedOffering', () => {
   it('menolak kelas tanpa penawaran sama sekali', async () => {
     Kelas.findByPk.mockResolvedValue(kelasDenganPenawaran(null));
 
-    await expect(assertKelasPublishedOffering('kelas-1', 'sp-1')).rejects.toMatchObject({
+    await expect(assertKelasPublishedOffering('kelas-1', 'sem-1')).rejects.toMatchObject({
       code: 409,
       message: 'Mata kuliah belum dibuka pada semester ini',
     });
   });
 
   it('menolak kelas dari semester yang berbeda dengan KRS', async () => {
-    Kelas.findByPk.mockResolvedValue({ ...kelasDenganPenawaran('published'), semester_prodi_id: 'sp-2' });
+    Kelas.findByPk.mockResolvedValue({ ...kelasDenganPenawaran('published'), semester_id: 'sem-2' });
 
-    await expect(assertKelasPublishedOffering('kelas-1', 'sp-1')).rejects.toMatchObject({
+    await expect(assertKelasPublishedOffering('kelas-1', 'sem-1')).rejects.toMatchObject({
       code: 422,
       message: 'Kelas tidak sesuai dengan semester KRS',
     });
@@ -116,7 +116,7 @@ describe('assertKelasPublishedOffering', () => {
   it('menolak saat kelas tidak ditemukan', async () => {
     Kelas.findByPk.mockResolvedValue(null);
 
-    await expect(assertKelasPublishedOffering('kelas-1', 'sp-1')).rejects.toMatchObject({
+    await expect(assertKelasPublishedOffering('kelas-1', 'sem-1')).rejects.toMatchObject({
       code: 404,
       message: 'Kelas dengan ID tersebut tidak ditemukan',
     });
@@ -167,7 +167,7 @@ describe('create — wajib dosen PA aktif', () => {
   const setKelasValid = () => {
     Kelas.findByPk.mockResolvedValue({
       id: 'kelas-1',
-      semester_prodi_id: 'sp-1',
+      semester_id: 'sem-1',
       jumlah_peserta_max: 30,
       penawaranMatakuliah: { penawaran: { status: 'published' } },
       matakuliah: { kode_matakuliah: 'PTN1105', nama_resmi: 'Bahasa Indonesia' },
@@ -183,7 +183,7 @@ describe('create — wajib dosen PA aktif', () => {
     Krs.findByPk.mockResolvedValue({
       id: 'krs-1',
       mahasiswa_id: 'mhs-1',
-      semester_prodi_id: 'sp-1',
+      semester_id: 'sem-1',
       approval_ke: 0,
     });
     KrsDetil.create.mockResolvedValue({ id: 'kd-1' });
@@ -224,7 +224,7 @@ describe('create — wajib dosen PA aktif', () => {
   it('menolak ambil mata kuliah yang jadwalnya bentrok, dengan menyebut MK-nya', async () => {
     Kelas.findByPk.mockResolvedValue({
       id: 'kelas-1',
-      semester_prodi_id: 'sp-1',
+      semester_id: 'sem-1',
       jumlah_peserta_max: 30,
       penawaranMatakuliah: { penawaran: { status: 'published' } },
       matakuliah: { kode_matakuliah: 'PTN1105', nama_resmi: 'Bahasa Indonesia' },

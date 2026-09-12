@@ -4,7 +4,7 @@ import { apiRequest } from "./http";
 export const getKrsByMahasiswa = (mahasiswaId) =>
   apiRequest(`/krs/mahasiswa/${mahasiswaId}`);
 
-/** Konteks KRS mahasiswa login: mahasiswa, semester-prodi aktif, dan KRS berjalan. */
+/** Konteks KRS mahasiswa login: mahasiswa, semester aktif, dan KRS berjalan. */
 export const getStudentKrsContext = () => apiRequest("/krs/context");
 
 /** Persetujuan KRS reguler oleh dosen. */

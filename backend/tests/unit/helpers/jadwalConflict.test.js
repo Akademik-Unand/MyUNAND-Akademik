@@ -31,7 +31,7 @@ const kelasA = { nama: 'A', matakuliah: { kode_matakuliah: 'MK1', nama_resmi: 'A
 describe('jadwalConflict', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', semester_prodi_id: 'sp-1', jumlah_peserta_max: 0 });
+    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', semester_id: 'sem-1', program_studi_id: 'p-1', jumlah_peserta_max: 0 });
     Ruang.findByPk.mockResolvedValue({ id: 'ruang-1', kode: 'R1', kapasitas: 0 });
     DosenKelas.findAll.mockResolvedValue([]);
     JadwalKelas.findOne.mockResolvedValue(null);
@@ -93,8 +93,8 @@ describe('jadwalConflict', () => {
     expect(JadwalKelas.findOne).not.toHaveBeenCalled();
   });
 
-  it('menolak bentrok dengan kelas lain pada semester prodi yang sama', async () => {
-    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', semester_prodi_id: 'sp-1' });
+  it('menolak bentrok dengan kelas lain pada semester & prodi yang sama', async () => {
+    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', semester_id: 'sem-1', program_studi_id: 'p-1' });
     JadwalKelas.findOne.mockResolvedValue({ kelas: kelasA });
 
     await expect(assertSeangkatanKosong(PAYLOAD)).rejects.toMatchObject({
@@ -124,14 +124,13 @@ describe('jadwalConflict', () => {
   });
 
   describe('batas semester', () => {
-    const semesterScopeOf = (call) =>
-      call[0].include[0].include.find((item) => item.as === 'semesterProdi');
+    const semesterScopeOf = (call) => call[0].include[0]?.where?.semester_id;
 
     it('membatasi cek bentrok ruang & dosen ke semester kelas yang dijadwalkan', async () => {
       Kelas.findByPk.mockResolvedValue({
         id: 'kelas-1',
-        semester_prodi_id: 'sp-1',
-        semesterProdi: { semester_id: 'sem-1' },
+        semester_id: 'sem-1',
+        program_studi_id: 'p-1',
         jumlah_peserta_max: 0,
       });
       DosenKelas.findAll
@@ -141,18 +140,12 @@ describe('jadwalConflict', () => {
       await assertJadwalValid(PAYLOAD);
 
       // call[0] = cek ruang, call[1] = cek dosen
-      expect(semesterScopeOf(JadwalKelas.findOne.mock.calls[0])).toMatchObject({
-        required: true,
-        where: { semester_id: 'sem-1' },
-      });
-      expect(semesterScopeOf(JadwalKelas.findOne.mock.calls[1])).toMatchObject({
-        required: true,
-        where: { semester_id: 'sem-1' },
-      });
+      expect(semesterScopeOf(JadwalKelas.findOne.mock.calls[0])).toBe('sem-1');
+      expect(semesterScopeOf(JadwalKelas.findOne.mock.calls[1])).toBe('sem-1');
     });
 
     it('tidak membatasi semester bila semester kelas tidak diketahui', async () => {
-      Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', semester_prodi_id: null, jumlah_peserta_max: 0 });
+      Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', semester_id: null, jumlah_peserta_max: 0 });
 
       await assertJadwalValid(PAYLOAD);
 

@@ -7,7 +7,6 @@ import {
   ClipboardCheck,
   ClipboardList,
   Clock3,
-  ListChecks,
   UploadCloud,
   Users,
 } from "lucide-react";
@@ -18,7 +17,7 @@ import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { getDosenDashboardSummary } from "../../services/api";
-import { semesterAkademikLabel } from "../../helpers/semesterProdi";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
 
 const QuickAction = ({
   icon: Icon,
@@ -131,8 +130,9 @@ export const DosenDashboard = () => {
   }
 
   const total = data?.mahasiswa_bimbingan ?? 0;
-  const menunggu = (data?.krs_menunggu ?? 0) + (data?.pengajuan_menunggu ?? 0);
-  const semesterProdi = data?.semesterProdi;
+  // Pengajuan lintas prodi ikut disetujui lewat persetujuan KRS, jadi tugas
+  // menunggu cukup dihitung dari KRS yang belum disetujui.
+  const menunggu = data?.krs_menunggu ?? 0;
 
   return (
     <div className="space-y-4">
@@ -141,16 +141,16 @@ export const DosenDashboard = () => {
         subtitle="Ringkasan bimbingan akademik dan tugas persetujuan Anda"
         breadcrumbs={[{ label: "Dashboard" }]}
         action={
-          semesterProdi ? (
+          data?.semester ? (
             <Badge variant="outline" size="sm">
-              {semesterAkademikLabel(semesterProdi.semester)} · maks{" "}
-              {semesterProdi.sks_maksimal ?? "-"} SKS
+              {semesterAkademikLabel(data.semester)} · maks{" "}
+              {data?.sks_maksimal ?? "-"} SKS
             </Badge>
           ) : null
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title="Mahasiswa Bimbingan"
           value={String(total)}
@@ -168,12 +168,6 @@ export const DosenDashboard = () => {
           value={String(data?.krs_menunggu ?? 0)}
           subtitle="Butuh persetujuan Anda"
           icon={ClipboardCheck}
-        />
-        <StatCard
-          title="Lintas Prodi Menunggu"
-          value={String(data?.pengajuan_menunggu ?? 0)}
-          subtitle="Butuh keputusan Anda"
-          icon={ListChecks}
         />
       </div>
 
@@ -193,15 +187,6 @@ export const DosenDashboard = () => {
               >
                 Tinjau KRS
               </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() =>
-                  navigate("/perkuliahan/persetujuan/lintas-prodi")
-                }
-              >
-                Tinjau Lintas Prodi
-              </Button>
             </div>
           </div>
         </Card>
@@ -211,7 +196,7 @@ export const DosenDashboard = () => {
         <SebaranAngkatan angkatan={data?.angkatan} />
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <QuickAction
           icon={Users}
           title="Mahasiswa Bimbingan"
@@ -222,28 +207,10 @@ export const DosenDashboard = () => {
         <QuickAction
           icon={ClipboardCheck}
           title="Persetujuan KRS"
-          subtitle="Setujui KRS mahasiswa bimbingan yang masih menunggu keputusan."
+          subtitle="Setujui KRS mahasiswa bimbingan — termasuk pengajuan mata kuliah lintas prodi di dalamnya."
           action="Tinjau KRS"
           variant="secondary"
           onClick={() => navigate("/perkuliahan/persetujuan/krs")}
-        />
-        <QuickAction
-          icon={UploadCloud}
-          title="Upload Nilai"
-          subtitle="Unggah dan kelola nilai mahasiswa pada kelas yang Anda ampu."
-          action="Buka Upload"
-          variant="outline"
-          onClick={() => navigate("/perkuliahan/upload-nilai")}
-        />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <QuickAction
-          icon={ListChecks}
-          title="Persetujuan Lintas Prodi"
-          subtitle="Putuskan pengajuan mata kuliah lintas prodi dari mahasiswa bimbingan."
-          action="Buka Pengajuan"
-          onClick={() => navigate("/perkuliahan/persetujuan/lintas-prodi")}
         />
         <QuickAction
           icon={BookOpenCheck}
@@ -252,6 +219,14 @@ export const DosenDashboard = () => {
           action="Lihat Rekap"
           variant="secondary"
           onClick={() => navigate("/perkuliahan/rekap-cp")}
+        />
+        <QuickAction
+          icon={UploadCloud}
+          title="Upload Nilai"
+          subtitle="Unggah dan kelola nilai mahasiswa pada kelas yang Anda ampu."
+          action="Buka Upload"
+          variant="outline"
+          onClick={() => navigate("/perkuliahan/upload-nilai")}
         />
       </div>
     </div>

@@ -15,6 +15,7 @@ jest.mock('../../../src/models', () => ({
   BimbinganAkademik: { findAll: jest.fn() },
 }));
 
+const { Op } = require('sequelize');
 const { Krs, KrsDetil } = require('../../../src/models');
 const { approve } = require('../../../src/services/krs/krs.service');
 
@@ -23,7 +24,7 @@ describe('krs.service approve', () => {
     jest.clearAllMocks();
   });
 
-  it('hanya menyetujui baris KRS reguler, tidak menimpa pengajuan lintas prodi', async () => {
+  it('menyetujui baris reguler sekaligus pengajuan lintas prodi yang masih menunggu', async () => {
     const krsRow = {
       id: 'krs-1',
       approval_ke: 0,
@@ -35,15 +36,40 @@ describe('krs.service approve', () => {
       .mockResolvedValueOnce({ id: 'krs-1', approval_ke: 1 });
     KrsDetil.update.mockResolvedValue([1]);
 
-    await approve('krs-1');
+    await approve('krs-1', {}, { id: 'user-pa' });
 
     expect(krsRow.update).toHaveBeenCalledWith(
       expect.objectContaining({ approval_ke: 1 }),
       { transaction: 'tx' }
     );
-    expect(KrsDetil.update).toHaveBeenCalledWith(
+    expect(KrsDetil.update).toHaveBeenNthCalledWith(
+      1,
       { approved: '1' },
       { where: { krs_id: 'krs-1', is_cross_enrollment: false, approved: '0' }, transaction: 'tx' }
+    );
+    // Pengajuan lintas prodi tidak punya keputusan PA terpisah lagi: semua baris
+    // yang belum diputuskan ikut ditetapkan bersamaan — `pending_pa` maupun
+    // status kosong dari data lama — sedangkan yang sudah approved/rejected tidak
+    // tersentuh klausa `where` ini.
+    expect(KrsDetil.update).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        approved: '1',
+        cross_enrollment_status: 'approved',
+        pa_approved_by: 'user-pa',
+        pa_approved_at: expect.any(Date),
+      }),
+      {
+        where: {
+          krs_id: 'krs-1',
+          is_cross_enrollment: true,
+          [Op.or]: [
+            { cross_enrollment_status: 'pending_pa' },
+            { cross_enrollment_status: { [Op.is]: null } },
+          ],
+        },
+        transaction: 'tx',
+      }
     );
   });
 

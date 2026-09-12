@@ -6,7 +6,7 @@ import { Can } from "../auth/Can";
 import {
   semesterAkademikLabel,
   prodiDepartemenLabel,
-} from "../../helpers/semesterProdi";
+} from "../../helpers/academicLabel";
 import { kelasDisplayName, matakuliahListLabel } from "../../helpers/kelasInfo";
 
 export const buildKelasListColumns = ({
@@ -40,12 +40,12 @@ export const buildKelasListColumns = ({
     {
       key: "prodi",
       header: "Prodi",
-      render: (row) => prodiDepartemenLabel(row.semesterProdi?.programStudi),
+      render: (row) => prodiDepartemenLabel(row.programStudi),
     },
     {
-      key: "semester_prodi_id",
+      key: "semester_id",
       header: "Semester",
-      render: (row) => semesterAkademikLabel(row.semesterProdi?.semester),
+      render: (row) => semesterAkademikLabel(row.semester),
     },
     {
       key: "jumlah_peserta",

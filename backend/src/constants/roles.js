@@ -3,7 +3,6 @@
 const ROLE_NAMES = {
   SUPERADMIN: "superadmin",
   ADMIN_UNIVERSITAS: "admin-universitas",
-  ADMIN: "admin",
   DOSEN: "dosen",
   DOSEN_PA: "dosen-pa",
   MAHASISWA: "mahasiswa",
@@ -24,7 +23,6 @@ const UNIVERSITY_ADMIN_NAMES = new Set([
 const ROLE_LABELS = {
   superadmin: "Admin Universitas",
   "admin-universitas": "Admin Universitas",
-  admin: "Admin",
   dosen: "Dosen",
   "dosen-pa": "Dosen PA",
   mahasiswa: "Mahasiswa",

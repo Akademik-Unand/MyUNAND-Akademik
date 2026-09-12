@@ -9,9 +9,9 @@ module.exports = (sequelize) => {
         as: "mahasiswa",
       });
       RekapCp.belongsTo(models.Cp, { foreignKey: "cp_id", as: "cp" });
-      RekapCp.belongsTo(models.SemesterProdi, {
-        foreignKey: "semester_prodi_id",
-        as: "semesterProdi",
+      RekapCp.belongsTo(models.Semester, {
+        foreignKey: "semester_id",
+        as: "semester",
       });
     }
   }
@@ -24,7 +24,7 @@ module.exports = (sequelize) => {
       },
       mahasiswa_id: { type: DataTypes.UUID, allowNull: false },
       cp_id: { type: DataTypes.UUID, allowNull: false },
-      semester_prodi_id: { type: DataTypes.UUID, allowNull: true },
+      semester_id: { type: DataTypes.UUID, allowNull: true },
       nilai_capaian: { type: DataTypes.FLOAT, defaultValue: 0 },
       status_lulus: { type: DataTypes.BOOLEAN, defaultValue: false },
     },

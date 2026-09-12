@@ -31,7 +31,7 @@ module.exports = {
     }
 
     const [roles] = await queryInterface.sequelize.query(
-      "SELECT id FROM roles WHERE name = 'admin' LIMIT 1",
+      "SELECT id FROM roles WHERE name = 'admin-universitas' LIMIT 1",
     );
     const roleId = roles[0]?.id;
     if (!roleId) return;

@@ -64,12 +64,6 @@ const SUBJECTS = {
     master: true,
     label: "Semester",
   },
-  "semester-prodi": {
-    casl: "SemesterProdi",
-    group: "semester",
-    master: false,
-    label: "Semester Prodi",
-  },
   periode: {
     casl: "Periode",
     group: "semester",
@@ -263,12 +257,12 @@ const SPECIAL = [
     action: "enroll",
     description: "Ajukan lintas prodi",
   },
-  {
-    key: "cross-enrollment",
-    action: "approve-pa",
-    description: "Setujui pengajuan lintas prodi sebagai dosen PA",
-  },
   { key: "nilai", action: "upload", description: "Unggah nilai massal" },
+  {
+    key: "program-studi",
+    action: "update-sks",
+    description: "Atur kuota SKS program studi",
+  },
   {
     key: "user",
     action: "assign-roles",
@@ -367,11 +361,9 @@ const isDosenAllowed = (item) => {
   if (item.key === "periode" && item.action === "read") return true;
   if (item.group === "krs" && ["read", "approve"].includes(item.action))
     return true;
-  // Dosen adalah pembimbing akademik mahasiswanya, jadi ia boleh menyetujui
-  // pengajuan lintas prodi bimbingannya (endpoint memverifikasi kepemilikan PA)
-  // dan melihat daftar bimbingannya sendiri (otomatis dibatasi ke dirinya).
-  if (item.key === "cross-enrollment" && item.action === "approve-pa")
-    return true;
+  // Dosen adalah pembimbing akademik mahasiswanya, jadi ia boleh melihat daftar
+  // bimbingannya sendiri (otomatis dibatasi ke dirinya). Persetujuan pengajuan
+  // lintas prodi ikut lewat `krs.approve`, tidak ada aksi terpisah.
   if (item.key === "bimbingan-akademik" && item.action === "read") return true;
   if (item.group === "nilai") return true;
   if (item.group === "evaluasi") return true;
@@ -417,6 +409,10 @@ const isAdminFakultasAllowed = (item) => {
   if (IAM_DANGER.has(item.name) || item.name === "role.sync-permissions")
     return false;
   if (item.key === "universitas" && item.action !== "read") return false;
+  // Kuota SKS adalah kebijakan universitas (aturan rektor), jadi hanya admin
+  // universitas yang menetapkannya — admin unit tetap boleh mengubah profil
+  // prodi, tetapi bukan angka SKS-nya.
+  if (item.name === "program-studi.update-sks") return false;
   return true;
 };
 
@@ -429,12 +425,15 @@ const isAdminDepartemenAllowed = (item) => {
 const isAdminProdiAllowed = (item) => {
   if (!isAdminDepartemenAllowed(item)) return false;
   if (item.key === "departemen" && item.action !== "read") return false;
+  // Admin prodi tidak mengelola master Program Studi (termasuk kuota SKS-nya):
+  // prodinya sendiri urusan admin universitas, dan data prodi tetap terbaca
+  // untuk kebutuhan scope organisasi.
+  if (item.key === "program-studi" && item.action !== "read") return false;
   return true;
 };
 
 const ROLE_GRANT_PREDICATES = {
   "admin-universitas": () => true,
-  admin: isAdminAllowed,
   dosen: isDosenAllowed,
   mahasiswa: isMahasiswaAllowed,
   "dosen-pa": isDosenPaAllowed,

@@ -13,7 +13,7 @@ import { useResourceMutations } from "../../hooks/useResourceMutations";
 import { useResourceItem } from "../../hooks/useResourceQuery";
 import { useLaporanCpPreview } from "../../hooks/useLaporanCpPreview";
 import { itemsFromSelected, selectedFromItems } from "../../helpers/laporanCp";
-import { semesterDanSebelumnyaLabel } from "../../helpers/semesterProdi";
+import { semesterDanSebelumnyaLabel } from "../../helpers/academicLabel";
 
 const empty = {
   nama_laporan: "",

@@ -5,7 +5,6 @@ const {
   PenawaranMatakuliah,
   PenawaranMatakuliahDetil,
   PenawaranMatakuliahProdi,
-  SemesterProdi,
   Semester,
   ProgramStudi,
   Matakuliah,
@@ -73,14 +72,8 @@ const detailInclude = [
   { model: Kelas, as: "kelas", include: kelasInclude },
 ];
 const detailIncludeWithParticipants = [
-  {
-    model: SemesterProdi,
-    as: "semesterProdi",
-    include: [
-      { model: Semester, as: "semester" },
-      { model: ProgramStudi, as: "programStudi" },
-    ],
-  },
+  { model: Semester, as: "semester" },
+  { model: ProgramStudi, as: "programStudi" },
   {
     model: PenawaranMatakuliahDetil,
     as: "matakuliahDitawarkan",
@@ -127,14 +120,8 @@ const detailIncludeWithParticipants = [
   },
 ];
 const include = [
-  {
-    model: SemesterProdi,
-    as: "semesterProdi",
-    include: [
-      { model: Semester, as: "semester" },
-      { model: ProgramStudi, as: "programStudi" },
-    ],
-  },
+  { model: Semester, as: "semester" },
+  { model: ProgramStudi, as: "programStudi" },
   {
     model: PenawaranMatakuliahDetil,
     as: "matakuliahDitawarkan",
@@ -152,7 +139,7 @@ const options = {
     "$matakuliahDitawarkan.matakuliah.nama_resmi$",
   ],
   sortableFields: ["status", "tanggal_mulai", "tanggal_selesai", "createdAt"],
-  filterableFields: ["semester_prodi_id", "status"],
+  filterableFields: ["semester_id", "program_studi_id", "status"],
   defaultInclude: include,
   findOptions: { subQuery: false, distinct: true },
 };
@@ -165,13 +152,11 @@ const getById = async (id, transaction) => {
   if (!row) throw new AppError("Periode penawaran tidak ditemukan", 404);
   return row;
 };
-const validateCourses = async (semesterProdiId, courses, transaction) => {
-  const sp = await SemesterProdi.findByPk(semesterProdiId, { transaction });
-  if (!sp) throw new AppError("Semester prodi tidak ditemukan", 404);
+const validateCourses = async (programStudiId, courses, transaction) => {
   const rows = await Matakuliah.findAll({
     where: {
       id: courses.map((x) => x.matakuliah_id),
-      program_studi_id: sp.program_studi_id,
+      program_studi_id: programStudiId,
     },
     attributes: ["id", "has_prasyarat"],
     transaction,
@@ -194,7 +179,7 @@ const validateCourses = async (semesterProdiId, courses, transaction) => {
   }
 };
 const syncCourses = async (header, courses, transaction) => {
-  await validateCourses(header.semester_prodi_id, courses, transaction);
+  await validateCourses(header.program_studi_id, courses, transaction);
   const current = await PenawaranMatakuliahDetil.findAll({
     where: { penawaran_matakuliah_id: header.id },
     transaction,
@@ -244,13 +229,16 @@ const save = (id, payload) =>
       await header.update(data, { transaction });
     } else {
       const existing = await PenawaranMatakuliah.findOne({
-        where: { semester_prodi_id: data.semester_prodi_id },
+        where: {
+          semester_id: data.semester_id,
+          program_studi_id: data.program_studi_id,
+        },
         paranoid: false,
         transaction,
       });
       if (existing) {
         if (!existing.deletedAt)
-          throw new AppError("Penawaran semester-prodi sudah dibuat", 409);
+          throw new AppError("Penawaran untuk semester dan program studi tersebut sudah dibuat", 409);
         await existing.restore({ transaction });
         header = await existing.update(data, { transaction });
       } else {
@@ -327,7 +315,7 @@ const catalog = async (query) => {
         { "$prodiTujuan.program_studi_id$": programStudiId },
       ],
     });
-  if (semesterId) and.push({ "$semesterProdi.semester_id$": semesterId });
+  if (semesterId) and.push({ semester_id: semesterId });
   if (and.length) where[Op.and] = and;
   // `paginate` hanya membaca klausa where dari `findOptions.where`; where
   // top-level akan diabaikan sehingga draft ikut tampil. Selalu taruh di sini.

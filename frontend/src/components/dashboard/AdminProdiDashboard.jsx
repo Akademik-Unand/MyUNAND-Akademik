@@ -2,15 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Award,
-  BookOpen,
   BookPlus,
   BookOpenCheck,
   ClipboardCheck,
   ClipboardList,
-  Clock,
   GraduationCap,
   Layers,
-  ListChecks,
   UploadCloud,
 } from "lucide-react";
 import { PageHeader } from "../common/PageHeader";
@@ -19,33 +16,10 @@ import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
 import { DashboardSkeleton } from "./DashboardSkeleton";
+import { PeriodeAkademikCard } from "./PeriodeAkademikCard";
 import { getProdiDashboardSummary } from "../../services/api";
-import { semesterAkademikLabel } from "../../helpers/semesterProdi";
+import { krsPeriodStatus } from "../../helpers/krsPeriod";
 import { useOrganizationContext } from "../../contexts/OrganizationContext";
-
-const today = () => new Date().toISOString().slice(0, 10);
-
-const periodStatus = (semesterProdi) => {
-  if (
-    !semesterProdi?.tanggal_krs_mulai ||
-    !semesterProdi?.tanggal_krs_selesai
-  ) {
-    return { label: "Belum diatur", variant: "ghost" };
-  }
-  const current = today();
-  if (current < semesterProdi.tanggal_krs_mulai)
-    return { label: "Belum dibuka", variant: "warning" };
-  if (current > semesterProdi.tanggal_krs_selesai)
-    return { label: "Ditutup", variant: "error" };
-  return { label: "Sedang dibuka", variant: "success" };
-};
-
-const formatDate = (value) =>
-  value
-    ? new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" }).format(
-        new Date(value),
-      )
-    : "-";
 
 const QuickAction = ({
   icon: Icon,
@@ -90,8 +64,7 @@ export const AdminProdiDashboard = () => {
     queryFn: getProdiDashboardSummary,
   });
 
-  const semesterProdi = data?.semesterProdi;
-  const status = periodStatus(semesterProdi);
+  const status = krsPeriodStatus(data?.periode);
   const prodiLabel = organization.label || "Program Studi";
 
   if (isPending) return <DashboardSkeleton />;
@@ -109,36 +82,13 @@ export const AdminProdiDashboard = () => {
         }
       />
 
-      {/* Semester Info */}
-      {semesterProdi && (
-        <Card title="Periode Akademik Berjalan" icon={Clock}>
-          <div className="grid gap-3 md:grid-cols-4">
-            <div>
-              <p className="text-xs text-base-content/60">Semester</p>
-              <p className="text-sm font-medium">
-                {semesterAkademikLabel(semesterProdi.semester)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-base-content/60">KRS Mulai</p>
-              <p className="text-sm font-medium">
-                {formatDate(semesterProdi.tanggal_krs_mulai)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-base-content/60">KRS Selesai</p>
-              <p className="text-sm font-medium">
-                {formatDate(semesterProdi.tanggal_krs_selesai)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-base-content/60">Maksimal SKS</p>
-              <p className="text-sm font-medium">
-                {semesterProdi.sks_maksimal ?? "-"} SKS
-              </p>
-            </div>
-          </div>
-        </Card>
+      {/* Jendela KRS & kuota SKS semester berjalan */}
+      {data?.semester && (
+        <PeriodeAkademikCard
+          semester={data.semester}
+          periode={data?.periode}
+          sksMaksimal={data?.sks_maksimal}
+        />
       )}
 
       {/* Stat Cards */}
@@ -174,36 +124,29 @@ export const AdminProdiDashboard = () => {
         <QuickAction
           icon={ClipboardCheck}
           title="Persetujuan KRS"
-          subtitle="Tinjau dan setujui KRS mahasiswa prodi Anda."
+          subtitle="Tinjau dan setujui KRS mahasiswa prodi Anda — termasuk pengajuan mata kuliah lintas prodi."
           action="Buka Persetujuan"
           onClick={() => navigate("/perkuliahan/persetujuan/krs")}
-        />
-        <QuickAction
-          icon={ListChecks}
-          title="Persetujuan Lintas Prodi"
-          subtitle="Setujui pengajuan lintas prodi dari dosen PA."
-          action="Buka Persetujuan"
-          variant="secondary"
-          onClick={() => navigate("/perkuliahan/persetujuan/lintas-prodi")}
         />
         <QuickAction
           icon={BookPlus}
           title="Penawaran MK Semester"
           subtitle="Kelola daftar mata kuliah yang ditawarkan semester ini."
           action="Lihat Penawaran"
-          variant="outline"
+          variant="secondary"
           onClick={() => navigate("/perkuliahan/penawaran-mk")}
         />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
         <QuickAction
           icon={Layers}
           title="Kurikulum & MK"
           subtitle="Kelola kurikulum, mata kuliah, dan CPMK prodi Anda."
           action="Kelola Kurikulum"
+          variant="outline"
           onClick={() => navigate("/kurikulum/data")}
         />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
         <QuickAction
           icon={UploadCloud}
           title="Upload Nilai"

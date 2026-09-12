@@ -6,7 +6,6 @@ const { ROLE_NAMES } = require("../constants/roles");
 
 const ROLE_SEED = [
   ROLE_NAMES.ADMIN_UNIVERSITAS,
-  ROLE_NAMES.ADMIN,
   ROLE_NAMES.DOSEN,
   ROLE_NAMES.MAHASISWA,
 ];
@@ -25,11 +24,6 @@ const USER_SEED = [
     name: "Admin Universitas",
     email: "superadmin@email.com",
     role: ROLE_NAMES.ADMIN_UNIVERSITAS,
-  },
-  {
-    name: "Admin Kurikulum",
-    email: "admin@email.com",
-    role: ROLE_NAMES.ADMIN,
   },
   {
     name: "Dosen Pembimbing",

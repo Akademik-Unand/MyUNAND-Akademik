@@ -3,7 +3,6 @@
 const { randomUUID } = require("crypto");
 
 const GRANTS = {
-  admin: ["manage-kurikulum", "manage-krs", "manage-nilai", "view-laporan"],
   dosen: ["manage-nilai", "manage-krs", "view-laporan"],
   mahasiswa: ["manage-krs", "view-laporan"],
 };
@@ -11,7 +10,7 @@ const GRANTS = {
 module.exports = {
   async up(queryInterface) {
     const [roles] = await queryInterface.sequelize.query(
-      "SELECT id, name FROM roles WHERE name IN ('admin', 'dosen', 'mahasiswa')",
+      "SELECT id, name FROM roles WHERE name IN ('dosen', 'mahasiswa')",
     );
     const [permissions] = await queryInterface.sequelize.query(
       "SELECT id, name FROM permissions",
@@ -57,7 +56,7 @@ module.exports = {
 
   async down(queryInterface) {
     const [roles] = await queryInterface.sequelize.query(
-      "SELECT id FROM roles WHERE name IN ('admin', 'dosen', 'mahasiswa')",
+      "SELECT id FROM roles WHERE name IN ('dosen', 'mahasiswa')",
     );
     const roleIds = roles.map((row) => row.id);
     if (roleIds.length === 0) return;

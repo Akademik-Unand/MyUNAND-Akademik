@@ -1,6 +1,8 @@
 "use strict";
+
 const { DataTypes } = require("sequelize");
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
     await queryInterface.createTable("tipe_matakuliah", {
@@ -11,11 +13,12 @@ module.exports = {
       },
       kode_tipe_matakuliah: { type: DataTypes.STRING(10), allowNull: false },
       nama: { type: DataTypes.STRING(255), allowNull: false },
-      is_dipakai: { type: DataTypes.TINYINT, defaultValue: 1 },
+      is_dipakai: { type: DataTypes.TINYINT, defaultValue: 1, allowNull: true },
       createdAt: { type: DataTypes.DATE, allowNull: false },
       updatedAt: { type: DataTypes.DATE, allowNull: false },
     });
   },
+
   async down(queryInterface) {
     await queryInterface.dropTable("tipe_matakuliah");
   },

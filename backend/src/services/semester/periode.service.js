@@ -5,6 +5,7 @@ const { Periode, Semester, JenisSemester } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
+const { toDateOnly } = require('../../helpers/dateOnly');
 
 const LIST_OPTIONS = {
   searchFields: ['jenis', '$semester.tahun$', '$semester.jenisSemester.nama$'],
@@ -29,6 +30,34 @@ const getById = async (id) => {
   return item;
 };
 
+/**
+ * Periode harus muat di dalam jendela semesternya: tanggal selesainya tidak
+ * boleh melewati tanggal selesai semester. Semester yang belum punya tanggal
+ * selesai (mis. hasil impor) dilewati — tidak ada batas yang bisa dipakai.
+ */
+const assertDalamSemester = async (semesterId, tanggalSelesai) => {
+  const semester = await Semester.findByPk(semesterId, {
+    attributes: ['id', 'tahun', 'tanggal_selesai'],
+    include: [{ model: JenisSemester, as: 'jenisSemester', attributes: ['nama'] }],
+  });
+  if (!semester) {
+    throw new AppError('Semester dengan ID tersebut tidak ditemukan', 404);
+  }
+
+  const batas = toDateOnly(semester.tanggal_selesai);
+  const akhir = toDateOnly(tanggalSelesai);
+  if (batas && akhir && akhir > batas) {
+    const nama = [semester.jenisSemester?.nama, semester.tahun].filter(Boolean).join(' ');
+    throw new AppError(
+      `Tanggal selesai periode tidak boleh melebihi tanggal selesai semester` +
+        `${nama ? ` ${nama}` : ''} (${batas}).`,
+      422,
+    );
+  }
+
+  return semester;
+};
+
 const assertUniquePair = async (semesterId, jenis, excludeId) => {
   const where = { semester_id: semesterId, jenis };
   if (excludeId) where.id = { [Op.ne]: excludeId };
@@ -39,6 +68,7 @@ const assertUniquePair = async (semesterId, jenis, excludeId) => {
 };
 
 const create = async (payload) => {
+  await assertDalamSemester(payload.semester_id, payload.tanggal_selesai);
   await assertUniquePair(payload.semester_id, payload.jenis);
   const item = await Periode.create(payload);
   return Periode.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude });
@@ -48,11 +78,12 @@ const update = async (id, payload) => {
   const item = await getById(id);
   const semesterId = payload.semester_id || item.semester_id;
   const jenis = payload.jenis || item.jenis;
-  const tanggalMulai = payload.tanggal_mulai || item.tanggal_mulai;
-  const tanggalSelesai = payload.tanggal_selesai || item.tanggal_selesai;
-  if (tanggalSelesai < tanggalMulai) {
+  const tanggalMulai = toDateOnly(payload.tanggal_mulai) || toDateOnly(item.tanggal_mulai);
+  const tanggalSelesai = toDateOnly(payload.tanggal_selesai) || toDateOnly(item.tanggal_selesai);
+  if (tanggalMulai && tanggalSelesai && tanggalSelesai < tanggalMulai) {
     throw new AppError('tanggal_selesai harus pada atau setelah tanggal_mulai', 422);
   }
+  await assertDalamSemester(semesterId, tanggalSelesai);
   await assertUniquePair(semesterId, jenis, id);
   await item.update(payload);
   return Periode.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude });

@@ -17,7 +17,6 @@ jest.mock('../../../src/models', () => ({
   PenawaranMatakuliah: { findOne: jest.fn(), create: jest.fn(), findByPk: jest.fn() },
   PenawaranMatakuliahDetil: { findAll: jest.fn(), findOrCreate: jest.fn(), destroy: jest.fn() },
   PenawaranMatakuliahProdi: { destroy: jest.fn(), bulkCreate: jest.fn() },
-  SemesterProdi: { findByPk: jest.fn() },
   Semester: {},
   ProgramStudi: {},
   Matakuliah: { count: jest.fn(), findAll: jest.fn() },
@@ -38,14 +37,14 @@ const {
   PenawaranMatakuliah,
   PenawaranMatakuliahDetil,
   PenawaranMatakuliahProdi,
-  SemesterProdi,
   Matakuliah,
 } = require('../../../src/models');
 const { paginate } = require('../../../src/helpers/listQuery');
 const service = require('../../../src/services/perkuliahan/penawaran-matakuliah.service');
 
 const PAYLOAD = {
-  semester_prodi_id: 'sp-1',
+  semester_id: 'sem-1',
+  program_studi_id: 'prodi-1',
   akses: 'semua',
   kuota_lintas_prodi_default: 5,
   matakuliah: [{ matakuliah_id: 'm1', kuota_lintas_prodi: 5 }],
@@ -54,7 +53,6 @@ const PAYLOAD = {
 describe('penawaran save (create)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    SemesterProdi.findByPk.mockResolvedValue({ id: 'sp-1', program_studi_id: 'prodi-1' });
     Matakuliah.count.mockResolvedValue(1);
     Matakuliah.findAll.mockResolvedValue([{ id: 'm1', has_prasyarat: false }]);
     PenawaranMatakuliahDetil.findAll.mockResolvedValue([]);
@@ -77,14 +75,15 @@ describe('penawaran save (create)', () => {
     await service.create(PAYLOAD);
 
     expect(PenawaranMatakuliah.findOne).toHaveBeenCalledWith({
-      where: { semester_prodi_id: 'sp-1' },
+      where: { semester_id: 'sem-1', program_studi_id: 'prodi-1' },
       paranoid: false,
       transaction,
     });
     expect(trashed.restore).toHaveBeenCalledWith({ transaction });
     expect(trashed.update).toHaveBeenCalledWith(
       {
-        semester_prodi_id: 'sp-1',
+        semester_id: 'sem-1',
+        program_studi_id: 'prodi-1',
         akses: 'semua',
         kuota_lintas_prodi_default: 5,
       },
@@ -98,7 +97,7 @@ describe('penawaran save (create)', () => {
 
     await expect(service.create(PAYLOAD)).rejects.toMatchObject({
       code: 409,
-      message: 'Penawaran semester-prodi sudah dibuat',
+      message: 'Penawaran untuk semester dan program studi tersebut sudah dibuat',
     });
     expect(PenawaranMatakuliah.create).not.toHaveBeenCalled();
   });
@@ -110,7 +109,7 @@ describe('penawaran save (create)', () => {
     await service.create(PAYLOAD);
 
     expect(PenawaranMatakuliah.create).toHaveBeenCalledWith(
-      expect.objectContaining({ semester_prodi_id: 'sp-1' }),
+      expect.objectContaining({ semester_id: 'sem-1', program_studi_id: 'prodi-1' }),
       { transaction }
     );
   });
@@ -189,7 +188,7 @@ describe('penawaran catalog', () => {
     });
   });
 
-  it('meneruskan filter semester_id ke semester penawaran', async () => {
+  it('meneruskan filter semester_id langsung ke kolom penawaran', async () => {
     paginate.mockResolvedValue({ rows: [], pagination: {} });
 
     await service.catalog({ filter: { semester_id: 'sem-1' } });
@@ -197,7 +196,7 @@ describe('penawaran catalog', () => {
     const [, , options] = paginate.mock.calls[0];
     expect(options.findOptions.where).toEqual({
       status: 'published',
-      [Op.and]: [{ '$semesterProdi.semester_id$': 'sem-1' }],
+      [Op.and]: [{ semester_id: 'sem-1' }],
     });
   });
 

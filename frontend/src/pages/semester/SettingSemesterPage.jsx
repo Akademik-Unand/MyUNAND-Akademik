@@ -12,33 +12,26 @@ import { Drawer } from "../../components/ui/Drawer";
 import { DetailList } from "../../components/common/DetailList";
 import { Can } from "../../components/auth/Can";
 import { useResourceMutations } from "../../hooks/useResourceMutations";
-import { useResourceQuery } from "../../hooks/useResourceQuery";
+import { activateSemester } from "../../services/semester.service";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
 
 export const SettingSemesterPage = () => {
   const mutations = useResourceMutations("setting-semester", {
     remove: "Setting semester berhasil dihapus.",
   });
-  const allRows = useResourceQuery("setting-semester");
   const [detail, setDetail] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [activating, setActivating] = useState(false);
 
+  // Satu panggilan ke endpoint aktivasi: backend yang mematikan semester aktif
+  // lama dan menyalakan yang baru, jadi tidak ada lagi sederet toast per baris.
   const activate = async (row) => {
     if (activating) return;
     setActivating(true);
     try {
-      const rows = allRows.data ?? [];
-      for (const item of rows) {
-        const next = item.id === row.id;
-        if (Boolean(item.is_aktif) === next) continue;
-        await mutations.update.mutateAsync({
-          id: item.id,
-          payload: { is_aktif: next },
-        });
-      }
-      toast.success(
-        `${row.jenisSemester?.nama || "Semester"} ${row.tahun} diaktifkan`,
-      );
+      await activateSemester(row.id);
+      await mutations.invalidate();
+      toast.success(`${semesterAkademikLabel(row)} diaktifkan`);
     } catch (err) {
       toast.error(err.message || "Gagal mengaktifkan semester");
     } finally {

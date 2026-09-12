@@ -47,14 +47,34 @@ export const bolehCpmk = (periodes, activeSemester) =>
   );
 
 export const semesterIdKelas = (kelas) =>
-  kelas?.semesterProdi?.semester_id ||
-  kelas?.semesterProdi?.semester?.id ||
-  null;
+  kelas?.semester_id || kelas?.semester?.id || null;
 
 export const bolehNilai = (periodes, kelas) =>
   isPeriodeOpen(
     findPeriode(periodes, semesterIdKelas(kelas), JENIS_PERIODE.NILAI),
   );
+
+/**
+ * Validasi jendela periode terhadap semesternya (cermin aturan backend di
+ * `services/semester/periode.service.js`): tanggal selesai tidak boleh lebih
+ * awal dari tanggal mulai, dan tidak boleh melewati tanggal selesai semester.
+ * Mengembalikan pesan kesalahan, atau `null` bila lolos.
+ */
+export const validasiPeriode = (values, semester) => {
+  const mulai = values?.tanggal_mulai || null;
+  const selesai = values?.tanggal_selesai || null;
+
+  if (mulai && selesai && selesai < mulai) {
+    return "Tanggal selesai harus pada atau setelah tanggal mulai.";
+  }
+
+  const batas = semester?.tanggal_selesai || null;
+  if (batas && selesai && selesai > batas) {
+    return `Tanggal selesai periode tidak boleh melebihi tanggal selesai semester (${batas}).`;
+  }
+
+  return null;
+};
 
 export const periodeInputNilai = (kelas, periodes) => {
   const row = findPeriode(

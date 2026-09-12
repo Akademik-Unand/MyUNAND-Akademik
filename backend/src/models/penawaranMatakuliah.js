@@ -3,9 +3,13 @@ const { Model, DataTypes } = require("sequelize");
 module.exports = (sequelize) => {
   class PenawaranMatakuliah extends Model {
     static associate(models) {
-      this.belongsTo(models.SemesterProdi, {
-        foreignKey: "semester_prodi_id",
-        as: "semesterProdi",
+      this.belongsTo(models.Semester, {
+        foreignKey: "semester_id",
+        as: "semester",
+      });
+      this.belongsTo(models.ProgramStudi, {
+        foreignKey: "program_studi_id",
+        as: "programStudi",
       });
       this.hasMany(models.PenawaranMatakuliahDetil, {
         foreignKey: "penawaran_matakuliah_id",
@@ -24,11 +28,8 @@ module.exports = (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      semester_prodi_id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-        unique: true,
-      },
+      semester_id: { type: DataTypes.UUID, allowNull: false },
+      program_studi_id: { type: DataTypes.UUID, allowNull: false },
       status: {
         type: DataTypes.ENUM("draft", "published", "closed"),
         defaultValue: "draft",

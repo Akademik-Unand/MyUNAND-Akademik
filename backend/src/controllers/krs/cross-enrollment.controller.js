@@ -15,5 +15,4 @@ const act = (fn, message, code = 200) =>
 module.exports = {
   list,
   enroll: act((r) => service.enroll(r.user.id, r.body), 'Pendaftaran lintas prodi diajukan', 201),
-  approvePa: act((r) => service.approvePa(r.params.id, r.user.id, r.body), 'Keputusan dosen PA disimpan'),
 };

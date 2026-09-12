@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { NAVIGATION_MENU } from "../constants/navigation";
-import { filterNavigation, isPrimaryDosen } from "./navigation";
+import {
+  filterNavigation,
+  isPrimaryAdminDepartemen,
+  isPrimaryAdminFakultas,
+  isPrimaryAdminProdi,
+  isPrimaryDosen,
+} from "./navigation";
 
 const pathsOf = (menu) => {
   const paths = [];
@@ -86,7 +92,6 @@ const dosen = {
     "rekap-cp.read",
     "laporan-cp.read",
     "cross-enrollment.read",
-    "cross-enrollment.approve-pa",
     "bimbingan-akademik.read",
     "evaluasi-cpmk.read",
     "dokumen-evaluasi.read",
@@ -103,6 +108,71 @@ const adminProdi = {
     "bimbingan-akademik.delete",
   ],
 };
+
+/** Permission yang menggerbangi seluruh menu, meniru grant admin unit di DB. */
+const SEMUA_MENU_PERMISSIONS = [
+  "fakultas.read",
+  "departemen.read",
+  "program-studi.read",
+  "dosen.read",
+  "jenjang-akademik.read",
+  "jenis-semester.read",
+  "semester.read",
+  "periode.read",
+  "gedung.read",
+  "ruang.read",
+  "matakuliah.read",
+  "kurikulum.read",
+  "cp.read",
+  "cpmk.read",
+  "matakuliah-kurikulum.read",
+  "penawaran-matakuliah.read",
+  "kelas.read",
+  "jadwal-kelas.read",
+  "shift.read",
+  "nilai.read",
+  "rekap-cp.read",
+  "laporan-cp.read",
+  "krs.approve",
+  "krs.create",
+  "bimbingan-akademik.read",
+  "bimbingan-akademik.create",
+  "user.read",
+  "role.read",
+  "activity-log.read",
+];
+
+const adminUnit = (role) => ({
+  role,
+  roles: [{ name: role }],
+  permissions: SEMUA_MENU_PERMISSIONS,
+});
+
+/** Sidebar yang diharapkan untuk admin departemen: unitnya sendiri, termasuk prodinya. */
+const MENU_ADMIN_DEPARTEMEN = [
+  "/",
+  "/master/prodi",
+  "/master/dosen",
+  "/master/matakuliah",
+  "/kurikulum/data",
+  "/kurikulum/cp",
+  "/kurikulum/cpmk",
+  "/perkuliahan/mk-semester",
+  "/perkuliahan/penawaran-mk",
+  "/perkuliahan/kelas",
+  "/perkuliahan/jadwal",
+  "/perkuliahan/shift",
+  "/perkuliahan/upload-nilai",
+  "/perkuliahan/rekap-cp",
+  "/perkuliahan/laporan-cp",
+  "/kemahasiswaan/mahasiswa-bimbingan",
+  "/kemahasiswaan/dosen-pa",
+];
+
+/** Admin prodi tidak mengelola master Program Studi (termasuk kuota SKS-nya). */
+const MENU_ADMIN_PRODI = MENU_ADMIN_DEPARTEMEN.filter(
+  (path) => path !== "/master/prodi",
+);
 
 describe("isPrimaryDosen", () => {
   it("true untuk dosen & dosen-pa", () => {
@@ -125,6 +195,20 @@ describe("isPrimaryDosen", () => {
   });
 });
 
+describe("isPrimaryAdmin unit", () => {
+  it("mengenali role admin unit", () => {
+    expect(isPrimaryAdminFakultas(adminUnit("admin-fakultas"))).toBe(true);
+    expect(isPrimaryAdminDepartemen(adminUnit("admin-departemen"))).toBe(true);
+    expect(isPrimaryAdminProdi(adminUnit("admin-prodi"))).toBe(true);
+  });
+
+  it("false bila akun juga memegang role admin universitas", () => {
+    expect(
+      isPrimaryAdminProdi({ roles: [{ name: "admin-prodi" }, { name: "admin-universitas" }] }),
+    ).toBe(false);
+  });
+});
+
 describe("filterNavigation", () => {
   it("menampilkan hanya menu relevan untuk dosen/pembimbing", () => {
     expect(pathsOf(filterNavigation(NAVIGATION_MENU, dosen))).toEqual([
@@ -132,7 +216,6 @@ describe("filterNavigation", () => {
       "/perkuliahan/upload-nilai",
       "/perkuliahan/rekap-cp",
       "/perkuliahan/laporan-cp",
-      "/perkuliahan/persetujuan/lintas-prodi",
       "/perkuliahan/persetujuan/krs",
       "/kemahasiswaan/mahasiswa-bimbingan",
     ]);
@@ -183,6 +266,49 @@ describe("filterNavigation", () => {
     expect(pathsOf(filterNavigation(NAVIGATION_MENU, universityAdmin))).toEqual(
       pathsOf(NAVIGATION_MENU),
     );
+  });
+
+  it("menyempitkan sidebar admin-prodi walau permission-nya seluas admin universitas", () => {
+    expect(pathsOf(filterNavigation(NAVIGATION_MENU, adminUnit("admin-prodi")))).toEqual(
+      MENU_ADMIN_PRODI,
+    );
+  });
+
+  it("admin-prodi tidak melihat master Program Studi", () => {
+    expect(
+      pathsOf(filterNavigation(NAVIGATION_MENU, adminUnit("admin-prodi"))),
+    ).not.toContain("/master/prodi");
+  });
+
+  it("admin-departemen tetap mengelola Program Studi di departemennya", () => {
+    expect(
+      pathsOf(filterNavigation(NAVIGATION_MENU, adminUnit("admin-departemen"))),
+    ).toEqual(MENU_ADMIN_DEPARTEMEN);
+  });
+
+  it("sidebar admin-prodi berbeda dari admin universitas", () => {
+    const prodiPaths = pathsOf(
+      filterNavigation(NAVIGATION_MENU, adminUnit("admin-prodi")),
+    );
+    expect(prodiPaths).not.toEqual(pathsOf(NAVIGATION_MENU));
+    for (const hidden of [
+      "/master/fakultas",
+      "/master/departemen",
+      "/master/prodi",
+      "/master/jenjang-akademik",
+      "/master/gedung",
+      "/master/ruang",
+      "/master/semester/jenis",
+      "/master/semester/setting",
+      "/master/semester/periode",
+      "/krs/pengambilan",
+      "/perkuliahan/persetujuan/krs",
+      "/pengaturan/pengguna",
+      "/pengaturan/peran",
+      "/pengaturan/aktivitas",
+    ]) {
+      expect(prodiPaths).not.toContain(hidden);
+    }
   });
 
   it("hides university-level & IAM menus for admin-fakultas", () => {

@@ -301,6 +301,19 @@ module.exports = {
         transaction,
       );
 
+      // Semester 2024 Ganjil hanya dinyatakan aktif kalau belum ada semester
+      // aktif sama sekali (instalasi baru), supaya seeder ini tidak mengambil
+      // alih semester berjalan saat `db:seed:all` diulang. Karena itu
+      // `is_aktif` juga sengaja TIDAK ikut di-update saat upsert — re-run tidak
+      // pernah mengubah keaktifan semester yang sudah ada.
+      const semesterAktif = await allRows(
+        queryInterface,
+        "SELECT id FROM semester WHERE is_aktif = 1 AND deletedAt IS NULL LIMIT 1",
+        [],
+        transaction,
+      );
+      const jadikanAktif = semesterAktif.length === 0;
+
       await upsertRows(
         queryInterface,
         "semester",
@@ -311,7 +324,7 @@ module.exports = {
             tahun: 2024,
             tanggal_mulai: "2024-08-15",
             tanggal_selesai: "2024-12-30",
-            is_aktif: true,
+            is_aktif: jadikanAktif,
             createdAt: now,
             updatedAt: now,
             deletedAt: null,
@@ -320,7 +333,6 @@ module.exports = {
         [
           "tanggal_mulai",
           "tanggal_selesai",
-          "is_aktif",
           "updatedAt",
           "deletedAt",
         ],
@@ -333,43 +345,12 @@ module.exports = {
         [],
         transaction,
       );
-      const [semesterGanjil] = await allRows(
-        queryInterface,
-        "SELECT id FROM semester WHERE tahun = 2024 AND jenis_semester_id = ? LIMIT 1",
-        [semesterTypeByName.Ganjil],
-        transaction,
-      );
-
-      await upsertRows(
-        queryInterface,
-        "semester_prodi",
-        [
-          {
-            id: randomUUID(),
-            program_studi_id: prodiSi.id,
-            semester_id: semesterGanjil.id,
-            is_aktif: true,
-            tanggal_krs_mulai: "2024-08-01",
-            tanggal_krs_selesai: "2024-08-20",
-            tanggal_revisi_mulai: "2024-08-21",
-            tanggal_revisi_selesai: "2024-08-27",
-            sks_default: 18,
-            sks_maksimal: 24,
-            createdAt: now,
-            updatedAt: now,
-          },
-        ],
-        [
-          "is_aktif",
-          "tanggal_krs_mulai",
-          "tanggal_krs_selesai",
-          "tanggal_revisi_mulai",
-          "tanggal_revisi_selesai",
-          "sks_default",
-          "sks_maksimal",
-          "updatedAt",
-        ],
-        transaction,
+      // Kuota SKS kini tersimpan di program studi, bukan di pivot semester-prodi.
+      await queryInterface.bulkUpdate(
+        "program_studi",
+        { sks_default: 18, sks_maksimal: 24, updatedAt: now },
+        { id: prodiSi.id },
+        { transaction },
       );
 
       await upsertRows(

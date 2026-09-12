@@ -13,7 +13,6 @@ const SUBJECT_BY_KEY = {
   "jenis-semester": "JenisSemester",
   semester: "Semester",
   periode: "Periode",
-  "semester-prodi": "SemesterProdi",
   kurikulum: "Kurikulum",
   "sifat-matakuliah": "SifatMatakuliah",
   "tipe-matakuliah": "TipeMatakuliah",

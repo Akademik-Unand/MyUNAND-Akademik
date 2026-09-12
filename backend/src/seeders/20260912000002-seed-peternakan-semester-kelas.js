@@ -148,53 +148,29 @@ module.exports = {
       ]);
     }
 
-    const ensureSemProdi = async (prodiId, semesterId, aktif) => {
-      const existing = (
-        await allRows(
-          queryInterface,
-          "SELECT id FROM semester_prodi WHERE program_studi_id = :prodi AND semester_id = :semester LIMIT 1",
-          { prodi: prodiId, semester: semesterId },
-        )
-      )[0];
-      if (existing) return existing.id;
-      const id = randomUUID();
-      await queryInterface.bulkInsert("semester_prodi", [
-        row(now, {
-          id,
-          program_studi_id: prodiId,
-          semester_id: semesterId,
-          is_aktif: aktif,
-          tanggal_krs_mulai: "2024-08-01",
-          tanggal_krs_selesai: "2024-08-20",
-          tanggal_revisi_mulai: "2024-08-21",
-          tanggal_revisi_selesai: "2024-08-27",
-          sks_default: 18,
-          sks_maksimal: 24,
-        }),
-      ]);
-      return id;
-    };
+    // Kuota SKS kini menempel pada program studi (bukan pivot semester-prodi).
+    await queryInterface.bulkUpdate(
+      "program_studi",
+      { sks_default: 18, sks_maksimal: 24, updatedAt: now },
+      { id: [prodiPtn, prodiNtp] },
+    );
 
-    const semProdiPtnGanjil = await ensureSemProdi(
-      prodiPtn,
-      semesterGanjil,
-      true,
-    );
-    const semProdiPtnGenap = await ensureSemProdi(
-      prodiPtn,
-      semesterGenap,
-      false,
-    );
-    const semProdiNtpGanjil = await ensureSemProdi(
-      prodiNtp,
-      semesterGanjil,
-      true,
-    );
-    const semProdiNtpGenap = await ensureSemProdi(
-      prodiNtp,
-      semesterGenap,
-      false,
-    );
+    const semProdiPtnGanjil = {
+      semester_id: semesterGanjil,
+      program_studi_id: prodiPtn,
+    };
+    const semProdiPtnGenap = {
+      semester_id: semesterGenap,
+      program_studi_id: prodiPtn,
+    };
+    const semProdiNtpGanjil = {
+      semester_id: semesterGanjil,
+      program_studi_id: prodiNtp,
+    };
+    const semProdiNtpGenap = {
+      semester_id: semesterGenap,
+      program_studi_id: prodiNtp,
+    };
 
     const mkByKode = mapBy(
       await allRows(
@@ -206,13 +182,18 @@ module.exports = {
 
     const kelasExisting = await allRows(
       queryInterface,
-      "SELECT id, semester_prodi_id, matakuliah_id, nama FROM kelas",
+      "SELECT id, semester_id, program_studi_id, matakuliah_id, nama FROM kelas",
     );
-    const kelasKey = (semProdiId, mkId, nama) =>
-      `${semProdiId}:${mkId}:${nama}`;
+    const kelasKey = (semesterId, programStudiId, mkId, nama) =>
+      `${semesterId}:${programStudiId}:${mkId}:${nama}`;
     const kelasByKey = Object.fromEntries(
       kelasExisting.map((item) => [
-        kelasKey(item.semester_prodi_id, item.matakuliah_id, item.nama),
+        kelasKey(
+          item.semester_id,
+          item.program_studi_id,
+          item.matakuliah_id,
+          item.nama,
+        ),
         item.id,
       ]),
     );
@@ -361,7 +342,12 @@ module.exports = {
       const mkId = mkByKode[plan.kode];
       if (!mkId) continue;
       const nama = "A";
-      const key = kelasKey(plan.semProdi, mkId, nama);
+      const key = kelasKey(
+        plan.semProdi.semester_id,
+        plan.semProdi.program_studi_id,
+        mkId,
+        nama,
+      );
       let id = kelasByKey[key];
       if (!id) {
         id = randomUUID();
@@ -369,7 +355,8 @@ module.exports = {
         kelasRows.push(
           row(now, {
             id,
-            semester_prodi_id: plan.semProdi,
+            semester_id: plan.semProdi.semester_id,
+            program_studi_id: plan.semProdi.program_studi_id,
             matakuliah_id: mkId,
             nama,
             jumlah_peserta_min: 10,
@@ -577,28 +564,5 @@ module.exports = {
       { replacements: { kodes: allKodes } },
     );
     await queryInterface.bulkDelete("dosen", { nip: nips });
-
-    const prodiPtnRow = (
-      await queryInterface.sequelize.query(
-        "SELECT id FROM program_studi WHERE kode_prodi = '54231' LIMIT 1",
-      )
-    )[0][0];
-    const prodiNtpRow = (
-      await queryInterface.sequelize.query(
-        "SELECT id FROM program_studi WHERE kode_prodi = '54240' LIMIT 1",
-      )
-    )[0][0];
-    if (prodiPtnRow) {
-      await queryInterface.sequelize.query(
-        "DELETE FROM semester_prodi WHERE program_studi_id = :id",
-        { replacements: { id: prodiPtnRow.id } },
-      );
-    }
-    if (prodiNtpRow) {
-      await queryInterface.sequelize.query(
-        "DELETE FROM semester_prodi WHERE program_studi_id = :id",
-        { replacements: { id: prodiNtpRow.id } },
-      );
-    }
   },
 };

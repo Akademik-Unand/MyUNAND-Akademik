@@ -3,7 +3,6 @@
 const { randomUUID } = require("crypto");
 const {
   buildCatalog,
-  isAdminAllowed,
   isDosenAllowed,
 } = require("../constants/permissions");
 
@@ -75,10 +74,7 @@ module.exports = {
         );
     };
 
-    const grants = [
-      ...grantFor("admin", isAdminAllowed),
-      ...grantFor("dosen", isDosenAllowed),
-    ];
+    const grants = [...grantFor("dosen", isDosenAllowed)];
     if (grants.length) {
       await queryInterface.bulkInsert("role_permissions", grants);
     }

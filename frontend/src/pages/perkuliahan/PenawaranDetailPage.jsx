@@ -4,7 +4,7 @@ import { Card } from "../../components/ui/Card";
 import { DataTable } from "../../components/common/DataTable";
 import { PageSkeleton } from "../../components/common/PageSkeleton";
 import { useResourceItem } from "../../hooks/useResourceQuery";
-import { semesterAkademikLabel } from "../../helpers/semesterProdi";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
 import { kelasDosenNames } from "../../helpers/kelasInfo";
 import {
   participantName,
@@ -50,8 +50,8 @@ export const PenawaranDetailPage = () => {
   const kelasList = details.flatMap((detail) => detail.kelas || []);
   const pesertaRows = kelasList.flatMap((kelas) => kelas.krsDetil || []);
   const jumlahPeserta = pesertaRows.length;
-  const prodi = offering.semesterProdi?.programStudi?.nama_resmi;
-  const semester = semesterAkademikLabel(offering.semesterProdi?.semester);
+  const prodi = offering.programStudi?.nama_resmi;
+  const semester = semesterAkademikLabel(offering.semester);
 
   const rows = details.map((detail) => ({
     id: detail.id,

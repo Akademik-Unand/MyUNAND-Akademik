@@ -24,9 +24,11 @@ describe('organizational role grants', () => {
       'penawaran-matakuliah.catalog', 'penawaran-matakuliah.schedule',
       'penawaran-matakuliah.sync',
       'cross-enrollment.read', 'cross-enrollment.enroll',
-      'cross-enrollment.approve-pa',
     ]));
+    // Tidak ada lagi aksi persetujuan lintas prodi tersendiri: pengajuan ikut
+    // disetujui lewat `krs.approve`.
     expect(names).not.toContain('cross-enrollment.cancel');
+    expect(names).not.toContain('cross-enrollment.approve-pa');
   });
 
   it('gives mahasiswa only catalog and own cross-enrollment actions', () => {
@@ -53,8 +55,9 @@ describe('organizational role grants', () => {
     const names = namesOf(isDosenAllowed);
     expect(names).toEqual(expect.arrayContaining([
       'bimbingan-akademik.read',
-      'cross-enrollment.approve-pa',
+      'krs.approve',
     ]));
+    expect(names).not.toContain('cross-enrollment.approve-pa');
     // Penetapan/pengubahan/pelepasan PA tetap wewenang admin unit.
     expect(names).not.toContain('bimbingan-akademik.create');
     expect(names).not.toContain('bimbingan-akademik.update');
@@ -68,7 +71,6 @@ describe('organizational role grants', () => {
       'krs.approve',
       'nilai.upload',
       'bimbingan-akademik.read',
-      'cross-enrollment.approve-pa',
       'mahasiswa.read',
       'rekap-cp.read',
       'periode.read',
@@ -93,10 +95,26 @@ describe('organizational role grants', () => {
   it('narrows admin-prodi below admin-fakultas', () => {
     const prodi = namesOf(isAdminProdiAllowed);
     const fakultas = namesOf(isAdminFakultasAllowed);
-    expect(prodi).toEqual(expect.arrayContaining(['program-studi.update', 'kurikulum.create']));
+    expect(prodi).toEqual(expect.arrayContaining(['program-studi.read', 'kurikulum.create']));
     expect(prodi).not.toContain('departemen.update');
     expect(fakultas).toContain('departemen.update');
     expect(fakultas).not.toContain('universitas.update');
     expect(fakultas).not.toContain('role.sync-permissions');
+  });
+
+  it('makes admin-prodi read-only on Program Studi, including kuota SKS', () => {
+    const prodi = namesOf(isAdminProdiAllowed);
+    expect(prodi).toContain('program-studi.read');
+    for (const action of ['create', 'update', 'delete', 'restore', 'update-sks']) {
+      expect(prodi).not.toContain(`program-studi.${action}`);
+    }
+  });
+
+  it('keeps kuota SKS a university-level right (admin unit cannot change it)', () => {
+    const catalogNames = catalog.map((item) => item.name);
+    expect(catalogNames).toContain('program-studi.update-sks');
+    expect(namesOf(isAdminFakultasAllowed)).toContain('program-studi.update');
+    expect(namesOf(isAdminFakultasAllowed)).not.toContain('program-studi.update-sks');
+    expect(namesOf(isAdminProdiAllowed)).not.toContain('program-studi.update-sks');
   });
 });

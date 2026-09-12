@@ -14,7 +14,6 @@ const ROLE_RANK = {
   "admin-departemen": 60,
   "pimpinan-fakultas": 70,
   "admin-fakultas": 80,
-  admin: 90,
   "admin-universitas": 100,
   superadmin: 110,
 };

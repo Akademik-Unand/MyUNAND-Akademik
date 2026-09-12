@@ -24,7 +24,6 @@ import { JenisSemesterPage } from "../pages/semester/JenisSemesterPage";
 import { SettingSemesterPage } from "../pages/semester/SettingSemesterPage";
 import { SettingSemesterFormPage } from "../pages/semester/SettingSemesterFormPage";
 import { PeriodePage } from "../pages/semester/PeriodePage";
-import { SemesterProdiPage } from "../pages/semester/SemesterProdiPage";
 import { KurikulumDataPage } from "../pages/kurikulum/KurikulumDataPage";
 import { KurikulumFormPage } from "../pages/kurikulum/KurikulumFormPage";
 import { CPKurikulumPage } from "../pages/kurikulum/CPKurikulumPage";
@@ -56,7 +55,6 @@ import { RuangPage } from "../pages/master/RuangPage";
 import { PenawaranSemesterPage } from "../pages/perkuliahan/PenawaranSemesterPage";
 import { PenawaranDetailPage } from "../pages/perkuliahan/PenawaranDetailPage";
 import { ShiftPage } from "../pages/perkuliahan/ShiftPage";
-import { PersetujuanPaPage } from "../pages/perkuliahan/PersetujuanPaPage";
 import { PengambilanKrsPage } from "../pages/mahasiswa/PengambilanKrsPage";
 import { PersetujuanKrsPage } from "../pages/perkuliahan/PersetujuanKrsPage";
 import { DosenPaPage } from "../pages/kemahasiswaan/DosenPaPage";
@@ -137,10 +135,6 @@ export const router = createBrowserRouter([
             path: "master/semester/periode",
             element: gate("read", "Periode", <PeriodePage />),
           },
-          {
-            path: "master/semester/prodi",
-            element: gate("read", "SemesterProdi", <SemesterProdiPage />),
-          },
 
           {
             path: "kurikulum/data/baru",
@@ -217,14 +211,6 @@ export const router = createBrowserRouter([
               "read",
               "PenawaranMatakuliah",
               <PenawaranDetailPage />,
-            ),
-          },
-          {
-            path: "perkuliahan/persetujuan/lintas-prodi",
-            element: gate(
-              "approve-pa",
-              "CrossEnrollment",
-              <PersetujuanPaPage />,
             ),
           },
           {

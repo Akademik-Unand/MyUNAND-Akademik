@@ -42,4 +42,12 @@ const restore = asyncHandler(async (req, res) => {
   return success(res, { message: "Semester berhasil dipulihkan", data });
 });
 
-module.exports = { list, getById, create, update, remove, restore };
+const activate = asyncHandler(async (req, res) => {
+  const data = await semesterService.activate(req.params.id);
+  return success(res, {
+    message: "Semester berhasil diaktifkan",
+    data,
+  });
+});
+
+module.exports = { list, getById, create, update, remove, restore, activate };

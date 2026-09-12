@@ -92,42 +92,28 @@ module.exports = {
       ).map((item) => item.id);
     }
 
-    const semesterProdiIds = {};
+    // Kuota SKS kini menempel pada program studi (bukan pivot semester-prodi).
+    await queryInterface.bulkUpdate(
+      "program_studi",
+      { sks_default: 18, sks_maksimal: 24, updatedAt: now },
+      { id: [prodiPtn, prodiNtp] },
+    );
+
     for (const [nama, prodiId] of [
       ["Peternakan", prodiPtn],
       ["NTP", prodiNtp],
     ]) {
-      let sp = await ensureRow(queryInterface, "semester_prodi", {
-        program_studi_id: prodiId,
-        semester_id: aktif.id,
-      });
-      if (!sp) {
-        const id = randomUUID();
-        await queryInterface.bulkInsert("semester_prodi", [
-          row(now, {
-            id,
-            program_studi_id: prodiId,
-            semester_id: aktif.id,
-            is_aktif: true,
-            sks_default: 18,
-            sks_maksimal: 24,
-          }),
-        ]);
-        sp = { id };
-      }
-      semesterProdiIds[nama] = sp.id;
-    }
-
-    for (const [nama, spId] of Object.entries(semesterProdiIds)) {
       let penawaran = await ensureRow(queryInterface, "penawaran_matakuliah", {
-        semester_prodi_id: spId,
+        semester_id: aktif.id,
+        program_studi_id: prodiId,
       });
       if (!penawaran) {
         const id = randomUUID();
         await queryInterface.bulkInsert("penawaran_matakuliah", [
           row(now, {
             id,
-            semester_prodi_id: spId,
+            semester_id: aktif.id,
+            program_studi_id: prodiId,
             status: "draft",
             akses: "semua",
             kuota_lintas_prodi_default: 0,
@@ -188,18 +174,12 @@ module.exports = {
     await queryInterface.sequelize.query(
       `DELETE pmd FROM penawaran_matakuliah_detil pmd
        INNER JOIN penawaran_matakuliah pm ON pm.id = pmd.penawaran_matakuliah_id
-       INNER JOIN semester_prodi sp ON sp.id = pm.semester_prodi_id
-       WHERE sp.semester_id = :semester AND sp.program_studi_id IN (:prodis)`,
+       WHERE pm.semester_id = :semester AND pm.program_studi_id IN (:prodis)`,
       { replacements: { semester: aktif.id, prodis: prodiIds } },
     );
     await queryInterface.sequelize.query(
       `DELETE pm FROM penawaran_matakuliah pm
-       INNER JOIN semester_prodi sp ON sp.id = pm.semester_prodi_id
-       WHERE sp.semester_id = :semester AND sp.program_studi_id IN (:prodis)`,
-      { replacements: { semester: aktif.id, prodis: prodiIds } },
-    );
-    await queryInterface.sequelize.query(
-      "DELETE FROM semester_prodi WHERE semester_id = :semester AND program_studi_id IN (:prodis)",
+       WHERE pm.semester_id = :semester AND pm.program_studi_id IN (:prodis)`,
       { replacements: { semester: aktif.id, prodis: prodiIds } },
     );
   },

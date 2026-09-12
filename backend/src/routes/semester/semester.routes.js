@@ -41,6 +41,20 @@ router.post(
   semesterController.restore,
 );
 
+/**
+ * PATCH /semester/:id/activate — jadikan semester ini semester berjalan.
+ * Permission memakai `update` (bukan aksi khusus) supaya tidak menambah grant
+ * baru: siapa pun yang boleh mengubah semester boleh mengaktifkannya.
+ */
+router.patch(
+  "/:id/activate",
+  authenticate,
+  attachAbility,
+  checkPermission("update", subject),
+  validate({ params: semesterValidation.idParam }),
+  semesterController.activate,
+);
+
 /** GET /semester/:id */
 router.get(
   "/:id",

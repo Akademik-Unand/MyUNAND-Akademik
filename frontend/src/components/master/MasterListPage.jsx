@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "../common/PageHeader";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
@@ -39,6 +40,7 @@ export const MasterListPage = ({
   extraFilter,
   beforeTable,
   createDefaults,
+  validate,
 }) => {
   const can = useCan();
   const mutations = useResourceMutations(resource, {
@@ -91,6 +93,13 @@ export const MasterListPage = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // `validate(values)` mengembalikan pesan kesalahan (atau null). Dipakai untuk
+    // aturan yang bisa dicek di klien — cermin validasi Joi/service backend.
+    const message = validate?.(modal.values);
+    if (message) {
+      toast.error(message);
+      return;
+    }
     run(async () => {
       const payload = pickPayload(modal.values);
       const saved =

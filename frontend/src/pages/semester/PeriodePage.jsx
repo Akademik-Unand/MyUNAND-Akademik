@@ -1,8 +1,12 @@
 import { MasterListPage } from "../../components/master/MasterListPage";
 import { PeriodeForm } from "../../components/master/PeriodeForm";
 import { Badge } from "../../components/ui/Badge";
-import { semesterAkademikLabel } from "../../helpers/semesterProdi";
-import { jenisPeriodeLabel, JENIS_PERIODE } from "../../helpers/academicPeriod";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
+import {
+  jenisPeriodeLabel,
+  JENIS_PERIODE,
+  validasiPeriode,
+} from "../../helpers/academicPeriod";
 import { krsPeriodStatus } from "../../helpers/krsPeriod";
 import { useResourceQuery } from "../../hooks/useResourceQuery";
 
@@ -40,6 +44,12 @@ export const PeriodePage = () => {
       }}
       createDefaults={
         activeSemester ? { semester_id: activeSemester.id } : undefined
+      }
+      validate={(values) =>
+        validasiPeriode(
+          values,
+          semesters.find((row) => row.id === values.semester_id),
+        )
       }
       rowKey={(row) => row.id}
       searchPlaceholder="Cari jenis periode..."

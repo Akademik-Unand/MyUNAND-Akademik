@@ -34,7 +34,7 @@ const remove = asyncHandler(async (req, res) => {
 });
 
 const approve = asyncHandler(async (req, res) => {
-  const data = await krsService.approve(req.params.id, req.body);
+  const data = await krsService.approve(req.params.id, req.body, req.user);
   return success(res, { message: "KRS berhasil disetujui", data });
 });
 

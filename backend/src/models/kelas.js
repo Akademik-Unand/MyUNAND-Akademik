@@ -4,9 +4,13 @@ const { Model, DataTypes } = require("sequelize");
 module.exports = (sequelize) => {
   class Kelas extends Model {
     static associate(models) {
-      Kelas.belongsTo(models.SemesterProdi, {
-        foreignKey: "semester_prodi_id",
-        as: "semesterProdi",
+      Kelas.belongsTo(models.Semester, {
+        foreignKey: "semester_id",
+        as: "semester",
+      });
+      Kelas.belongsTo(models.ProgramStudi, {
+        foreignKey: "program_studi_id",
+        as: "programStudi",
       });
       Kelas.belongsTo(models.Matakuliah, {
         foreignKey: "matakuliah_id",
@@ -37,7 +41,8 @@ module.exports = (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      semester_prodi_id: { type: DataTypes.UUID, allowNull: true },
+      semester_id: { type: DataTypes.UUID, allowNull: false },
+      program_studi_id: { type: DataTypes.UUID, allowNull: false },
       matakuliah_id: { type: DataTypes.UUID, allowNull: false },
       penawaran_matakuliah_id: { type: DataTypes.UUID, allowNull: true },
       nama: { type: DataTypes.STRING(10), allowNull: false },

@@ -19,6 +19,7 @@ import { DosenDashboard } from "../components/dashboard/DosenDashboard";
 import { StackedBarOverview } from "../components/dashboard/StackedBarOverview";
 import { QuickActionCard } from "../components/dashboard/QuickActionCard";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeleton";
+import { PeriodeAkademikCard } from "../components/dashboard/PeriodeAkademikCard";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
@@ -27,31 +28,7 @@ import { isPrimaryDosen, isPrimaryMahasiswa } from "../helpers/navigation";
 import { isScopedRole } from "../contexts/OrganizationContext";
 import { getDashboardSummary } from "../services/api";
 import { getStudentKrsContext } from "../services/krs.service";
-import { semesterAkademikLabel } from "../helpers/semesterProdi";
-
-const today = () => new Date().toISOString().slice(0, 10);
-
-const periodStatus = (semesterProdi) => {
-  if (
-    !semesterProdi?.tanggal_krs_mulai ||
-    !semesterProdi?.tanggal_krs_selesai
-  ) {
-    return { label: "Belum diatur", variant: "ghost" };
-  }
-  const current = today();
-  if (current < semesterProdi.tanggal_krs_mulai)
-    return { label: "Belum dibuka", variant: "warning" };
-  if (current > semesterProdi.tanggal_krs_selesai)
-    return { label: "Ditutup", variant: "error" };
-  return { label: "Sedang dibuka", variant: "success" };
-};
-
-const formatDate = (value) =>
-  value
-    ? new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" }).format(
-        new Date(value),
-      )
-    : "-";
+import { krsPeriodStatus } from "../helpers/krsPeriod";
 
 const StudentAction = ({
   icon: Icon,
@@ -97,7 +74,8 @@ const StudentDashboard = () => {
     enabled: Boolean(user?.id),
   });
 
-  const semesterProdi = contextQuery.data?.semesterProdi;
+  const semester = contextQuery.data?.semester;
+  const periode = contextQuery.data?.periode;
   const currentKrs = contextQuery.data?.krs;
 
   const items = currentKrs?.krsDetil || [];
@@ -113,7 +91,7 @@ const StudentDashboard = () => {
     (sum, row) => sum + (row.kelas?.matakuliah?.jumlah_sks_kurikulum || 0),
     0,
   );
-  const status = periodStatus(semesterProdi);
+  const status = krsPeriodStatus(periode);
   const isLoading = contextQuery.isPending;
 
   if (isLoading) return <DashboardSkeleton />;
@@ -131,36 +109,17 @@ const StudentDashboard = () => {
         }
       />
 
-      <Card title="Periode Pengambilan KRS" icon={Clock3}>
-        <div className="grid gap-3 md:grid-cols-3">
-          <div>
-            <p className="text-xs text-base-content/60">Semester</p>
-            <p className="text-sm font-medium">
-              {semesterProdi
-                ? semesterAkademikLabel(semesterProdi.semester)
-                : "-"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-base-content/60">Mulai</p>
-            <p className="text-sm font-medium">
-              {formatDate(semesterProdi?.tanggal_krs_mulai)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-base-content/60">Selesai</p>
-            <p className="text-sm font-medium">
-              {formatDate(semesterProdi?.tanggal_krs_selesai)}
-            </p>
-          </div>
-        </div>
-      </Card>
+      <PeriodeAkademikCard
+        title="Periode Pengambilan KRS"
+        semester={semester}
+        periode={periode}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total SKS"
           value={String(totalSks)}
-          subtitle={`Maksimal ${semesterProdi?.sks_maksimal ?? "-"} SKS`}
+          subtitle={`Maksimal ${contextQuery.data?.sks_maksimal ?? "-"} SKS`}
           icon={BookOpenCheck}
         />
         <StatCard

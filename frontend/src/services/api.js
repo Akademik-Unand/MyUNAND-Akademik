@@ -22,11 +22,9 @@ const RESOURCE_PATH = {
   dosen: "/dosen",
   gedung: "/gedung",
   ruang: "/ruang",
-  "semester-prodi": "/semester-prodi",
   "penawaran-matakuliah": "/penawaran-matakuliah",
   "katalog-lintas-prodi": "/penawaran-matakuliah/catalog",
   "krs-lintas-prodi": "/cross-enrollment",
-  "persetujuan-lintas-pa": "/cross-enrollment",
   "dosen-kelas": "/dosen-kelas",
   "jadwal-kelas": "/jadwal-kelas",
   shift: "/shift",
@@ -52,6 +50,17 @@ export const getResourceItem = (resource, id) =>
 
 export const createResourceItem = (resource, payload) =>
   apiRequest(resourcePath(resource), { method: "POST", body: payload });
+
+/**
+ * Kuota SKS program studi punya endpoint sendiri: angkanya kebijakan
+ * universitas (aturan rektor), bukan bagian dari profil prodi yang dikelola
+ * admin unit. Butuh permission `program-studi.update-sks`.
+ */
+export const updateProdiSks = (id, payload) =>
+  apiRequest(`${resourcePath("prodi")}/${id}/sks`, {
+    method: "PATCH",
+    body: payload,
+  });
 
 export const bulkCreateResourceItems = (resource, items) =>
   apiRequest(`${resourcePath(resource)}/bulk`, { method: "POST", body: items });

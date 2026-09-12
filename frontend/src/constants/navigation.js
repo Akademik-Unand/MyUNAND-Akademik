@@ -65,11 +65,6 @@ export const NAVIGATION_MENU = [
             path: "/master/semester/periode",
             permission: { action: "read", subject: "Periode" },
           },
-          {
-            label: "Semester Prodi",
-            path: "/master/semester/prodi",
-            permission: { action: "read", subject: "SemesterProdi" },
-          },
         ],
       },
       {
@@ -167,12 +162,6 @@ export const NAVIGATION_MENU = [
         path: "/perkuliahan/laporan-cp",
         icon: "FileSpreadsheet",
         permission: { action: "read", subject: "LaporanCp" },
-      },
-      {
-        label: "Persetujuan Lintas Prodi",
-        path: "/perkuliahan/persetujuan/lintas-prodi",
-        icon: "ListChecks",
-        permission: { action: "approve-pa", subject: "CrossEnrollment" },
       },
       {
         label: "Persetujuan KRS",

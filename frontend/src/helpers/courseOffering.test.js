@@ -14,7 +14,8 @@ describe("course offering helpers", () => {
     expect(
       buildBulkOfferingPayload(
         {
-          semester_prodi_id: "sp",
+          semester_id: "sem-1",
+          program_studi_id: "p-1",
           kuota_lintas_prodi: "20",
           akses: "semua",
           prodi_tujuan: ["ignored"],
@@ -22,7 +23,8 @@ describe("course offering helpers", () => {
         ["m1", "m1", "m2"],
       ),
     ).toEqual({
-      semester_prodi_id: "sp",
+      semester_id: "sem-1",
+      program_studi_id: "p-1",
       kuota_lintas_prodi_default: 20,
       akses: "semua",
       prodi_tujuan: [],
@@ -36,7 +38,8 @@ describe("course offering helpers", () => {
   it("uses per-course quota overrides", () => {
     const payload = buildBulkOfferingPayload(
       {
-        semester_prodi_id: "sp",
+        semester_id: "sem-1",
+        program_studi_id: "p-1",
         kuota_lintas_prodi: "20",
         akses: "semua",
       },
@@ -53,7 +56,8 @@ describe("course offering helpers", () => {
   it("memaksa kuota lintas 0 untuk MK berprasyarat", () => {
     const payload = buildBulkOfferingPayload(
       {
-        semester_prodi_id: "sp",
+        semester_id: "sem-1",
+        program_studi_id: "p-1",
         kuota_lintas_prodi: "20",
         akses: "semua",
       },

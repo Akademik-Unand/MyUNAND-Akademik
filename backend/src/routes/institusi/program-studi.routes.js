@@ -64,6 +64,19 @@ router.put(
   programStudiController.update,
 );
 
+/** PATCH /program-studi/:id/sks */
+router.patch(
+  "/:id/sks",
+  authenticate,
+  attachAbility,
+  checkPermission("update-sks", subject),
+  validate({
+    params: programStudiValidation.idParam,
+    body: programStudiValidation.sks,
+  }),
+  programStudiController.updateSks,
+);
+
 /** DELETE /program-studi/:id */
 router.delete(
   "/:id",

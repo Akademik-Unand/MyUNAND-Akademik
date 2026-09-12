@@ -25,12 +25,4 @@ router.post(
   c.enroll,
 );
 
-/** POST /cross-enrollment/:id/pa-approval */
-router.post(
-  "/:id/pa-approval",
-  ...guard("approve-pa"),
-  validate({ params: v.idParam, body: v.decision }),
-  c.approvePa,
-);
-
 module.exports = router;

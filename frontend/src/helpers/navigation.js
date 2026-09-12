@@ -3,6 +3,7 @@ import {
   ADMIN_ROLE_NAMES,
   isUniversityAdminRole,
   PIMPINAN_ROLE_NAMES,
+  ROLE_NAMES,
 } from "../constants/roles";
 import { isDosenAccount, isMahasiswaAccount } from "./accountUnit";
 
@@ -12,10 +13,12 @@ const STUDENT_NAV_PATHS = new Set([
   "/mahasiswa/katalog-lintas-prodi",
 ]);
 
-// Menu yang tidak relevan untuk admin fakultas: kelola tingkat universitas,
-// fasilitas sentral, semester master, pengambilan KRS (khusus mahasiswa),
-// persetujuan (dosen/prodi), dan IAM sentral.
-const ADMIN_FAKULTAS_HIDDEN_PATHS = new Set([
+// Menu yang tidak relevan untuk admin unit (fakultas/departemen/prodi): kelola
+// tingkat universitas, fasilitas sentral, semester master (global universitas),
+// pengambilan KRS (khusus mahasiswa), persetujuan KRS (dosen PA), dan IAM
+// sentral. Permission-nya memang dimiliki role ini (lihat docs/permissions.md),
+// jadi sidebar-lah yang memisahkan admin unit dari admin universitas.
+const ADMIN_UNIT_HIDDEN_PATHS = new Set([
   "/master/fakultas",
   "/master/jenjang-akademik",
   "/master/gedung",
@@ -23,14 +26,21 @@ const ADMIN_FAKULTAS_HIDDEN_PATHS = new Set([
   "/master/semester/jenis",
   "/master/semester/setting",
   "/master/semester/periode",
-  "/master/semester/prodi",
   "/krs/pengambilan",
-  "/perkuliahan/persetujuan/lintas-prodi",
   "/perkuliahan/persetujuan/krs",
   "/pengaturan/pengguna",
   "/pengaturan/peran",
   "/pengaturan/aktivitas",
 ]);
+
+// Admin departemen & prodi tidak mengelola master departemen: bagi prodi itu
+// unit di atasnya, bagi departemen itu unitnya sendiri (read-only).
+const ADMIN_UNIT_LEVEL_HIDDEN_PATHS = new Set(["/master/departemen"]);
+
+// Admin prodi tidak mengelola master Program Studi (termasuk kuota SKS-nya yang
+// merupakan kebijakan universitas). Data prodinya tetap terbaca lewat scope
+// organisasi, tapi tidak bisa diubah atau ditambah dari sidebar ini.
+const ADMIN_PRODI_HIDDEN_PATHS = new Set(["/master/prodi"]);
 
 export const isPrimaryMahasiswa = (user) => isMahasiswaAccount(user);
 
@@ -40,11 +50,27 @@ const roleNamesOf = (user) => {
   return set;
 };
 
-export const isPrimaryAdminFakultas = (user) => {
+/**
+ * Role admin unit murni: dipakai untuk mempersempit sidebar per level
+ * (fakultas → departemen → prodi). Tidak berlaku bila akun juga memegang role
+ * admin yang lebih luas (`admin-universitas`/`superadmin`), karena role
+ * itu memang membuka semua menu — sama seperti aturan pada pimpinan di bawah.
+ */
+const isPrimaryAdminRole = (user, roleName) => {
   const roleNames = roleNamesOf(user);
-  if ([...roleNames].some(isUniversityAdminRole)) return false;
-  return roleNames.has("admin-fakultas");
+  const broad = [...roleNames].some((name) => isUniversityAdminRole(name));
+  if (broad) return false;
+  return roleNames.has(roleName);
 };
+
+export const isPrimaryAdminFakultas = (user) =>
+  isPrimaryAdminRole(user, ROLE_NAMES.ADMIN_FAKULTAS);
+
+export const isPrimaryAdminDepartemen = (user) =>
+  isPrimaryAdminRole(user, ROLE_NAMES.ADMIN_DEPARTEMEN);
+
+export const isPrimaryAdminProdi = (user) =>
+  isPrimaryAdminRole(user, ROLE_NAMES.ADMIN_PRODI);
 
 // Pimpinan (fakultas/departemen/prodi) bersifat read-only; sidebar dipersempit
 // ke menu monitoring akademik saja.
@@ -73,14 +99,14 @@ export const isPrimaryPimpinan = (user) => {
 export const isPrimaryDosen = (user) => isDosenAccount(user);
 
 // Dosen & dosen PA hanya melihat pekerjaannya sendiri: mengajar (nilai, capaian
-// pembelajaran) dan membimbing (KRS, lintas prodi). Menu master/admin
-// disembunyikan walau permission-nya diberikan (mis. `periode.read`).
+// pembelajaran) dan membimbing (persetujuan KRS, termasuk pengajuan lintas
+// prodi di dalamnya). Menu master/admin disembunyikan walau permission-nya
+// diberikan (mis. `periode.read`).
 const DOSEN_NAV_PATHS = new Set([
   "/",
   "/perkuliahan/upload-nilai",
   "/perkuliahan/rekap-cp",
   "/perkuliahan/laporan-cp",
-  "/perkuliahan/persetujuan/lintas-prodi",
   "/perkuliahan/persetujuan/krs",
   "/kemahasiswaan/mahasiswa-bimbingan",
 ]);
@@ -93,7 +119,16 @@ const isAllowed = (user, item) => {
 const isNavHiddenForRole = (user, path) => {
   if (isPrimaryMahasiswa(user) && !STUDENT_NAV_PATHS.has(path)) return true;
   if (isPrimaryDosen(user) && !DOSEN_NAV_PATHS.has(path)) return true;
-  if (isPrimaryAdminFakultas(user) && ADMIN_FAKULTAS_HIDDEN_PATHS.has(path))
+  const adminUnitHidden =
+    ADMIN_UNIT_HIDDEN_PATHS.has(path) ||
+    ADMIN_UNIT_LEVEL_HIDDEN_PATHS.has(path);
+  if (isPrimaryAdminFakultas(user) && ADMIN_UNIT_HIDDEN_PATHS.has(path))
+    return true;
+  if (isPrimaryAdminDepartemen(user) && adminUnitHidden) return true;
+  if (
+    isPrimaryAdminProdi(user) &&
+    (adminUnitHidden || ADMIN_PRODI_HIDDEN_PATHS.has(path))
+  )
     return true;
   if (isPrimaryPimpinan(user) && !PIMPINAN_NAV_PATHS.has(path)) return true;
   return false;

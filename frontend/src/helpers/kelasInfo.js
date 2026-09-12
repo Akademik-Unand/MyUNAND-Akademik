@@ -22,6 +22,21 @@ export const kelasJadwalLines = (kelas) => {
   });
 };
 
+/**
+ * Satu nama kelas hanya boleh sekali per mata kuliah × semester × prodi
+ * (indeks unik `uq_kelas_semester_prodi_mk_nama`). Dipakai form supaya bentrok
+ * ketahuan sebelum request dikirim, bukan sebagai galat 422 dari server.
+ * @param {string} nama — nama kelas yang akan dibuat
+ * @param {string[]} existingNames — nama kelas yang sudah ada pada MK tersebut
+ */
+export const namaKelasBentrok = (nama, existingNames = []) => {
+  const target = String(nama || "").trim().toLowerCase();
+  if (!target) return false;
+  return (existingNames || []).some(
+    (row) => String(row || "").trim().toLowerCase() === target,
+  );
+};
+
 export const kelasDisplayName = (kelas) => {
   const kode = kelas?.matakuliah?.kode_matakuliah;
   const nama = kelas?.nama;
@@ -45,7 +60,7 @@ export const matakuliahListLabel = (matakuliah) => {
 };
 
 export const pickKurikulum = (kelas) => {
-  const prodiId = kelas?.semesterProdi?.program_studi_id;
+  const prodiId = kelas?.program_studi_id;
   const rows = kelas?.matakuliah?.matakuliahKurikulum || [];
   const match =
     rows.find((row) => row.kurikulum?.program_studi_id === prodiId) || rows[0];

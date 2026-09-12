@@ -11,7 +11,7 @@ import { DataTable } from '../../components/common/DataTable';
 import { IconButton } from '../../components/common/IconButton';
 import { CpmkOutline } from '../../components/cpmk/CpmkOutline';
 import { approveKrs } from '../../services/krs.service';
-import { semesterAkademikLabel } from '../../helpers/semesterProdi';
+import { semesterAkademikLabel } from '../../helpers/academicLabel';
 import { kelasDosenNames, kelasJadwalLines } from '../../helpers/kelasInfo';
 import {
   krsRowStatus,
@@ -45,16 +45,29 @@ export const PersetujuanKrsPage = () => {
       // latest approval status without a hard refresh.
       client.invalidateQueries({ queryKey: ['krs'] });
       // Patch the stale detailTarget snapshot so the open modal immediately
-      // reflects the approval (both header badge and per-row statuses).
+      // reflects the approval (both header badge and per-row statuses). Baris
+      // lintas prodi yang masih `pending_pa` ikut disetujui bersama KRS-nya,
+      // sedangkan yang sudah diputuskan sebelumnya dibiarkan apa adanya.
       if (detailTarget?.id === variables) {
         setDetailTarget((prev) => {
           if (!prev) return prev;
           return {
             ...prev,
             approval_ke: (prev.approval_ke || 0) + 1,
-            krsDetil: (prev.krsDetil || []).map((d) =>
-              d.is_cross_enrollment ? d : { ...d, approved: '1' },
-            ),
+            krsDetil: (prev.krsDetil || []).map((d) => {
+              if (!d.is_cross_enrollment) return { ...d, approved: '1' };
+              // Hanya pengajuan yang sudah punya keputusan sendiri
+              // (approved/rejected) yang dibiarkan; status kosong pada data
+              // lama diperlakukan sebagai belum diputuskan.
+              if (['approved', 'rejected'].includes(d.cross_enrollment_status)) {
+                return d;
+              }
+              return {
+                ...d,
+                approved: '1',
+                cross_enrollment_status: 'approved',
+              };
+            }),
           };
         });
       }
@@ -81,9 +94,9 @@ export const PersetujuanKrsPage = () => {
       ),
     },
     {
-      key: 'semester_prodi_id',
+      key: 'semester_id',
       header: 'Semester',
-      render: (row) => semesterAkademikLabel(row.semesterProdi?.semester),
+      render: (row) => semesterAkademikLabel(row.semester),
     },
     {
       key: 'jumlah_mk',
@@ -141,7 +154,7 @@ export const PersetujuanKrsPage = () => {
     <div className="space-y-4">
       <PageHeader
         title="Persetujuan KRS"
-        subtitle="Setujui KRS reguler mahasiswa bimbingan Anda"
+        subtitle="Setujui KRS mahasiswa bimbingan Anda — pengajuan mata kuliah lintas prodi ikut diputuskan di sini"
         breadcrumbs={[{ label: 'Perkuliahan' }, { label: 'Persetujuan KRS' }]}
       />
       <Card title="Daftar KRS">
@@ -160,7 +173,7 @@ export const PersetujuanKrsPage = () => {
         title="Detail KRS"
         subtitle={
           detailTarget
-            ? `${detailTarget.mahasiswa?.nama || 'Mahasiswa'} — ${semesterAkademikLabel(detailTarget.semesterProdi?.semester)}`
+            ? `${detailTarget.mahasiswa?.nama || 'Mahasiswa'} — ${semesterAkademikLabel(detailTarget.semester)}`
             : ''
         }
         size="xl"

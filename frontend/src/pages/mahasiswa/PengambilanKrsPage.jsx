@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Info, ListTree } from "lucide-react";
+import { AlertTriangle, CalendarClock, Info, ListTree } from "lucide-react";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -17,7 +17,12 @@ import { createResourceItem, deleteResourceItem } from "../../services/api";
 import { getStudentKrsContext } from "../../services/krs.service";
 import { submitCrossEnrollment } from "../../services/crossEnrollment.service";
 import { CpmkOutline } from "../../components/cpmk/CpmkOutline";
-import { semesterAkademikLabel } from "../../helpers/semesterProdi";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
+import {
+  isKrsPeriodOpen,
+  krsPeriodNotice,
+  krsPeriodStatus,
+} from "../../helpers/krsPeriod";
 import { kelasDosenNames } from "../../helpers/kelasInfo";
 import { deteksiBentrokKelasKrs, labelBentrokKrs } from "../../helpers/jadwal";
 import {
@@ -29,6 +34,34 @@ const STATUS_VARIANT = {
   pending_pa: "warning",
   approved: "success",
   rejected: "error",
+};
+
+const NOTICE_ICON = {
+  info: Info,
+  warning: AlertTriangle,
+  error: CalendarClock,
+};
+
+const NOTICE_CLASS = {
+  info: "border-info/30 bg-info/5 text-info",
+  warning: "border-warning/40 bg-warning/10 text-base-content",
+  error: "border-error/40 bg-error/10 text-error",
+};
+
+/** Pemberitahuan status jendela KRS di atas daftar mata kuliah. */
+const PeriodNotice = ({ notice }) => {
+  const Icon = NOTICE_ICON[notice.variant];
+  return (
+    <div
+      className={`flex items-start gap-2 rounded-box border px-3 py-2 text-sm ${NOTICE_CLASS[notice.variant]}`}
+    >
+      <Icon size={16} className="mt-0.5 shrink-0" />
+      <div>
+        <p className="font-medium">{notice.title}</p>
+        <p className="text-xs text-base-content/70">{notice.message}</p>
+      </div>
+    </div>
+  );
 };
 
 /** Status baris KRS — reguler dan lintas prodi memakai kosakata status yang sama. */
@@ -73,8 +106,25 @@ export const PengambilanKrsPage = () => {
   const prodiId =
     mahasiswa?.program_studi_id || user?.mahasiswa?.program_studi_id;
   const angkatan = mahasiswa?.angkatan;
-  const semesterProdi = contextQuery.data?.semesterProdi;
-  const semesterId = semesterProdi?.semester_id;
+  const semester = contextQuery.data?.semester;
+  const semesterId = semester?.id;
+  // Jendela pengambilan KRS semester berjalan (periode global). Mahasiswa perlu
+  // tahu kondisinya sebelum sempat menekan Ambil dan kena 422 dari server.
+  const periode = contextQuery.data?.periode;
+  // Tanpa semester aktif, akar masalahnya bukan jendela periode — sebut apa
+  // adanya supaya mahasiswa tidak menunggu tanggal yang belum tentu berlaku.
+  const periodStatus = semester
+    ? krsPeriodStatus(periode)
+    : { label: "Belum ada semester", variant: "ghost" };
+  const periodNotice = semester
+    ? krsPeriodNotice(periode)
+    : {
+        variant: "warning",
+        title: "Belum ada semester aktif",
+        message:
+          "Hubungi admin akademik untuk mengaktifkan semester berjalan sebelum mengambil KRS.",
+      };
+  const periodOpen = isKrsPeriodOpen(periode);
 
   // Satu kali ambil semua penawaran published di semester aktif (prodi sendiri + lintas),
   // lalu filter prodi dilakukan di klien.
@@ -89,7 +139,7 @@ export const PengambilanKrsPage = () => {
   const ownProdi = mahasiswa?.programStudi;
   const hostProdiMap = new Map();
   offerings.forEach((row) => {
-    const ps = row.semesterProdi?.programStudi;
+    const ps = row.programStudi;
     if (ps?.id && ps.id !== prodiId) hostProdiMap.set(ps.id, ps);
   });
   const prodiOptions = [
@@ -108,17 +158,23 @@ export const PengambilanKrsPage = () => {
 
   const offering = offerings.find(
     (row) =>
-      row.semesterProdi?.program_studi_id === activeProdiId &&
-      row.semesterProdi?.semester_id === semesterId,
+      row.program_studi_id === activeProdiId && row.semester_id === semesterId,
   );
   const isOwnOffer = activeProdiId === prodiId;
-  const tahun =
-    offering?.semesterProdi?.semester?.tahun || new Date().getFullYear();
+  const tahun = offering?.semester?.tahun || new Date().getFullYear();
 
   // KRS header yang baru dibuat sesi ini (sebelum refetch query selesai),
   // supaya penambahan berikutnya tidak membuat header KRS ganda.
   const [createdKrs, setCreatedKrs] = useState(null);
-  const krs = createdKrs || contextQuery.data?.krs;
+  // Data server selalu menang begitu refetch mendarat: header hasil `POST /krs`
+  // dikembalikan tanpa baris detil, jadi kalau header lokal terus dipakai,
+  // daftar "Mata Kuliah di KRS Anda" (dan badge "Diambil") tidak pernah terisi
+  // sampai halaman dimuat ulang. `createdKrs` hanya jaring pengaman sebelum
+  // refetch pertama selesai — dan id-nya sama dengan yang dikembalikan server.
+  const krs = contextQuery.data?.krs || createdKrs;
+  // Detil yang baru ditambahkan menyusul lewat refetch, jadi beri tanda halus
+  // bahwa daftarnya sedang menyegarkan diri.
+  const krsRefreshing = contextQuery.isFetching;
 
   const [selections, setSelections] = useState({});
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -136,7 +192,7 @@ export const PengambilanKrsPage = () => {
       if (!target) {
         target = await createResourceItem("krs", {
           mahasiswa_id: mahasiswaId,
-          semester_prodi_id: semesterProdi.id,
+          semester_id: semester.id,
         });
         setCreatedKrs(target);
       }
@@ -158,7 +214,7 @@ export const PengambilanKrsPage = () => {
       if (!target) {
         target = await createResourceItem("krs", {
           mahasiswa_id: mahasiswaId,
-          semester_prodi_id: semesterProdi.id,
+          semester_id: semester.id,
         });
         setCreatedKrs(target);
       }
@@ -247,14 +303,21 @@ export const PengambilanKrsPage = () => {
         title="Pengambilan KRS"
         subtitle="Ambil mata kuliah dari prodi Anda maupun lintas program studi — hanya penawaran yang dibuka (published) dan memenuhi syarat yang tersedia"
         breadcrumbs={[{ label: "KRS Mahasiswa" }, { label: "Pengambilan KRS" }]}
+        action={
+          <Badge variant={periodStatus.variant} size="sm">
+            KRS: {periodStatus.label}
+          </Badge>
+        }
       />
 
       {loading ? (
         <PageSkeleton cards={2} />
       ) : (
         <>
+          {periodNotice && <PeriodNotice notice={periodNotice} />}
+
           <Card
-            title={`Pilih Mata Kuliah${semesterProdi ? ` — ${semesterAkademikLabel(semesterProdi.semester)}` : ""}`}
+            title={`Pilih Mata Kuliah${semester ? ` — ${semesterAkademikLabel(semester)}` : ""}`}
             actions={
               krs?.approval_ke > 0 ? (
                 <Badge variant="success" size="sm">
@@ -265,7 +328,7 @@ export const PengambilanKrsPage = () => {
           >
             {!offering ? (
               <p className="text-sm text-base-content/60">
-                {semesterProdi
+                {semester
                   ? "Belum ada penawaran mata kuliah yang dibuka untuk semester ini."
                   : "Belum ada semester aktif. Hubungi admin untuk mengaktifkan semester."}
               </p>
@@ -400,7 +463,8 @@ export const PengambilanKrsPage = () => {
                             disabled={
                               !selections[row.id] ||
                               krs?.approval_ke > 0 ||
-                              submitPending
+                              submitPending ||
+                              !periodOpen
                             }
                             isLoading={submitPending}
                             onClick={() =>
@@ -424,7 +488,16 @@ export const PengambilanKrsPage = () => {
             )}
           </Card>
 
-          <Card title="Mata Kuliah di KRS Anda">
+          <Card
+            title="Mata Kuliah di KRS Anda"
+            actions={
+              krsRefreshing ? (
+                <span className="text-xs text-base-content/50">
+                  Menyegarkan…
+                </span>
+              ) : null
+            }
+          >
             {registeredRows.length === 0 ? (
               <p className="text-sm text-base-content/60">
                 Belum ada mata kuliah di KRS Anda.

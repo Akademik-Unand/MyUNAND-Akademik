@@ -11,12 +11,16 @@ import {
   ringkasanJadwalKelas,
 } from "./jadwal";
 
-const buatKelas = (id, semesterProdiId, jadwal, dosenIds = []) => ({
-  id,
-  semester_prodi_id: semesterProdiId,
-  dosenKelas: dosenIds.map((dosenId) => ({ dosen_id: dosenId })),
-  jadwalKelas: jadwal,
-});
+const buatKelas = (id, semesterProdiKey, jadwal, dosenIds = []) => {
+  const [semester_id, program_studi_id] = String(semesterProdiKey).split(":");
+  return {
+    id,
+    semester_id,
+    program_studi_id,
+    dosenKelas: dosenIds.map((dosenId) => ({ dosen_id: dosenId })),
+    jadwalKelas: jadwal,
+  };
+};
 
 const jadwal = (id, extra = {}) => ({
   id,
@@ -170,10 +174,10 @@ describe("labelBentrokKrs", () => {
 });
 
 describe("deteksiKonflikJadwal", () => {
-  it("menandai konflik ruang dan kelas untuk semester prodi yang sama", () => {
+  it("menandai konflik ruang dan kelas untuk semester & prodi yang sama", () => {
     const konflik = deteksiKonflikJadwal([
-      buatKelas("k1", "sp-1", [jadwal("j1", { ruang_id: "r1" })]),
-      buatKelas("k2", "sp-1", [jadwal("j2", { ruang_id: "r1" })]),
+      buatKelas("k1", "sem-1:p-1", [jadwal("j1", { ruang_id: "r1" })]),
+      buatKelas("k2", "sem-1:p-1", [jadwal("j2", { ruang_id: "r1" })]),
     ]);
 
     expect([...konflik.get("j1")]).toEqual(
@@ -186,8 +190,8 @@ describe("deteksiKonflikJadwal", () => {
 
   it("menandai konflik dosen meski beda program studi", () => {
     const konflik = deteksiKonflikJadwal([
-      buatKelas("k1", "sp-1", [jadwal("j1")], ["d1"]),
-      buatKelas("k2", "sp-2", [jadwal("j2")], ["d1"]),
+      buatKelas("k1", "sem-1:p-1", [jadwal("j1")], ["d1"]),
+      buatKelas("k2", "sem-1:p-2", [jadwal("j2")], ["d1"]),
     ]);
 
     expect([...konflik.get("j1")]).toContain("dosen");
@@ -196,8 +200,8 @@ describe("deteksiKonflikJadwal", () => {
 
   it("tidak menandai apa pun saat hari berbeda", () => {
     const konflik = deteksiKonflikJadwal([
-      buatKelas("k1", "sp-1", [jadwal("j1", { ruang_id: "r1" })]),
-      buatKelas("k2", "sp-1", [
+      buatKelas("k1", "sem-1:p-1", [jadwal("j1", { ruang_id: "r1" })]),
+      buatKelas("k2", "sem-1:p-1", [
         jadwal("j2", { hari: "Selasa", ruang_id: "r1" }),
       ]),
     ]);
@@ -207,10 +211,10 @@ describe("deteksiKonflikJadwal", () => {
 
   it("tidak menandai apa pun saat jam tidak tumpang tindih", () => {
     const konflik = deteksiKonflikJadwal([
-      buatKelas("k1", "sp-1", [
+      buatKelas("k1", "sem-1:p-1", [
         jadwal("j1", { jam_selesai: "09:40:00", ruang_id: "r1" }),
       ]),
-      buatKelas("k2", "sp-1", [
+      buatKelas("k2", "sem-1:p-1", [
         jadwal("j2", {
           jam_mulai: "10:00:00",
           jam_selesai: "11:40:00",
@@ -225,7 +229,7 @@ describe("deteksiKonflikJadwal", () => {
   it("menandai kapasitas ruang yang lebih kecil dari kebutuhan kelas", () => {
     const konflik = deteksiKonflikJadwal([
       {
-        ...buatKelas("k1", "sp-1", [
+        ...buatKelas("k1", "sem-1:p-1", [
           jadwal("j1", {
             ruang_id: "r1",
             ruang: { kode: "R1", kapasitas: 30 },
@@ -241,13 +245,13 @@ describe("deteksiKonflikJadwal", () => {
   it("tidak menandai kapasitas saat ruang cukup atau belum diatur", () => {
     const konflik = deteksiKonflikJadwal([
       {
-        ...buatKelas("k1", "sp-1", [
+        ...buatKelas("k1", "sem-1:p-1", [
           jadwal("j1", { ruang: { kode: "R1", kapasitas: 50 } }),
         ]),
         jumlah_peserta_max: 40,
       },
       {
-        ...buatKelas("k2", "sp-2", [
+        ...buatKelas("k2", "sem-1:p-2", [
           jadwal("j2", { ruang: { kode: "R2", kapasitas: 0 } }),
         ]),
         jumlah_peserta_max: 40,

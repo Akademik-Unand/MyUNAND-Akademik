@@ -38,8 +38,8 @@ export const KelasJadwalPanel = ({ kelas }) => {
   const client = useQueryClient();
   const can = useCan();
   const { data: ruangRows = [] } = useResourceQuery("ruang");
-  const kelasProdiId = kelas?.semesterProdi?.program_studi_id;
-  const kelasFakultasId = kelas?.semesterProdi?.programStudi?.fakultas_id;
+  const kelasProdiId = kelas?.program_studi_id;
+  const kelasFakultasId = kelas?.programStudi?.fakultas_id;
   const { data: dosenRows = [] } = useResourceQuery("dosen", {
     params: kelasProdiId
       ? { filter: { program_studi_id: kelasProdiId } }

@@ -20,7 +20,6 @@ const bimbinganAkademikRoutes = require("./institusi/bimbingan-akademik.routes")
 const jenisSemesterRoutes = require("./semester/jenis-semester.routes");
 const periodeRoutes = require("./semester/periode.routes");
 const semesterRoutes = require("./semester/semester.routes");
-const semesterProdiRoutes = require("./semester/semester-prodi.routes");
 const kurikulumRoutes = require("./kurikulum/kurikulum.routes");
 const sifatMatakuliahRoutes = require("./kurikulum/sifat-matakuliah.routes");
 const tipeMatakuliahRoutes = require("./kurikulum/tipe-matakuliah.routes");
@@ -69,7 +68,6 @@ router.use("/bimbingan-akademik", bimbinganAkademikRoutes);
 router.use("/jenis-semester", jenisSemesterRoutes);
 router.use("/periode", periodeRoutes);
 router.use("/semester", semesterRoutes);
-router.use("/semester-prodi", semesterProdiRoutes);
 router.use("/kurikulum", kurikulumRoutes);
 router.use("/sifat-matakuliah", sifatMatakuliahRoutes);
 router.use("/tipe-matakuliah", tipeMatakuliahRoutes);

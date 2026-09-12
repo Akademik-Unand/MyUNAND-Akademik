@@ -12,13 +12,6 @@ export const publishOffering = (id) =>
 export const closeOffering = (id) =>
   apiRequest(`/penawaran-matakuliah/${id}/close`, { method: "POST" });
 
-/** Keputusan persetujuan pengajuan lintas prodi oleh dosen PA. */
-export const decideCrossEnrollment = (id, approved, reason = null) =>
-  apiRequest(`/cross-enrollment/${id}/pa-approval`, {
-    method: "POST",
-    body: { approved, reason },
-  });
-
 export const submitCrossEnrollment = ({ penawaranId, kelasId }) =>
   apiRequest("/cross-enrollment/enroll", {
     method: "POST",

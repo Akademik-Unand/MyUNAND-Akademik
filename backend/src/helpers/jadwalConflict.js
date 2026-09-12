@@ -8,7 +8,6 @@ const {
   Ruang,
   DosenKelas,
   Dosen,
-  SemesterProdi,
 } = require("../models");
 const AppError = require("./AppError");
 
@@ -75,20 +74,8 @@ const kelasInclude = (semesterId) => [
     model: Kelas,
     as: "kelas",
     required: true,
-    include: [
-      { model: Matakuliah, as: "matakuliah" },
-      ...(semesterId
-        ? [
-            {
-              model: SemesterProdi,
-              as: "semesterProdi",
-              attributes: [],
-              required: true,
-              where: { semester_id: semesterId },
-            },
-          ]
-        : []),
-    ],
+    ...(semesterId ? { where: { semester_id: semesterId } } : {}),
+    include: [{ model: Matakuliah, as: "matakuliah" }],
   },
 ];
 
@@ -96,18 +83,10 @@ const kelasInclude = (semesterId) => [
 const resolveSemesterId = async (kelasId, transaction) => {
   if (!kelasId) return null;
   const kelas = await Kelas.findByPk(kelasId, {
-    attributes: ["id"],
-    include: [
-      {
-        model: SemesterProdi,
-        as: "semesterProdi",
-        attributes: ["semester_id"],
-        required: false,
-      },
-    ],
+    attributes: ["id", "semester_id"],
     transaction,
   });
-  return kelas?.semesterProdi?.semester_id || null;
+  return kelas?.semester_id || null;
 };
 
 /** Satu ruang hanya boleh dipakai satu jadwal pada hari dan jam yang sama. */
@@ -193,16 +172,16 @@ const assertDosenKosong = async (
 };
 
 /**
- * Dua kelas pada semester prodi yang sama tidak boleh berjalan bersamaan —
+ * Dua kelas pada semester & prodi yang sama tidak boleh berjalan bersamaan —
  * mahasiswa tidak bisa mengikuti keduanya sekaligus.
  */
 const assertSeangkatanKosong = async (payload, excludeId, transaction) => {
   if (!payload.kelas_id) return;
   const kelas = await Kelas.findByPk(payload.kelas_id, {
-    attributes: ["id", "semester_prodi_id"],
+    attributes: ["id", "semester_id", "program_studi_id"],
     transaction,
   });
-  if (!kelas?.semester_prodi_id) return;
+  if (!kelas?.semester_id) return;
 
   const conflict = await JadwalKelas.findOne({
     where: baseWhere(payload, excludeId),
@@ -210,7 +189,10 @@ const assertSeangkatanKosong = async (payload, excludeId, transaction) => {
       {
         model: Kelas,
         as: "kelas",
-        where: { semester_prodi_id: kelas.semester_prodi_id },
+        where: {
+          semester_id: kelas.semester_id,
+          program_studi_id: kelas.program_studi_id,
+        },
         include: [{ model: Matakuliah, as: "matakuliah" }],
       },
     ],

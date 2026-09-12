@@ -40,10 +40,6 @@ module.exports = (sequelize) => {
         foreignKey: "program_studi_id",
         as: "matakuliah",
       });
-      ProgramStudi.hasMany(models.SemesterProdi, {
-        foreignKey: "program_studi_id",
-        as: "semesterProdi",
-      });
       ProgramStudi.hasMany(models.PenawaranMatakuliahProdi, {
         foreignKey: "program_studi_id",
         as: "penawaranMatakuliah",
@@ -69,6 +65,9 @@ module.exports = (sequelize) => {
       departemen_id: { type: DataTypes.UUID, allowNull: true },
       nama_resmi: { type: DataTypes.STRING(255), allowNull: false },
       nama_singkat: { type: DataTypes.STRING(255), allowNull: true },
+      // Kuota SKS per prodi (dulu menempel di pivot `semester_prodi`).
+      sks_default: { type: DataTypes.SMALLINT, allowNull: true, defaultValue: 15 },
+      sks_maksimal: { type: DataTypes.SMALLINT, allowNull: true, defaultValue: 24 },
     },
     {
       sequelize,

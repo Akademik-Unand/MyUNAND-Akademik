@@ -23,7 +23,7 @@ import {
   deteksiKonflikJadwal,
 } from "../../helpers/jadwal";
 import { kelasDisplayName } from "../../helpers/kelasInfo";
-import { semesterAkademikLabel } from "../../helpers/semesterProdi";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
 import { filterProdiByScope } from "../../helpers/organizationContext";
 
 const ruangLabel = (ruang) => {
@@ -32,8 +32,11 @@ const ruangLabel = (ruang) => {
   return ruang.kapasitas ? `${nama} · kapasitas ${ruang.kapasitas}` : nama;
 };
 
+/** Semester berjalan (flag global `semester.is_aktif`) tampil paling atas. */
 const bandingkanSemester = (a, b) => {
-  if (a.is_aktif !== b.is_aktif) return a.is_aktif ? -1 : 1;
+  const aAktif = Boolean(a?.is_aktif);
+  const bAktif = Boolean(b?.is_aktif);
+  if (aAktif !== bAktif) return aAktif ? -1 : 1;
   return 0;
 };
 
@@ -69,41 +72,44 @@ export const JadwalRuangPage = () => {
     setProdiId("");
   }
 
-  const semesterProdiQuery = useResourceQuery("semester-prodi", {
-    params: activeProdiId
-      ? { filter: { program_studi_id: activeProdiId } }
-      : undefined,
-    enabled: Boolean(activeProdiId),
-  });
-  const semesterProdiList = [...(semesterProdiQuery.data || [])].sort(
-    bandingkanSemester,
+  // Semester dipilih dari master semester global (semester aktif tampil dulu).
+  const semesterQuery = useResourceQuery("setting-semester");
+  const semesterList = useMemo(
+    () => [...(semesterQuery.data || [])].sort(bandingkanSemester),
+    [semesterQuery.data],
   );
-  const [semesterProdiId, setSemesterProdiId] = useState("");
-  const activeSemesterProdi =
-    semesterProdiList.find((row) => row.id === semesterProdiId) ||
-    semesterProdiList[0] ||
+  const [selectedSemesterId, setSelectedSemesterId] = useState("");
+  const activeSemester =
+    semesterList.find((row) => row.id === selectedSemesterId) ||
+    semesterList[0] ||
     null;
-  const semesterProdiKey = activeSemesterProdi?.id || "";
+  const semesterId = activeSemester?.id || "";
+  const semesterKey =
+    semesterId && activeProdiId ? `${semesterId}:${activeProdiId}` : "";
   const activeProdi = prodiList.find((row) => row.id === activeProdiId) || null;
   const fakultasId =
-    activeSemesterProdi?.programStudi?.fakultas_id ||
     activeProdi?.fakultas_id ||
     activeProdi?.departemen?.fakultas_id ||
     org.fakultasId ||
     "";
 
   const kelasQuery = useResourceQuery("kelas", {
-    params: semesterProdiKey
-      ? { filter: { semester_prodi_id: semesterProdiKey } }
-      : undefined,
-    enabled: Boolean(semesterProdiKey),
+    params:
+      semesterId && activeProdiId
+        ? {
+            filter: {
+              semester_id: semesterId,
+              program_studi_id: activeProdiId,
+            },
+          }
+        : undefined,
+    enabled: Boolean(semesterId && activeProdiId),
   });
   const kelasList = useMemo(() => kelasQuery.data || [], [kelasQuery.data]);
 
   // Ruang dipakai bersama, jadi ketersediaan dihitung dari SELURUH kelas pada
   // semester ini (bukan hanya prodi terpilih). Kalau belum termuat, pakai kelas
   // prodi terpilih sebagai perkiraan.
-  const semesterId = activeSemesterProdi?.semester_id || "";
   const kelasSemesterQuery = useResourceQuery("kelas", {
     params: semesterId ? { filter: { semester_id: semesterId } } : undefined,
     enabled: Boolean(semesterId),
@@ -271,7 +277,10 @@ export const JadwalRuangPage = () => {
           (kelas.dosenKelas || []).some((row) => dosenKelas.has(row.dosen_id))
         )
           alasan.add("dosen");
-        if (kelas.semester_prodi_id === modal.kelas.semester_prodi_id)
+        if (
+          kelas.semester_id === modal.kelas.semester_id &&
+          kelas.program_studi_id === modal.kelas.program_studi_id
+        )
           alasan.add("kelas");
         if (alasan.size) hasil.push({ kelas, jadwal, alasan: [...alasan] });
       }
@@ -280,7 +289,7 @@ export const JadwalRuangPage = () => {
   })();
 
   const loading =
-    org.isLoading || Boolean(semesterProdiKey && kelasQuery.isPending);
+    org.isLoading || Boolean(semesterKey && kelasQuery.isPending);
 
   return (
     <div className="space-y-4">
@@ -311,7 +320,6 @@ export const JadwalRuangPage = () => {
             onChange={(event) => {
               const value = event.target.value;
               setProdiId(value);
-              setSemesterProdiId("");
               if (!org.scoped) {
                 org.setContext({
                   fakultasId: org.fakultasId,
@@ -324,13 +332,13 @@ export const JadwalRuangPage = () => {
           <Select
             label="Semester"
             placeholder="Pilih semester"
-            options={semesterProdiList.map((row) => ({
+            options={semesterList.map((row) => ({
               value: row.id,
-              label: `${semesterAkademikLabel(row.semester)}${row.is_aktif ? " · aktif" : ""}`,
+              label: `${semesterAkademikLabel(row)}${row.is_aktif ? " · aktif" : ""}`,
             }))}
-            value={semesterProdiKey}
-            onChange={(event) => setSemesterProdiId(event.target.value)}
-            disabled={!semesterProdiList.length}
+            value={semesterId}
+            onChange={(event) => setSelectedSemesterId(event.target.value)}
+            disabled={!semesterList.length}
           />
         </div>
         <p className="mt-2 text-xs text-base-content/60">
@@ -349,9 +357,7 @@ export const JadwalRuangPage = () => {
 
       <Card
         title={
-          activeSemesterProdi
-            ? `Grid Jadwal — ${activeSemesterProdi.programStudi?.nama_resmi}`
-            : "Grid Jadwal"
+          activeProdi ? `Grid Jadwal — ${activeProdi.nama_resmi}` : "Grid Jadwal"
         }
         actions={
           kelasList.length ? (
@@ -363,7 +369,7 @@ export const JadwalRuangPage = () => {
       >
         {loading ? (
           <PageSkeleton cards={1} />
-        ) : !semesterProdiKey ? (
+        ) : !semesterKey ? (
           <p className="text-sm text-base-content/60">
             Pilih program studi terlebih dahulu.
           </p>
@@ -377,7 +383,7 @@ export const JadwalRuangPage = () => {
             onEdit={openEdit}
           />
         )}
-        {semesterProdiKey && !shiftList.length && (
+        {semesterKey && !shiftList.length && (
           <p className="mt-3 text-xs text-base-content/60">
             Belum ada shift untuk fakultas ini. Atur dulu di menu{" "}
             <span className="font-medium">Shift Jadwal</span>.

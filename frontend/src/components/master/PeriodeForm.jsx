@@ -1,7 +1,7 @@
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
 import { ResourceSelect } from "../common/ResourceSelect";
-import { semesterAkademikLabel } from "../../helpers/semesterProdi";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
 import { JENIS_PERIODE } from "../../helpers/academicPeriod";
 
 export const PeriodeForm = ({ values, onChange }) => {

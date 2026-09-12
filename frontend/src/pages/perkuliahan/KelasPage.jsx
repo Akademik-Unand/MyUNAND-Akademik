@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Users } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -17,8 +18,8 @@ import { useFilterOptions } from "../../hooks/useFilterOptions";
 import { buildKelasListColumns } from "../../components/kelas/kelasListColumns";
 import { KelasCapacityForm } from "../../components/kelas/KelasCapacityForm";
 import { KelasForm } from "../../components/kelas/KelasForm";
-import { kelasDisplayName } from "../../helpers/kelasInfo";
-import { semesterAkademikLabel } from "../../helpers/semesterProdi";
+import { kelasDisplayName, namaKelasBentrok } from "../../helpers/kelasInfo";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
 
 const FILTER_KEYS = [
   "fakultas",
@@ -58,21 +59,19 @@ export const KelasPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formValues, setFormValues] = useState(EMPTY_KELAS_FORM);
 
-  // Resolusi semester-prodi & penawaran untuk form tambah kelas (prodi dari konteks navbar).
+  // Penawaran untuk form tambah kelas: semester terpilih + prodi dari konteks navbar.
   const semesterId = formValues.semester_id || activeSemester?.id || "";
-  const semesterProdiQuery = useResourceQuery("semester-prodi", {
+  const offeringQuery = useResourceQuery("penawaran-matakuliah", {
     params:
       org.prodiId && semesterId
-        ? { filter: { program_studi_id: org.prodiId, semester_id: semesterId } }
+        ? {
+            filter: {
+              program_studi_id: org.prodiId,
+              semester_id: semesterId,
+            },
+          }
         : undefined,
     enabled: Boolean(org.prodiId && semesterId),
-  });
-  const semesterProdi = semesterProdiQuery.data?.[0];
-  const offeringQuery = useResourceQuery("penawaran-matakuliah", {
-    params: semesterProdi?.id
-      ? { filter: { semester_prodi_id: semesterProdi.id } }
-      : undefined,
-    enabled: Boolean(semesterProdi?.id),
   });
   const offering = offeringQuery.data?.[0];
   const mkOptions = (offering?.matakuliahDitawarkan || []).map((detail) => ({
@@ -84,6 +83,27 @@ export const KelasPage = () => {
     value: row.id,
     label: `${semesterAkademikLabel(row)}${row.is_aktif ? " (Aktif)" : ""}`,
   }));
+
+  // Nama kelas yang sudah dipakai pada MK × semester × prodi terpilih — satu
+  // nama hanya boleh sekali, jadi dicek di klien agar tidak perlu bolak-balik
+  // ke server (dan pesannya lebih jelas daripada galat unik dari MySQL).
+  const kelasSekelasQuery = useResourceQuery("kelas", {
+    params:
+      org.prodiId && semesterId && formValues.matakuliah_id
+        ? {
+            limit: 200,
+            filter: {
+              semester_id: semesterId,
+              program_studi_id: org.prodiId,
+              matakuliah_id: formValues.matakuliah_id,
+            },
+          }
+        : undefined,
+    enabled: Boolean(org.prodiId && semesterId && formValues.matakuliah_id),
+  });
+  const namaKelasTerpakai = (kelasSekelasQuery.data || [])
+    .map((row) => row.nama)
+    .filter(Boolean);
 
   const openCapacity = (row) => {
     setCapacityValues({
@@ -112,8 +132,15 @@ export const KelasPage = () => {
   const saveKelas = async (event) => {
     event.preventDefault();
     if (mutations.create.isPending) return;
+    if (namaKelasBentrok(formValues.nama, namaKelasTerpakai)) {
+      toast.error(
+        `Kelas "${String(formValues.nama).trim()}" sudah ada untuk mata kuliah ini. Pakai nama kelas lain.`,
+      );
+      return;
+    }
     await mutations.create.mutateAsync({
-      semester_prodi_id: semesterProdi?.id || null,
+      semester_id: semesterId,
+      program_studi_id: org.prodiId,
       matakuliah_id: formValues.matakuliah_id,
       penawaran_matakuliah_id: formValues.penawaran_matakuliah_id || null,
       nama: formValues.nama,
@@ -233,6 +260,7 @@ export const KelasPage = () => {
             mkOptions={mkOptions}
             offeringStatus={offering?.status || null}
             hasOffering={Boolean(offering)}
+            existingNames={namaKelasTerpakai}
           />
         </form>
       </Modal>
