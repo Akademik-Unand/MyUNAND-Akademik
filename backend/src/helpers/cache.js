@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-const { getRedisClient, isRedisReady } = require('../config/redis');
-const logger = require('../utils/logger');
+const { getRedisClient, isRedisReady } = require("../config/redis");
+const logger = require("../utils/logger");
 
 const memoryCache = new Map();
 
@@ -23,7 +23,7 @@ async function get(key) {
     }
     return JSON.parse(raw);
   } catch (err) {
-    logger.warn({ err, key }, 'Redis get failed');
+    logger.warn({ err, key }, "Redis get failed");
     return null;
   }
 }
@@ -40,13 +40,13 @@ async function set(key, value, ttlSeconds) {
   try {
     const payload = JSON.stringify(value);
     if (ttlSeconds) {
-      await getRedisClient().set(key, payload, 'EX', Number(ttlSeconds));
+      await getRedisClient().set(key, payload, "EX", Number(ttlSeconds));
     } else {
       await getRedisClient().set(key, payload);
     }
     return true;
   } catch (err) {
-    logger.warn({ err, key }, 'Redis set failed');
+    logger.warn({ err, key }, "Redis set failed");
     return false;
   }
 }
@@ -61,7 +61,7 @@ async function del(key) {
     await getRedisClient().del(key);
     return true;
   } catch (err) {
-    logger.warn({ err, key }, 'Redis del failed');
+    logger.warn({ err, key }, "Redis del failed");
     return false;
   }
 }

@@ -1,12 +1,12 @@
-'use strict';
+"use strict";
 
-const { AbilityBuilder, createMongoAbility } = require('@casl/ability');
-const { SUBJECT_BY_KEY } = require('../constants/permissions');
-const { isUniversityAdminRole } = require('../constants/roles');
+const { AbilityBuilder, createMongoAbility } = require("@casl/ability");
+const { SUBJECT_BY_KEY } = require("../constants/permissions");
+const { isUniversityAdminRole } = require("../constants/roles");
 
 const parsePermission = (name) => {
-  const [key, ...rest] = String(name).split('.');
-  const action = rest.join('.');
+  const [key, ...rest] = String(name).split(".");
+  const action = rest.join(".");
   const subject = SUBJECT_BY_KEY[key];
   if (!subject || !action) return null;
   return { action, subject };
@@ -18,7 +18,7 @@ const defineAbility = (user, permissions = [], roleNames = []) => {
   if (user?.role) names.add(user.role);
 
   if ([...names].some(isUniversityAdminRole)) {
-    can('manage', 'all');
+    can("manage", "all");
     return build();
   }
 

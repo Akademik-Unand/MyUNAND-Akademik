@@ -1,11 +1,18 @@
-import Chart from 'react-apexcharts';
-import { rekapCpChartOptions, rekapCpChartSeries } from '../../helpers/rekapCpChart';
-import { Skeleton } from '../ui/Skeleton';
+import Chart from "react-apexcharts";
+import {
+  rekapCpChartOptions,
+  rekapCpChartSeries,
+} from "../../helpers/rekapCpChart";
+import { Skeleton } from "../ui/Skeleton";
 
 export const RekapCpChart = ({ rows = [], isPending = false }) => {
   if (isPending) return <Skeleton className="h-80 w-full" />;
   if (!rows.length) {
-    return <p className="text-sm text-base-content/60">Belum ada data grafik untuk filter ini.</p>;
+    return (
+      <p className="text-sm text-base-content/60">
+        Belum ada data grafik untuk filter ini.
+      </p>
+    );
   }
 
   return (

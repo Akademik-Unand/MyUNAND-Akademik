@@ -1,8 +1,12 @@
-import { consecutiveRowSpans } from '../../helpers/tableSpans';
-import { formatCapaian, formatPercent, mkSemesterLabel } from '../../helpers/laporanCp';
-import { useTableHeadOffset } from '../../hooks/useTableHeadOffset';
-import { LaporanCpScpCheckRadios } from './LaporanCpScpCheckRadios';
-import { LaporanCpStickyCell } from './LaporanCpStickyCell';
+import { consecutiveRowSpans } from "../../helpers/tableSpans";
+import {
+  formatCapaian,
+  formatPercent,
+  mkSemesterLabel,
+} from "../../helpers/laporanCp";
+import { useTableHeadOffset } from "../../hooks/useTableHeadOffset";
+import { LaporanCpScpCheckRadios } from "./LaporanCpScpCheckRadios";
+import { LaporanCpStickyCell } from "./LaporanCpStickyCell";
 
 const cpKey = (row) => row.cp_id;
 const scpKey = (row) => `${row.cp_id}\u001f${row.scp_id}`;
@@ -13,12 +17,19 @@ export const LaporanCpPickTable = ({
   onChange,
   readOnly = false,
 }) => {
-  const { headRef, offset: headOffset } = useTableHeadOffset(rows.length, readOnly);
+  const { headRef, offset: headOffset } = useTableHeadOffset(
+    rows.length,
+    readOnly,
+  );
   const cpSpans = consecutiveRowSpans(rows, cpKey);
   const scpSpans = consecutiveRowSpans(rows, scpKey);
 
   if (!rows.length) {
-    return <p className="text-sm text-base-content/60">Belum ada pemetaan CP–SCP–CPMK pada kurikulum ini.</p>;
+    return (
+      <p className="text-sm text-base-content/60">
+        Belum ada pemetaan CP–SCP–CPMK pada kurikulum ini.
+      </p>
+    );
   }
 
   const stickyStyle = { top: headOffset };
@@ -42,14 +53,18 @@ export const LaporanCpPickTable = ({
           {rows.map((row, idx) => {
             const cpSpan = cpSpans[idx];
             const scpSpan = scpSpans[idx];
-            const groupRows = rows.filter((item) => scpKey(item) === scpKey(row));
+            const groupRows = rows.filter(
+              (item) => scpKey(item) === scpKey(row),
+            );
             return (
               <tr key={row.id}>
                 {cpSpan > 0 && (
                   <LaporanCpStickyCell rowSpan={cpSpan} style={stickyStyle}>
                     <p className="font-semibold">{row.cp_nama}</p>
                     {row.cp_deskripsi && (
-                      <p className="mt-1 text-xs text-base-content/60 whitespace-normal">{row.cp_deskripsi}</p>
+                      <p className="mt-1 text-xs text-base-content/60 whitespace-normal">
+                        {row.cp_deskripsi}
+                      </p>
                     )}
                   </LaporanCpStickyCell>
                 )}
@@ -57,7 +72,9 @@ export const LaporanCpPickTable = ({
                   <LaporanCpStickyCell rowSpan={scpSpan} style={stickyStyle}>
                     <p className="font-semibold">{row.scp_nama}</p>
                     {row.scp_deskripsi && (
-                      <p className="mt-1 text-xs text-base-content/60 whitespace-normal">{row.scp_deskripsi}</p>
+                      <p className="mt-1 text-xs text-base-content/60 whitespace-normal">
+                        {row.scp_deskripsi}
+                      </p>
                     )}
                     {!readOnly && (
                       <LaporanCpScpCheckRadios
@@ -71,7 +88,9 @@ export const LaporanCpPickTable = ({
                 <td className="align-top max-w-sm">
                   <p className="font-medium">{row.cpmk_nama}</p>
                   {row.cpmk_deskripsi && (
-                    <p className="mt-1 text-xs text-base-content/60 whitespace-normal">{row.cpmk_deskripsi}</p>
+                    <p className="mt-1 text-xs text-base-content/60 whitespace-normal">
+                      {row.cpmk_deskripsi}
+                    </p>
                   )}
                 </td>
                 <td className="align-middle">
@@ -91,14 +110,24 @@ export const LaporanCpPickTable = ({
                         }}
                         aria-label={`Pilih ${mkSemesterLabel(row)}`}
                       />
-                      <span className="whitespace-normal">{mkSemesterLabel(row)}</span>
+                      <span className="whitespace-normal">
+                        {mkSemesterLabel(row)}
+                      </span>
                     </label>
                   )}
                 </td>
-                <td className="align-middle whitespace-normal">{row.sumber_label || '—'}</td>
-                <td className="align-middle text-center">{row.nilai_min ?? '—'}</td>
-                <td className="align-middle text-center">{formatPercent(row.target_persen)}</td>
-                <td className="align-middle text-center">{formatCapaian(row.capaian)}</td>
+                <td className="align-middle whitespace-normal">
+                  {row.sumber_label || "—"}
+                </td>
+                <td className="align-middle text-center">
+                  {row.nilai_min ?? "—"}
+                </td>
+                <td className="align-middle text-center">
+                  {formatPercent(row.target_persen)}
+                </td>
+                <td className="align-middle text-center">
+                  {formatCapaian(row.capaian)}
+                </td>
               </tr>
             );
           })}

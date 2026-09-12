@@ -1,6 +1,6 @@
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
-import { useEscapeKey } from '../../hooks/useEscapeKey';
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 
 /**
  * Panel samping kanan untuk detail ringkas, memakai struktur drawer DaisyUI.
@@ -14,7 +14,7 @@ export const Drawer = ({
   subtitle,
   children,
   footer,
-  widthClass = 'w-full max-w-md',
+  widthClass = "w-full max-w-md",
 }) => {
   useEscapeKey(open, onClose);
 
@@ -29,7 +29,11 @@ export const Drawer = ({
         aria-hidden="true"
       />
       <div className="drawer-side z-1002">
-        <label className="drawer-overlay" aria-label="Tutup panel" onClick={onClose} />
+        <label
+          className="drawer-overlay"
+          aria-label="Tutup panel"
+          onClick={onClose}
+        />
         <aside
           className={`flex min-h-full flex-col bg-base-100 shadow-2xl ${widthClass}`}
           role="dialog"
@@ -38,8 +42,14 @@ export const Drawer = ({
         >
           <div className="flex shrink-0 items-start justify-between gap-3 border-b border-base-200 px-5 py-4">
             <div className="min-w-0">
-              <h3 className="text-base font-semibold text-base-content">{title}</h3>
-              {subtitle && <p className="mt-0.5 text-xs text-base-content/60">{subtitle}</p>}
+              <h3 className="text-base font-semibold text-base-content">
+                {title}
+              </h3>
+              {subtitle && (
+                <p className="mt-0.5 text-xs text-base-content/60">
+                  {subtitle}
+                </p>
+              )}
             </div>
             <button
               type="button"
@@ -61,6 +71,6 @@ export const Drawer = ({
         </aside>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

@@ -1,20 +1,20 @@
-'use strict';
+"use strict";
 
-const { error, serverError, validationError } = require('../helpers/response');
-const logger = require('../utils/logger');
+const { error, serverError, validationError } = require("../helpers/response");
+const logger = require("../utils/logger");
 
 const errorHandler = (err, req, res, next) => {
   const log = req.log || logger;
 
-  if (err.isJoi || err.name === 'ValidationError') {
+  if (err.isJoi || err.name === "ValidationError") {
     const details = (err.details || []).map((detail) => ({
-      field: detail.path?.join('.') || detail.context?.key,
-      message: String(detail.message || '').replace(/"/g, ''),
+      field: detail.path?.join(".") || detail.context?.key,
+      message: String(detail.message || "").replace(/"/g, ""),
     }));
     return validationError(res, details);
   }
 
-  if (err.name === 'AppError') {
+  if (err.name === "AppError") {
     if (err.code >= 500) {
       log.error({ err }, err.message);
     } else {
@@ -27,18 +27,32 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  log.error({ err }, err.message || 'Unhandled error');
+  log.error({ err }, err.message || "Unhandled error");
 
-  if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
-    const errors = err.errors.map((item) => ({ field: item.path, message: item.message }));
-    return validationError(res, errors, 'Validation error');
+  if (err.name === "SequelizeUniqueConstraintError") {
+    // Pesan MySQL mentah ("... must be unique") tidak berguna bagi pengguna —
+    // ganti dengan kalimat yang menjelaskan bahwa kombinasinya sudah dipakai.
+    // Nama constraint ikut disertakan di log supaya tetap bisa dilacak.
+    const errors = err.errors.map((item) => ({
+      field: item.path,
+      message: "Kombinasi data ini sudah dipakai — tidak boleh ada dua data yang sama.",
+    }));
+    return validationError(res, errors, "Data serupa sudah ada");
   }
 
-  if (err.name && err.name.startsWith('Sequelize')) {
+  if (err.name === "SequelizeValidationError") {
+    const errors = err.errors.map((item) => ({
+      field: item.path,
+      message: item.message,
+    }));
+    return validationError(res, errors, "Validation error");
+  }
+
+  if (err.name && err.name.startsWith("Sequelize")) {
     return error(res, { message: err.message, code: 400 });
   }
 
-  return serverError(res, err.message || 'Internal server error');
+  return serverError(res, err.message || "Internal server error");
 };
 
 module.exports = errorHandler;

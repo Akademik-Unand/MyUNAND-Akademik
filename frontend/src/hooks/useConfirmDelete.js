@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 /**
  * Open/close delete confirmation and fire success toast after confirm.
  */
-export const useConfirmDelete = ({ successMessage = 'Data berhasil dihapus.' } = {}) => {
+export const useConfirmDelete = ({
+  successMessage = "Data berhasil dihapus.",
+} = {}) => {
   const [target, setTarget] = useState(null);
   const [pending, setPending] = useState(false);
   const lockRef = useRef(false);
@@ -22,7 +24,7 @@ export const useConfirmDelete = ({ successMessage = 'Data berhasil dihapus.' } =
     try {
       await onRemove?.(target);
       toast.success(successMessage, {
-        description: 'Perubahan hanya disimpan di sesi ini (data mock).',
+        description: "Perubahan hanya disimpan di sesi ini (data mock).",
       });
       setTarget(null);
     } finally {

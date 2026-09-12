@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { MKSemesterLayout } from '../../components/mk-semester/MKSemesterLayout';
-import { CPMKSemesterTable } from '../../components/mk-semester/CPMKSemesterTable';
-import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { PageSkeleton } from '../../components/common/PageSkeleton';
-import { Can } from '../../components/auth/Can';
-import { useResourceQuery } from '../../hooks/useResourceQuery';
-import { useCpmkPeriodOpen } from '../../hooks/usePeriodes';
+import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { MKSemesterLayout } from "../../components/mk-semester/MKSemesterLayout";
+import { CPMKSemesterTable } from "../../components/mk-semester/CPMKSemesterTable";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { Can } from "../../components/auth/Can";
+import { useResourceQuery } from "../../hooks/useResourceQuery";
+import { useCpmkPeriodOpen } from "../../hooks/usePeriodes";
 
 export const MKSemesterKelolaPage = () => {
   const { id } = useParams();
-  const [semester, setSemester] = useState('');
-  const query = useResourceQuery('cpmk-semester', {
+  const [semester, setSemester] = useState("");
+  const query = useResourceQuery("cpmk-semester", {
     params: id ? { filter: { matakuliah_id: id } } : {},
     enabled: Boolean(id),
   });
@@ -44,7 +44,10 @@ export const MKSemesterKelolaPage = () => {
         }
       >
         <CPMKSemesterTable items={query.data ?? []} />
-        <Link to="/perkuliahan/mk-semester" className="btn btn-ghost btn-sm mt-4">
+        <Link
+          to="/perkuliahan/mk-semester"
+          className="btn btn-ghost btn-sm mt-4"
+        >
           Kembali
         </Link>
       </Card>

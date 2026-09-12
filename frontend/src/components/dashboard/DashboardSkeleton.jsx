@@ -1,5 +1,5 @@
-import { Skeleton } from '../ui/Skeleton';
-import { Card } from '../ui/Card';
+import { Skeleton } from "../ui/Skeleton";
+import { Card } from "../ui/Card";
 
 export const DashboardSkeleton = () => {
   return (

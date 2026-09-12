@@ -1,29 +1,29 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, ChevronsUpDown, Inbox } from 'lucide-react';
-import { useTableParams } from '../../hooks/table/useTableParams';
-import { useTableQuery } from '../../hooks/useTableQuery';
-import { applyQuery } from '../../utils/queryRows';
-import { consecutiveRowSpans } from '../../helpers/tableSpans';
-import { DataTablePagination } from './DataTablePagination';
-import { DataTableToolbar } from './DataTableToolbar';
-import { Select } from '../ui/Select';
-import { Skeleton } from '../ui/Skeleton';
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Inbox } from "lucide-react";
+import { useTableParams } from "../../hooks/table/useTableParams";
+import { useTableQuery } from "../../hooks/useTableQuery";
+import { applyQuery } from "../../utils/queryRows";
+import { consecutiveRowSpans } from "../../helpers/tableSpans";
+import { DataTablePagination } from "./DataTablePagination";
+import { DataTableToolbar } from "./DataTableToolbar";
+import { Select } from "../ui/Select";
+import { Skeleton } from "../ui/Skeleton";
 
 const NO_ROWS = [];
 const NO_FIELDS = [];
 
 const SortIndicator = ({ active, order }) => {
   if (!active) return <ChevronsUpDown size={13} className="opacity-30" />;
-  return order === 'desc' ? <ArrowDown size={13} /> : <ArrowUp size={13} />;
+  return order === "desc" ? <ArrowDown size={13} /> : <ArrowUp size={13} />;
 };
 
 const ColumnFilter = ({ column, value, onChange }) => {
   const config = column.filter;
   if (!config) return null;
 
-  if (config.type === 'select') {
+  if (config.type === "select") {
     const options = config.options.map((option) =>
-      typeof option === 'string' ? { value: option, label: option } : option
+      typeof option === "string" ? { value: option, label: option } : option,
     );
     return (
       <Select
@@ -42,7 +42,7 @@ const ColumnFilter = ({ column, value, onChange }) => {
       className="input input-xs w-full"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={config.placeholder || 'Filter'}
+      placeholder={config.placeholder || "Filter"}
       aria-label={`Filter ${column.header}`}
     />
   );
@@ -62,18 +62,21 @@ export const DataTable = ({
   data,
   columns = [],
   rowKey = (row, idx) => idx,
-  searchPlaceholder = 'Cari data...',
+  searchPlaceholder = "Cari data...",
   searchableFields = NO_FIELDS,
-  paramPrefix = '',
+  paramPrefix = "",
   tableKey,
   defaultLimit = 10,
   striped = true,
-  emptyText = 'Tidak ada data ditemukan.',
+  emptyText = "Tidak ada data ditemukan.",
   toolbarActions,
-  className = '',
+  className = "",
   extraFilter,
 }) => {
-  const table = useTableParams({ prefix: tableKey || paramPrefix, defaultLimit });
+  const table = useTableParams({
+    prefix: tableKey || paramPrefix,
+    defaultLimit,
+  });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [hoveredRow, setHoveredRow] = useState(null);
   const wrapRef = useRef(null);
@@ -86,19 +89,20 @@ export const DataTable = ({
       ...table.query,
       filter: { ...table.query.filter, ...extraFilter },
     }),
-    [table.query, extraFilter]
+    [table.query, extraFilter],
   );
   const serverQuery = useTableQuery(resource, serverParams);
 
   const clientResult = useMemo(
     () => applyQuery(sourceRows, table.query, searchableFields),
-    [sourceRows, table.query, searchableFields]
+    [sourceRows, table.query, searchableFields],
   );
 
   const rows = isServerMode ? serverQuery.rows : clientResult.data;
   const meta = isServerMode ? serverQuery.meta : clientResult.meta;
   const isLoading = isServerMode && serverQuery.isPending;
-  const isFetching = isServerMode && serverQuery.isFetching && !serverQuery.isPending;
+  const isFetching =
+    isServerMode && serverQuery.isFetching && !serverQuery.isPending;
 
   const filterableColumns = columns.filter((column) => column.filter);
   const hasFilters = filterableColumns.length > 0;
@@ -107,14 +111,18 @@ export const DataTable = ({
     const cache = new Map();
     for (const column of columns) {
       if (!column.groupBy || cache.has(column.groupBy)) continue;
-      cache.set(column.groupBy, consecutiveRowSpans(rows, column.groupBy));
+      const getKey =
+        typeof column.groupBy === "function"
+          ? column.groupBy
+          : (row) => row[column.groupBy];
+      cache.set(column.groupBy, consecutiveRowSpans(rows, getKey));
     }
     return cache;
   }, [columns, rows]);
 
   useLayoutEffect(() => {
     const wrap = wrapRef.current;
-    const tableEl = wrap?.querySelector('table');
+    const tableEl = wrap?.querySelector("table");
     if (!wrap || !tableEl) return undefined;
     const update = () => {
       setScrollX(tableEl.scrollWidth > wrap.clientWidth + 2);
@@ -139,9 +147,11 @@ export const DataTable = ({
 
       <div
         ref={wrapRef}
-        className={`min-w-0 max-w-full ${scrollX ? 'overflow-x-auto' : ''} ${isFetching ? 'opacity-60' : ''}`}
+        className={`min-w-0 max-w-full ${scrollX ? "overflow-x-auto" : ""} ${isFetching ? "opacity-60" : ""}`}
       >
-        <table className={`table table-sm w-full ${striped ? 'table-zebra' : ''}`}>
+        <table
+          className={`table table-sm w-full ${striped ? "table-zebra" : ""}`}
+        >
           <thead>
             <tr className="text-xs uppercase text-base-content/60">
               {columns.map((column, idx) => {
@@ -155,7 +165,10 @@ export const DataTable = ({
                         onClick={() => table.toggleSort(column.key)}
                       >
                         {column.header}
-                        <SortIndicator active={isSorted} order={table.sortOrder} />
+                        <SortIndicator
+                          active={isSorted}
+                          order={table.sortOrder}
+                        />
                       </button>
                     ) : (
                       column.header
@@ -171,7 +184,7 @@ export const DataTable = ({
                   <th key={idx} className="py-1.5">
                     <ColumnFilter
                       column={column}
-                      value={table.filter[column.key] ?? ''}
+                      value={table.filter[column.key] ?? ""}
                       onChange={(value) => table.setFilter(column.key, value)}
                     />
                   </th>
@@ -185,15 +198,17 @@ export const DataTable = ({
             onMouseLeave={() => setHoveredRow(null)}
           >
             {isLoading &&
-              Array.from({ length: Math.min(meta.limit, 8) }).map((_, rowIdx) => (
-                <tr key={`skeleton-${rowIdx}`}>
-                  {columns.map((_column, colIdx) => (
-                    <td key={colIdx}>
-                      <Skeleton className="h-4 w-full" />
-                    </td>
-                  ))}
-                </tr>
-              ))}
+              Array.from({ length: Math.min(meta.limit, 8) }).map(
+                (_, rowIdx) => (
+                  <tr key={`skeleton-${rowIdx}`}>
+                    {columns.map((_column, colIdx) => (
+                      <td key={colIdx}>
+                        <Skeleton className="h-4 w-full" />
+                      </td>
+                    ))}
+                  </tr>
+                ),
+              )}
 
             {!isLoading && rows.length === 0 && (
               <tr>
@@ -220,20 +235,29 @@ export const DataTable = ({
 
             {!isLoading &&
               rows.map((row, idx) => (
-                <tr key={rowKey(row, start + idx)} onMouseEnter={() => setHoveredRow(idx)}>
+                <tr
+                  key={rowKey(row, start + idx)}
+                  onMouseEnter={() => setHoveredRow(idx)}
+                >
                   {columns.map((column, colIdx) => {
-                    const spans = column.groupBy ? groupSpans.get(column.groupBy) : null;
+                    const spans = column.groupBy
+                      ? groupSpans.get(column.groupBy)
+                      : null;
                     const span = spans ? spans[idx] : 1;
                     if (!span) return null;
                     const coversHover =
-                      hoveredRow != null && hoveredRow >= idx && hoveredRow < idx + span;
+                      hoveredRow != null &&
+                      hoveredRow >= idx &&
+                      hoveredRow < idx + span;
                     return (
                       <td
                         key={colIdx}
                         rowSpan={span > 1 ? span : undefined}
-                        className={`${column.cellClassName || ''} ${coversHover ? 'bg-primary/15' : ''}`}
+                        className={`${column.cellClassName || ""} ${coversHover ? "bg-primary/15" : ""}`}
                       >
-                        {column.render ? column.render(row, start + idx) : row[column.key]}
+                        {column.render
+                          ? column.render(row, start + idx)
+                          : row[column.key]}
                       </td>
                     );
                   })}
@@ -243,7 +267,11 @@ export const DataTable = ({
         </table>
       </div>
 
-      <DataTablePagination meta={meta} page={meta.page} onPageChange={table.setPage} />
+      <DataTablePagination
+        meta={meta}
+        page={meta.page}
+        onPageChange={table.setPage}
+      />
     </div>
   );
 };

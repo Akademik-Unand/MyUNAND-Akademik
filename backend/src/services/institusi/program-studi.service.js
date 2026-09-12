@@ -45,6 +45,17 @@ const remove = async (id) => {
   return { id };
 };
 
+/**
+ * Kuota SKS dipisah dari `update` karena kewenangannya berbeda: angka ini
+ * kebijakan universitas (aturan rektor), bukan bagian dari profil prodi yang
+ * dikelola admin unit.
+ */
+const updateSks = async (id, payload) => {
+  const item = await getById(id);
+  await item.update(payload);
+  return ProgramStudi.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude });
+};
+
 const restore = (id) => restoreRecord(ProgramStudi, id, 'Program Studi');
 
-module.exports = { list, getById, create, update, remove, restore };
+module.exports = { list, getById, create, update, updateSks, remove, restore };

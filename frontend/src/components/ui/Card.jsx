@@ -5,8 +5,8 @@
  */
 export const Card = ({
   children,
-  className = '',
-  bodyClassName = '',
+  className = "",
+  bodyClassName = "",
   title,
   subtitle,
   actions,
@@ -15,10 +15,7 @@ export const Card = ({
 }) => {
   const hasHeader = !!(title || subtitle || actions || Icon);
   return (
-    <div
-      className={`card bg-base-100 shadow-xs ${className}`}
-      {...props}
-    >
+    <div className={`card bg-base-100 shadow-xs ${className}`} {...props}>
       <div className={`card-body p-3.5 md:p-4 ${bodyClassName}`}>
         {hasHeader && (
           <div className="flex items-center justify-between gap-2 mb-0 border-b border-base-200 pb-1">
@@ -29,8 +26,16 @@ export const Card = ({
                 </div>
               )}
               <div>
-                {title && <h3 className="card-title text-sm md:text-base font-medium text-base-content">{title}</h3>}
-                {subtitle && <p className="text-xs text-base-content/60 mt-0.5">{subtitle}</p>}
+                {title && (
+                  <h3 className="card-title text-sm md:text-base font-medium text-base-content">
+                    {title}
+                  </h3>
+                )}
+                {subtitle && (
+                  <p className="text-xs text-base-content/60 mt-0.5">
+                    {subtitle}
+                  </p>
+                )}
               </div>
             </div>
             {actions && <div className="card-actions shrink-0">{actions}</div>}

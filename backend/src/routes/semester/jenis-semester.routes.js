@@ -1,74 +1,77 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const jenisSemesterValidation = require('../../validations/semester/jenis-semester.validation');
-const jenisSemesterController = require('../../controllers/semester/jenis-semester.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const jenisSemesterValidation = require("../../validations/semester/jenis-semester.validation");
+const jenisSemesterController = require("../../controllers/semester/jenis-semester.controller");
 
-const subject = 'JenisSemester';
+const subject = "JenisSemester";
 
-/jenis-semester */
+/jenis-semester */;
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: jenisSemesterValidation.list }),
-  jenisSemesterController.list
+  jenisSemesterController.list,
 );
 
 /** POST /jenis-semester */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: jenisSemesterValidation.create }),
-  jenisSemesterController.create
+  jenisSemesterController.create,
 );
 
 /** POST /jenis-semester/:id/restore */
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: jenisSemesterValidation.idParam }),
-  jenisSemesterController.restore
+  jenisSemesterController.restore,
 );
 
 /** GET /jenis-semester/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: jenisSemesterValidation.idParam }),
-  jenisSemesterController.getById
+  jenisSemesterController.getById,
 );
 
 /** PUT /jenis-semester/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
-  validate({ params: jenisSemesterValidation.idParam, body: jenisSemesterValidation.update }),
-  jenisSemesterController.update
+  checkPermission("update", subject),
+  validate({
+    params: jenisSemesterValidation.idParam,
+    body: jenisSemesterValidation.update,
+  }),
+  jenisSemesterController.update,
 );
 
 /** DELETE /jenis-semester/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: jenisSemesterValidation.idParam }),
-  jenisSemesterController.remove
+  jenisSemesterController.remove,
 );
 
 module.exports = router;

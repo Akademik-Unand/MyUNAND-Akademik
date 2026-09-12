@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * Format response standar API myUnand
@@ -7,13 +7,16 @@
 
 const meta = () => ({
   timestamp: new Date().toISOString(),
-  version: '1.0',
+  version: "1.0",
 });
 
-const success = (res, { message = 'Success', data = null, code = 200, pagination = null } = {}) => {
+const success = (
+  res,
+  { message = "Success", data = null, code = 200, pagination = null } = {},
+) => {
   const body = {
     code,
-    status: 'success',
+    status: "success",
     message,
     data,
     meta: meta(),
@@ -22,34 +25,42 @@ const success = (res, { message = 'Success', data = null, code = 200, pagination
   return res.status(code).json(body);
 };
 
-const error = (res, { message = 'Error', errors = null, code = 400 } = {}) => {
+const error = (res, { message = "Error", errors = null, code = 400 } = {}) => {
   return res.status(code).json({
     code,
-    status: 'error',
+    status: "error",
     message,
     error: errors,
     meta: meta(),
   });
 };
 
-const notFound = (res, message = 'Data tidak ditemukan') => {
+const notFound = (res, message = "Data tidak ditemukan") => {
   return error(res, { message, code: 404 });
 };
 
-const unauthorized = (res, message = 'Unauthorized') => {
+const unauthorized = (res, message = "Unauthorized") => {
   return error(res, { message, code: 401 });
 };
 
-const forbidden = (res, message = 'Forbidden') => {
+const forbidden = (res, message = "Forbidden") => {
   return error(res, { message, code: 403 });
 };
 
-const validationError = (res, errors, message = 'Validation failed') => {
+const validationError = (res, errors, message = "Validation failed") => {
   return error(res, { message, errors, code: 422 });
 };
 
-const serverError = (res, message = 'Internal server error') => {
+const serverError = (res, message = "Internal server error") => {
   return error(res, { message, code: 500 });
 };
 
-module.exports = { success, error, notFound, unauthorized, forbidden, validationError, serverError };
+module.exports = {
+  success,
+  error,
+  notFound,
+  unauthorized,
+  forbidden,
+  validationError,
+  serverError,
+};

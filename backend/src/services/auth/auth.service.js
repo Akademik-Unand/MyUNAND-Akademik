@@ -79,7 +79,7 @@ const register = async (payload) => {
     name: payload.name,
     email: payload.email,
     password: await bcrypt.hash(payload.password, 10),
-    role: payload.role || 'admin',
+    role: payload.role || null,
     dosen_id: payload.dosen_id || null,
     mahasiswa_id: payload.mahasiswa_id || null,
   });

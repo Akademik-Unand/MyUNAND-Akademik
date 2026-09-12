@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
-const { sequelize, Semester, JenisSemester } = require('../models');
+const { sequelize, Semester, JenisSemester } = require("../models");
 
 const semesterOnOrBeforeSql = (tahun, urut) => {
   const year = Number(tahun);
   const order = Number(urut);
-  if (!Number.isFinite(year)) return '';
+  if (!Number.isFinite(year)) return "";
   const orderValue = Number.isFinite(order) ? order : 0;
   return `AND (
       sm.id IS NULL
@@ -17,13 +17,16 @@ const semesterOnOrBeforeSql = (tahun, urut) => {
 const listPreview = async ({ kurikulum_id, semester_id } = {}) => {
   if (!kurikulum_id) return [];
 
-  let semesterFilter = '';
+  let semesterFilter = "";
   if (semester_id) {
     const semester = await Semester.findByPk(semester_id, {
-      include: [{ model: JenisSemester, as: 'jenisSemester' }],
+      include: [{ model: JenisSemester, as: "jenisSemester" }],
     });
     if (semester) {
-      semesterFilter = semesterOnOrBeforeSql(semester.tahun, semester.jenisSemester?.urut);
+      semesterFilter = semesterOnOrBeforeSql(
+        semester.tahun,
+        semester.jenisSemester?.urut,
+      );
     } else {
       semesterFilter = `AND (sm.id = ${sequelize.escape(semester_id)} OR sm.id IS NULL)`;
     }
@@ -69,8 +72,7 @@ const listPreview = async ({ kurikulum_id, semester_id } = {}) => {
       AND cp.kurikulum_id = ${sequelize.escape(kurikulum_id)}
     LEFT JOIN sumber_penilaian AS sp ON sp.cpmk_id = cpmk.id
     LEFT JOIN kelas AS k ON k.matakuliah_id = mk.id AND k.deletedAt IS NULL
-    LEFT JOIN semester_prodi AS smp ON smp.id = k.semester_prodi_id
-    LEFT JOIN semester AS sm ON sm.id = smp.semester_id AND sm.deletedAt IS NULL
+    LEFT JOIN semester AS sm ON sm.id = k.semester_id AND sm.deletedAt IS NULL
     LEFT JOIN jenis_semester AS js ON js.id = sm.jenis_semester_id AND js.deletedAt IS NULL
     LEFT JOIN krs_detil AS kd ON kd.kelas_id = k.id
     LEFT JOIN nilai_mahasiswa AS nm ON nm.krs_detil_id = kd.id AND nm.sumber_penilaian_id = sp.id
@@ -86,12 +88,12 @@ const listPreview = async ({ kurikulum_id, semester_id } = {}) => {
       sm.id, js.nama, js.alias, sm.tahun
     ORDER BY cp.nama_cp ASC, scp.nama_scp ASC, mk.nama_resmi ASC, cpmk.nama_cpmk ASC
     LIMIT 2000`,
-    { type: sequelize.QueryTypes.SELECT }
+    { type: sequelize.QueryTypes.SELECT },
   );
 
   return rows.map((row) => ({
     ...row,
-    dosen_label: row.dosen_label || '',
+    dosen_label: row.dosen_label || "",
     is_transkrip: Boolean(Number(row.is_transkrip)),
     nilai_min: row.nilai_min == null ? null : Number(row.nilai_min),
     target_persen: row.target_persen == null ? null : Number(row.target_persen),

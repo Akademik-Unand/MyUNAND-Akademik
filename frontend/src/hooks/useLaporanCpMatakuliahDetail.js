@@ -1,13 +1,17 @@
-import { useQuery } from '@tanstack/react-query';
-import { getLaporanCpMatakuliahDetail } from '../services/api';
+import { useQuery } from "@tanstack/react-query";
+import { getLaporanCpMatakuliahDetail } from "../services/api";
 
-export const useLaporanCpMatakuliahDetail = (matakuliahId, params, options = {}) =>
+export const useLaporanCpMatakuliahDetail = (
+  matakuliahId,
+  params,
+  options = {},
+) =>
   useQuery({
     queryKey: [
-      'laporan-cp-matakuliah',
-      matakuliahId || '',
-      params?.semester_id || '',
-      params?.kurikulum_id || '',
+      "laporan-cp-matakuliah",
+      matakuliahId || "",
+      params?.semester_id || "",
+      params?.kurikulum_id || "",
     ],
     queryFn: () =>
       getLaporanCpMatakuliahDetail(matakuliahId, {

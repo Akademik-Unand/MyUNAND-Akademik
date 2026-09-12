@@ -1,74 +1,91 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const semesterValidation = require('../../validations/semester/semester.validation');
-const semesterController = require('../../controllers/semester/semester.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const semesterValidation = require("../../validations/semester/semester.validation");
+const semesterController = require("../../controllers/semester/semester.controller");
 
-const subject = 'Semester';
+const subject = "Semester";
 
-/semester */
+/semester */;
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: semesterValidation.list }),
-  semesterController.list
+  semesterController.list,
 );
 
 /** POST /semester */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: semesterValidation.create }),
-  semesterController.create
+  semesterController.create,
 );
 
 /** POST /semester/:id/restore */
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: semesterValidation.idParam }),
-  semesterController.restore
+  semesterController.restore,
+);
+
+/**
+ * PATCH /semester/:id/activate — jadikan semester ini semester berjalan.
+ * Permission memakai `update` (bukan aksi khusus) supaya tidak menambah grant
+ * baru: siapa pun yang boleh mengubah semester boleh mengaktifkannya.
+ */
+router.patch(
+  "/:id/activate",
+  authenticate,
+  attachAbility,
+  checkPermission("update", subject),
+  validate({ params: semesterValidation.idParam }),
+  semesterController.activate,
 );
 
 /** GET /semester/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: semesterValidation.idParam }),
-  semesterController.getById
+  semesterController.getById,
 );
 
 /** PUT /semester/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
-  validate({ params: semesterValidation.idParam, body: semesterValidation.update }),
-  semesterController.update
+  checkPermission("update", subject),
+  validate({
+    params: semesterValidation.idParam,
+    body: semesterValidation.update,
+  }),
+  semesterController.update,
 );
 
 /** DELETE /semester/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: semesterValidation.idParam }),
-  semesterController.remove
+  semesterController.remove,
 );
 
 module.exports = router;

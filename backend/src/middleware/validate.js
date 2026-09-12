@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
-const { validationError } = require('../helpers/response');
+const { validationError } = require("../helpers/response");
 
 const formatDetails = (error) =>
   error.details.map((detail) => ({
-    field: detail.path.join('.') || detail.context?.key,
-    message: detail.message.replace(/"/g, ''),
+    field: detail.path.join(".") || detail.context?.key,
+    message: detail.message.replace(/"/g, ""),
   }));
 
 const validatePart = (schema, payload) => {
@@ -17,41 +17,43 @@ const validatePart = (schema, payload) => {
   });
 };
 
-const validate = ({ body, params, query } = {}) => (req, res, next) => {
-  if (body) {
-    const result = validatePart(body, req.body);
-    if (result.error) {
-      return validationError(res, formatDetails(result.error));
+const validate =
+  ({ body, params, query } = {}) =>
+  (req, res, next) => {
+    if (body) {
+      const result = validatePart(body, req.body);
+      if (result.error) {
+        return validationError(res, formatDetails(result.error));
+      }
+      req.body = result.value;
     }
-    req.body = result.value;
-  }
 
-  if (params) {
-    const result = validatePart(params, req.params);
-    if (result.error) {
-      return validationError(res, formatDetails(result.error));
+    if (params) {
+      const result = validatePart(params, req.params);
+      if (result.error) {
+        return validationError(res, formatDetails(result.error));
+      }
+      req.params = result.value;
     }
-    req.params = result.value;
-  }
 
-  if (query) {
-    const result = query.validate(req.query, {
-      abortEarly: false,
-      stripUnknown: false,
-      allowUnknown: true,
-    });
-    if (result.error) {
-      return validationError(res, formatDetails(result.error));
+    if (query) {
+      const result = query.validate(req.query, {
+        abortEarly: false,
+        stripUnknown: false,
+        allowUnknown: true,
+      });
+      if (result.error) {
+        return validationError(res, formatDetails(result.error));
+      }
+      Object.defineProperty(req, "query", {
+        value: result.value,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
     }
-    Object.defineProperty(req, 'query', {
-      value: result.value,
-      writable: true,
-      enumerable: true,
-      configurable: true,
-    });
-  }
 
-  return next();
-};
+    return next();
+  };
 
 module.exports = validate;

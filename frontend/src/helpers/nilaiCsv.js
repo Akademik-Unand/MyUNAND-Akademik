@@ -3,18 +3,18 @@ export const flattenSumber = (groups = []) =>
     (group.sumber || []).map((item) => ({
       ...item,
       label: `${group.nama} | ${item.nama}`,
-    }))
+    })),
   );
 
 const escapeCsv = (value) => {
-  const text = value == null ? '' : String(value);
+  const text = value == null ? "" : String(value);
   if (/[",\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
   return text;
 };
 
 const splitCsvLine = (line) => {
   const cells = [];
-  let current = '';
+  let current = "";
   let quoted = false;
   for (let i = 0; i < line.length; i += 1) {
     const ch = line[i];
@@ -29,9 +29,9 @@ const splitCsvLine = (line) => {
       }
     } else if (ch === '"') {
       quoted = true;
-    } else if (ch === ',') {
+    } else if (ch === ",") {
       cells.push(current);
-      current = '';
+      current = "";
     } else {
       current += ch;
     }
@@ -42,18 +42,20 @@ const splitCsvLine = (line) => {
 
 export const matrixToCsv = (data) => {
   const cols = flattenSumber(data?.groups);
-  const header = ['NIM', 'Nama', ...cols.map((col) => col.label)];
-  const lines = [header.map(escapeCsv).join(',')];
+  const header = ["NIM", "Nama", ...cols.map((col) => col.label)];
+  const lines = [header.map(escapeCsv).join(",")];
   for (const row of data?.peserta || []) {
     lines.push(
-      [row.niu, row.nama, ...cols.map((col) => row.nilai?.[col.id] ?? '')].map(escapeCsv).join(',')
+      [row.niu, row.nama, ...cols.map((col) => row.nilai?.[col.id] ?? "")]
+        .map(escapeCsv)
+        .join(","),
     );
   }
-  return `${lines.join('\n')}\n`;
+  return `${lines.join("\n")}\n`;
 };
 
 export const csvToNilaiItems = (text, data) => {
-  const lines = String(text || '')
+  const lines = String(text || "")
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
@@ -61,22 +63,26 @@ export const csvToNilaiItems = (text, data) => {
 
   const header = splitCsvLine(lines[0]).map((cell) => cell.trim());
   const niuIdx = header.findIndex((cell) => /^(nim|niu)$/i.test(cell));
-  if (niuIdx < 0) throw new Error('Kolom NIM/NIU tidak ditemukan di berkas.');
+  if (niuIdx < 0) throw new Error("Kolom NIM/NIU tidak ditemukan di berkas.");
 
   const cols = flattenSumber(data?.groups);
-  const colIndex = cols.map((col) => header.findIndex((cell) => cell === col.label));
-  const byNiu = new Map((data?.peserta || []).map((row) => [String(row.niu), row]));
+  const colIndex = cols.map((col) =>
+    header.findIndex((cell) => cell === col.label),
+  );
+  const byNiu = new Map(
+    (data?.peserta || []).map((row) => [String(row.niu), row]),
+  );
 
   const items = [];
   for (const line of lines.slice(1)) {
     const cells = splitCsvLine(line);
-    const peserta = byNiu.get(String(cells[niuIdx] || '').trim());
+    const peserta = byNiu.get(String(cells[niuIdx] || "").trim());
     if (!peserta) continue;
     cols.forEach((col, idx) => {
       const pos = colIndex[idx];
       if (pos < 0) return;
-      const raw = (cells[pos] || '').trim();
-      if (raw === '') return;
+      const raw = (cells[pos] || "").trim();
+      if (raw === "") return;
       const nilai = Number(raw);
       if (Number.isNaN(nilai)) return;
       items.push({

@@ -1,19 +1,18 @@
-'use strict';
+"use strict";
 
 const ROLE_NAMES = {
-  SUPERADMIN: 'superadmin',
-  ADMIN_UNIVERSITAS: 'admin-universitas',
-  ADMIN: 'admin',
-  DOSEN: 'dosen',
-  DOSEN_PA: 'dosen-pa',
-  MAHASISWA: 'mahasiswa',
-  ORANG_TUA: 'orang-tua',
-  ADMIN_PRODI: 'admin-prodi',
-  ADMIN_DEPARTEMEN: 'admin-departemen',
-  ADMIN_FAKULTAS: 'admin-fakultas',
-  PIMPINAN_PRODI: 'pimpinan-prodi',
-  PIMPINAN_DEPARTEMEN: 'pimpinan-departemen',
-  PIMPINAN_FAKULTAS: 'pimpinan-fakultas',
+  SUPERADMIN: "superadmin",
+  ADMIN_UNIVERSITAS: "admin-universitas",
+  DOSEN: "dosen",
+  DOSEN_PA: "dosen-pa",
+  MAHASISWA: "mahasiswa",
+  ORANG_TUA: "orang-tua",
+  ADMIN_PRODI: "admin-prodi",
+  ADMIN_DEPARTEMEN: "admin-departemen",
+  ADMIN_FAKULTAS: "admin-fakultas",
+  PIMPINAN_PRODI: "pimpinan-prodi",
+  PIMPINAN_DEPARTEMEN: "pimpinan-departemen",
+  PIMPINAN_FAKULTAS: "pimpinan-fakultas",
 };
 
 const UNIVERSITY_ADMIN_NAMES = new Set([
@@ -22,19 +21,18 @@ const UNIVERSITY_ADMIN_NAMES = new Set([
 ]);
 
 const ROLE_LABELS = {
-  superadmin: 'Admin Universitas',
-  'admin-universitas': 'Admin Universitas',
-  admin: 'Admin',
-  dosen: 'Dosen',
-  'dosen-pa': 'Dosen PA',
-  mahasiswa: 'Mahasiswa',
-  'orang-tua': 'Orang tua',
-  'admin-prodi': 'Admin Prodi',
-  'admin-departemen': 'Admin Departemen',
-  'admin-fakultas': 'Admin Fakultas',
-  'pimpinan-prodi': 'Pimpinan Prodi',
-  'pimpinan-departemen': 'Pimpinan Departemen',
-  'pimpinan-fakultas': 'Pimpinan Fakultas',
+  superadmin: "Admin Universitas",
+  "admin-universitas": "Admin Universitas",
+  dosen: "Dosen",
+  "dosen-pa": "Dosen PA",
+  mahasiswa: "Mahasiswa",
+  "orang-tua": "Orang tua",
+  "admin-prodi": "Admin Prodi",
+  "admin-departemen": "Admin Departemen",
+  "admin-fakultas": "Admin Fakultas",
+  "pimpinan-prodi": "Pimpinan Prodi",
+  "pimpinan-departemen": "Pimpinan Departemen",
+  "pimpinan-fakultas": "Pimpinan Fakultas",
 };
 
 const ORGANIZATIONAL_ROLE_NAMES = [

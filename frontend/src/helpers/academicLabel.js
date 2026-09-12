@@ -1,0 +1,30 @@
+export const semesterAkademikLabel = (semester) => {
+  if (!semester) return "—";
+  const jenis = semester.jenisSemester?.nama || semester.jenisSemester?.alias;
+  const tahun = Number(semester.tahun);
+  const tahunAjaran = Number.isFinite(tahun)
+    ? `${tahun}/${tahun + 1}`
+    : semester.tahun;
+  const term = [jenis, tahunAjaran]
+    .filter((part) => part !== undefined && part !== null && part !== "")
+    .join(" ");
+  return term || "—";
+};
+
+export const semesterDanSebelumnyaLabel = (semester) => {
+  const label = semesterAkademikLabel(semester);
+  return label === "—" ? label : `${label} dan sebelumnya`;
+};
+
+export const programStudiLabel = (prodi, fallback = "—") =>
+  prodi?.nama_singkat || prodi?.kode_prodi || fallback;
+
+export const prodiDepartemenLabel = (prodi) => {
+  if (!prodi) return "—";
+  const nama = programStudiLabel(prodi, "");
+  const jurusan =
+    prodi.departemen?.nama_resmi || prodi.departemen?.nama_singkat;
+  if (nama && jurusan) return `${nama} – ${jurusan}`;
+  return nama || "—";
+};
+

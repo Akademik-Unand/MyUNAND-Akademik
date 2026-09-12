@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { Input } from '../ui/Input';
-import { Button } from '../ui/Button';
-import { updateProfile } from '../../services/api';
-import { useAuthStore } from '../../store/auth.store';
-import { roleLabel } from '../../constants/roles';
+import { useState } from "react";
+import { toast } from "sonner";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
+import { updateProfile } from "../../services/api";
+import { useAuthStore } from "../../store/auth.store";
+import { roleLabel } from "../../constants/roles";
 
 export const ProfileAccountForm = ({ user }) => {
   const setUser = useAuthStore((state) => state.setUser);
-  const [name, setName] = useState(user?.name || '');
-  const [error, setError] = useState('');
+  const [name, setName] = useState(user?.name || "");
+  const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (saving) return;
-    setError('');
+    setError("");
     if (!name.trim()) {
-      setError('Nama wajib diisi.');
+      setError("Nama wajib diisi.");
       return;
     }
 
@@ -25,9 +25,9 @@ export const ProfileAccountForm = ({ user }) => {
     try {
       const saved = await updateProfile({ name: name.trim() });
       setUser(saved);
-      toast.success('Profil disimpan');
+      toast.success("Profil disimpan");
     } catch (err) {
-      setError(err.message || 'Gagal menyimpan profil.');
+      setError(err.message || "Gagal menyimpan profil.");
     } finally {
       setSaving(false);
     }
@@ -35,11 +35,20 @@ export const ProfileAccountForm = ({ user }) => {
 
   return (
     <form className="space-y-3" onSubmit={handleSubmit} noValidate>
-      <Input label="Nama" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
-      <Input label="Email" type="email" value={user?.email || ''} disabled />
+      <Input
+        label="Nama"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        autoComplete="name"
+      />
+      <Input label="Email" type="email" value={user?.email || ""} disabled />
       <Input
         label="Peran"
-        value={(user?.roles || []).map((role) => roleLabel(role.name)).join(', ') || roleLabel(user?.role) || '—'}
+        value={
+          (user?.roles || []).map((role) => roleLabel(role.name)).join(", ") ||
+          roleLabel(user?.role) ||
+          "—"
+        }
         disabled
       />
       {error && <p className="text-sm text-error">{error}</p>}

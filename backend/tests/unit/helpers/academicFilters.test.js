@@ -4,14 +4,13 @@ const { Op } = require('sequelize');
 const {
   orgFiltersOnKurikulumId,
   orgFiltersOnCpId,
-  orgFiltersOnSemesterProdiId,
   orgFiltersOnCpmkId,
   orgFiltersOnKelasId,
   orgFiltersOnFakultasId,
   kelasFilters,
+  kelasScopeSql,
   kurikulumIdsSql,
   prodiIdsSql,
-  semesterProdiIdsSql,
   ROOT_CPMK_COUNT_SQL,
 } = require('../../../src/helpers/academicFilters');
 
@@ -55,16 +54,16 @@ describe('academicFilters', () => {
     expect(where.cp_id[Op.in].literal).toContain("p.departemen_id IN ('d-1')");
   });
 
-  it('scopes semester_prodi by prodi ids', () => {
-    const filters = orgFiltersOnSemesterProdiId(sequelize);
-    const where = filters.fakultas_id(['f-1']);
-    expect(where.program_studi_id[Op.in].literal).toContain("p.fakultas_id IN ('f-1')");
+  it('scopes kelas langsung lewat program_studi_id + semester_id', () => {
+    const sql = kelasScopeSql(sequelize, { program_studi_id: 'p-1', semester_id: 's-1' });
+    expect(sql).toContain("k.program_studi_id IN ('p-1')");
+    expect(sql).toContain("k.semester_id IN ('s-1')");
   });
 
-  it('exports semester-prodi SQL builder for rekap detail filters', () => {
-    expect(typeof semesterProdiIdsSql).toBe('function');
-    expect(semesterProdiIdsSql(sequelize, { semester_id: 's-1' }))
-      .toContain("sp.semester_id IN ('s-1')");
+  it('scopes kelas by fakultas via prodi subquery (tanpa pivot)', () => {
+    const sql = kelasScopeSql(sequelize, { fakultas_id: ['f-1'] });
+    expect(sql).toContain('k.program_studi_id IN (SELECT p.id FROM program_studi p');
+    expect(sql).not.toContain('semester_prodi');
   });
 
   it('scopes sumber_penilaian via cpmk → matakuliah', () => {
@@ -74,7 +73,7 @@ describe('academicFilters', () => {
     expect(where.cpmk_id[Op.in].literal).toContain("k.program_studi_id IN ('p-1')");
   });
 
-  it('scopes evaluasi via kelas → semester_prodi', () => {
+  it('scopes evaluasi via kelas (tanpa pivot)', () => {
     const filters = orgFiltersOnKelasId(sequelize);
     const where = filters.fakultas_id('f-1');
     expect(where.kelas_id[Op.in].literal).toContain('SELECT k.id FROM kelas k');

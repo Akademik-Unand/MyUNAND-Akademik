@@ -1,26 +1,39 @@
-import { useResourceQuery } from './useResourceQuery';
+import { useResourceQuery } from "./useResourceQuery";
 
 const toOptions = (rows, getLabel) =>
   (rows || []).map((row) => ({ value: row.id, label: getLabel(row) }));
 
 export const useFilterOptions = () => {
-  const fakultas = useResourceQuery('fakultas');
-  const departemen = useResourceQuery('departemen');
-  const prodi = useResourceQuery('prodi');
-  const kurikulum = useResourceQuery('kurikulum');
-  const semester = useResourceQuery('setting-semester');
-  const jenjang = useResourceQuery('jenjang-akademik');
+  const fakultas = useResourceQuery("fakultas");
+  const departemen = useResourceQuery("departemen");
+  const prodi = useResourceQuery("prodi");
+  const kurikulum = useResourceQuery("kurikulum");
+  const semester = useResourceQuery("setting-semester");
+  const jenjang = useResourceQuery("jenjang-akademik");
 
   return {
-    fakultas: toOptions(fakultas.data, (row) => row.nama_resmi || row.nama_singkat || row.kode_fakultas),
-    departemen: toOptions(departemen.data, (row) => row.nama_resmi || row.nama_singkat),
+    fakultas: toOptions(
+      fakultas.data,
+      (row) => row.nama_resmi || row.nama_singkat || row.kode_fakultas,
+    ),
+    departemen: toOptions(
+      departemen.data,
+      (row) => row.nama_resmi || row.nama_singkat,
+    ),
     prodi: toOptions(prodi.data, (row) => row.nama_singkat || row.kode_prodi),
-    kurikulum: toOptions(kurikulum.data, (row) => row.nama || String(row.tahun || row.id)),
+    kurikulum: toOptions(
+      kurikulum.data,
+      (row) => row.nama || String(row.tahun || row.id),
+    ),
     semester: toOptions(
       semester.data,
-      (row) => `${row.jenisSemester?.nama || row.jenisSemester?.alias || 'Semester'} ${row.tahun}`
+      (row) =>
+        `${row.jenisSemester?.nama || row.jenisSemester?.alias || "Semester"} ${row.tahun}`,
     ),
-    jenjang: toOptions(jenjang.data, (row) => row.nama_jenjang || row.kode_jenjang),
+    jenjang: toOptions(
+      jenjang.data,
+      (row) => row.nama_jenjang || row.kode_jenjang,
+    ),
     fakultasRows: fakultas.data || [],
     departemenRows: departemen.data || [],
     prodiRows: prodi.data || [],

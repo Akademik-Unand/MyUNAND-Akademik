@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
 const DEBOUNCE_MS = 350;
 
@@ -7,7 +7,7 @@ const DEBOUNCE_MS = 350;
  * setelah pengetikan berhenti supaya tidak memicu request tiap huruf.
  */
 export const useTableSearch = ({ get, setParams }) => {
-  const search = get('search', '');
+  const search = get("search", "");
   const [draft, setDraft] = useState(search);
   const [prevSearch, setPrevSearch] = useState(search);
 
@@ -18,13 +18,16 @@ export const useTableSearch = ({ get, setParams }) => {
 
   useEffect(() => {
     if (draft === search) return undefined;
-    const timer = setTimeout(() => setParams({ search: draft, page: '' }), DEBOUNCE_MS);
+    const timer = setTimeout(
+      () => setParams({ search: draft, page: "" }),
+      DEBOUNCE_MS,
+    );
     return () => clearTimeout(timer);
   }, [draft, search, setParams]);
 
   const clear = useCallback(() => {
-    setDraft('');
-    setParams({ search: '', page: '' });
+    setDraft("");
+    setParams({ search: "", page: "" });
   }, [setParams]);
 
   return { search, draft, setDraft, clear };

@@ -1,8 +1,8 @@
-import { Plus, Trash2 } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { IconButton } from '../common/IconButton';
-import { CpmkForm } from './CpmkForm';
-import { emptyCpmkRow } from '../../helpers/cpmkForm';
+import { Plus, Trash2 } from "lucide-react";
+import { Button } from "../ui/Button";
+import { IconButton } from "../common/IconButton";
+import { CpmkForm } from "./CpmkForm";
+import { emptyCpmkRow } from "../../helpers/cpmkForm";
 
 /** Daftar isian CPMK untuk bulk create; tiap baris = satu CPMK lengkap (bisa ber-Sub-CPMK). */
 export const BulkCpmkFields = ({ rows = [], onChange, kurikulumId }) => {
@@ -12,11 +12,14 @@ export const BulkCpmkFields = ({ rows = [], onChange, kurikulumId }) => {
   return (
     <div className="space-y-4">
       <p className="text-xs text-base-content/60">
-        Isi beberapa CPMK sekaligus lalu simpan sekali. Setiap baris boleh langsung dipetakan ke SCP
-        atau memiliki Sub-CPMK sendiri.
+        Isi beberapa CPMK sekaligus lalu simpan sekali. Setiap baris boleh
+        langsung dipetakan ke SCP atau memiliki Sub-CPMK sendiri.
       </p>
       {rows.map((r, index) => (
-        <div key={r.key || index} className="space-y-3 rounded-box border border-base-300 p-4">
+        <div
+          key={r.key || index}
+          className="space-y-3 rounded-box border border-base-300 p-4"
+        >
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-semibold">CPMK {index + 1}</p>
             {rows.length > 1 && (

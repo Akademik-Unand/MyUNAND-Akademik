@@ -1,4 +1,4 @@
-import { AccessibilityMenu } from './AccessibilityMenu';
+import { AccessibilityMenu } from "./AccessibilityMenu";
 
 export const AuthLayout = ({ children }) => {
   return (

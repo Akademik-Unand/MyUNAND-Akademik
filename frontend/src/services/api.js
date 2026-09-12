@@ -1,33 +1,38 @@
-import { apiRequest } from './http';
+import { apiRequest } from "./http";
 
 const RESOURCE_PATH = {
-  prodi: '/program-studi',
-  'setting-semester': '/semester',
-  'kurikulum-cp': '/cp',
-  'cpmk-kurikulum': '/cpmk',
-  'cpmk-detail': '/cpmk',
-  'cpmk-semester': '/cpmk',
-  'mk-semester': '/matakuliah-kurikulum',
-  'mk-transkrip': '/matakuliah-kurikulum',
-  'upload-history': '/history-upload-nilai',
-  'nilai-kelas': '/nilai',
-  'upload-nilai': '/kelas',
-  'kurikulum-scp': '/scp',
-  'jenis-dokumen': '/jenis-dokumen-evaluasi',
-  'dokumen-evaluasi': '/dokumen-evaluasi',
-  'kelas-peserta': '/krs-detil',
-  'evaluasi-nilai': '/nilai',
-  'rekap-cp-detail': '/rekap-cp/detail',
-  matakuliah: '/matakuliah',
-  gedung: '/gedung',
-  ruang: '/ruang',
-  'semester-prodi': '/semester-prodi',
-  'penawaran-matakuliah': '/penawaran-matakuliah',
-  'katalog-lintas-prodi': '/penawaran-matakuliah/catalog',
-  'krs-lintas-prodi': '/krs-lintas-prodi',
-  'persetujuan-lintas-host': '/krs-lintas-prodi',
-  'dosen-kelas': '/dosen-kelas',
-  'jadwal-kelas': '/jadwal-kelas',
+  prodi: "/program-studi",
+  "setting-semester": "/semester",
+  "kurikulum-cp": "/cp",
+  "cpmk-kurikulum": "/cpmk",
+  "cpmk-detail": "/cpmk",
+  "cpmk-semester": "/cpmk",
+  "mk-semester": "/matakuliah-kurikulum",
+  "mk-transkrip": "/matakuliah-kurikulum",
+  "upload-history": "/history-upload-nilai",
+  "nilai-kelas": "/nilai",
+  "upload-nilai": "/kelas",
+  "kurikulum-scp": "/scp",
+  "jenis-dokumen": "/jenis-dokumen-evaluasi",
+  "dokumen-evaluasi": "/dokumen-evaluasi",
+  "kelas-peserta": "/krs-detil",
+  "evaluasi-nilai": "/nilai",
+  "rekap-cp-detail": "/rekap-cp/detail",
+  matakuliah: "/matakuliah",
+  dosen: "/dosen",
+  gedung: "/gedung",
+  ruang: "/ruang",
+  "penawaran-matakuliah": "/penawaran-matakuliah",
+  "katalog-lintas-prodi": "/penawaran-matakuliah/catalog",
+  "krs-lintas-prodi": "/cross-enrollment",
+  "dosen-kelas": "/dosen-kelas",
+  "jadwal-kelas": "/jadwal-kelas",
+  shift: "/shift",
+  krs: "/krs",
+  "krs-detil": "/krs-detil",
+  "bimbingan-akademik": "/bimbingan-akademik",
+  "bimbingan-saya": "/bimbingan-akademik/saya",
+  "bimbingan-candidates": "/bimbingan-akademik/candidates",
 };
 
 const resourcePath = (resource) => RESOURCE_PATH[resource] || `/${resource}`;
@@ -36,73 +41,105 @@ export const listResource = (resource, params) =>
   apiRequest(resourcePath(resource), { params });
 
 export const getResourceRows = (resource, params = {}) =>
-  apiRequest(resourcePath(resource), { params: { page: 1, limit: 200, ...params } }).then((result) =>
-    Array.isArray(result) ? result : result?.data || []
-  );
+  apiRequest(resourcePath(resource), {
+    params: { page: 1, limit: 200, ...params },
+  }).then((result) => (Array.isArray(result) ? result : result?.data || []));
 
 export const getResourceItem = (resource, id) =>
   apiRequest(`${resourcePath(resource)}/${id}`);
 
 export const createResourceItem = (resource, payload) =>
-  apiRequest(resourcePath(resource), { method: 'POST', body: payload });
+  apiRequest(resourcePath(resource), { method: "POST", body: payload });
+
+/**
+ * Kuota SKS program studi punya endpoint sendiri: angkanya kebijakan
+ * universitas (aturan rektor), bukan bagian dari profil prodi yang dikelola
+ * admin unit. Butuh permission `program-studi.update-sks`.
+ */
+export const updateProdiSks = (id, payload) =>
+  apiRequest(`${resourcePath("prodi")}/${id}/sks`, {
+    method: "PATCH",
+    body: payload,
+  });
 
 export const bulkCreateResourceItems = (resource, items) =>
-  apiRequest(`${resourcePath(resource)}/bulk`, { method: 'POST', body: items });
+  apiRequest(`${resourcePath(resource)}/bulk`, { method: "POST", body: items });
 
 export const updateResourceItem = (resource, id, payload) =>
-  apiRequest(`${resourcePath(resource)}/${id}`, { method: 'PUT', body: payload });
+  apiRequest(`${resourcePath(resource)}/${id}`, {
+    method: "PUT",
+    body: payload,
+  });
 
 export const deleteResourceItem = (resource, id) =>
-  apiRequest(`${resourcePath(resource)}/${id}`, { method: 'DELETE' });
+  apiRequest(`${resourcePath(resource)}/${id}`, { method: "DELETE" });
 
 export const loginWithPassword = ({ email, password }) =>
-  apiRequest('/auth/login', { method: 'POST', body: { email, password } });
+  apiRequest("/auth/login", { method: "POST", body: { email, password } });
 
 export const refreshSession = (refreshToken) =>
-  apiRequest('/auth/refresh', { method: 'POST', body: { refresh_token: refreshToken } });
+  apiRequest("/auth/refresh", {
+    method: "POST",
+    body: { refresh_token: refreshToken },
+  });
 
 export const logoutSession = (refreshToken) =>
-  apiRequest('/auth/logout', { method: 'POST', body: { refresh_token: refreshToken } });
+  apiRequest("/auth/logout", {
+    method: "POST",
+    body: { refresh_token: refreshToken },
+  });
 
 export const loginWithSso = () =>
-  Promise.reject(new Error('SSO Unand belum tersedia.'));
+  Promise.reject(new Error("SSO Unand belum tersedia."));
 
 export const updateProfile = (payload) =>
-  apiRequest('/auth/profile', { method: 'PUT', body: { name: payload.name } });
+  apiRequest("/auth/profile", { method: "PUT", body: { name: payload.name } });
 
 export const changePassword = (payload) =>
-  apiRequest('/auth/change-password', {
-    method: 'PUT',
+  apiRequest("/auth/change-password", {
+    method: "PUT",
     body: {
       current_password: payload.current_password || payload.currentPassword,
       new_password: payload.new_password || payload.newPassword,
     },
   });
 
-export const getCurrentUser = () => apiRequest('/auth/me');
+export const getCurrentUser = () => apiRequest("/auth/me");
 
-export const getDashboardSummary = () => apiRequest('/dashboard/summary');
+export const getDashboardSummary = () => apiRequest("/dashboard/summary");
+export const getOrgDashboardSummary = () =>
+  apiRequest("/dashboard/org-summary");
+export const getDosenDashboardSummary = () =>
+  apiRequest("/dashboard/dosen-summary");
 
 export const getKelasNilaiMatriks = (kelasId) =>
   apiRequest(`/nilai/kelas/${kelasId}/matriks`);
 
-export const getRekapCpGrafik = (params) => apiRequest('/rekap-cp/grafik', { params });
+export const getRekapCpGrafik = (params) =>
+  apiRequest("/rekap-cp/grafik", { params });
 
-export const getLaporanCpPreview = (params) => apiRequest('/laporan-cp/preview', { params });
+export const getLaporanCpPreview = (params) =>
+  apiRequest("/laporan-cp/preview", { params });
 
 export const getLaporanCpMatakuliahDetail = (matakuliahId, params) =>
   apiRequest(`/laporan-cp/matakuliah/${matakuliahId}`, { params });
 
 export const uploadNilaiBulk = (payload) =>
-  apiRequest('/nilai/upload', { method: 'POST', body: payload });
+  apiRequest("/nilai/upload", { method: "POST", body: payload });
 
 export const assignUserRoles = (userId, roleIds) =>
-  apiRequest(`/users/${userId}/roles`, { method: 'PUT', body: { role_ids: roleIds } });
+  apiRequest(`/users/${userId}/roles`, {
+    method: "PUT",
+    body: { role_ids: roleIds },
+  });
 
 export const assignUserUnits = (userId, units) =>
-  apiRequest(`/users/${userId}/units`, { method: 'PUT', body: { units } });
+  apiRequest(`/users/${userId}/units`, { method: "PUT", body: { units } });
 
-export const getRolePermissionMatrix = () => apiRequest('/roles/matrix');
+export const getRolePermissionMatrix = () => apiRequest("/roles/matrix");
 
 export const syncRolePermissions = (roleId, permissionIds) =>
-  apiRequest(`/roles/${roleId}/permissions`, { method: 'PUT', body: { permission_ids: permissionIds } });
+  apiRequest(`/roles/${roleId}/permissions`, {
+    method: "PUT",
+    body: { permission_ids: permissionIds },
+  });

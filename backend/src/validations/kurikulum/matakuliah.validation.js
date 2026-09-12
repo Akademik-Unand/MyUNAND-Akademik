@@ -17,6 +17,7 @@ const create = Joi.object({
     jumlah_sks_praktikum: Joi.number().allow(null),
     jumlah_sks_praktikum_lapangan: Joi.number().allow(null),
     bobot_nilai_minimal_lulus: Joi.number().allow(null),
+    has_prasyarat: Joi.boolean(),
 });
 const update = Joi.object({
     program_studi_id: Joi.string().uuid(),
@@ -31,6 +32,7 @@ const update = Joi.object({
     jumlah_sks_praktikum: Joi.number().allow(null),
     jumlah_sks_praktikum_lapangan: Joi.number().allow(null),
     bobot_nilai_minimal_lulus: Joi.number().allow(null),
+    has_prasyarat: Joi.boolean(),
 });
 
 module.exports = { list, create, update, idParam };

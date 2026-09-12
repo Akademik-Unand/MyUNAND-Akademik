@@ -1,15 +1,15 @@
 export const formatCapaian = (value) => {
-  if (value === null || value === undefined || value === '') return '%';
+  if (value === null || value === undefined || value === "") return "%";
   return `${value}%`;
 };
 
 export const formatPercent = (value) => {
-  if (value === null || value === undefined || value === '') return '—';
+  if (value === null || value === undefined || value === "") return "—";
   return `${value}%`;
 };
 
 export const mkSemesterLabel = (row) => {
-  const mk = row.matakuliah_nama || '—';
+  const mk = row.matakuliah_nama || "—";
   const sem = row.semester_label?.trim();
   return sem ? `${mk} — ${sem}` : mk;
 };
@@ -20,23 +20,32 @@ export const buildCheckActions = (rows = []) => {
   for (const row of rows) {
     if (!row.semester_id || seen.has(row.semester_id)) continue;
     seen.add(row.semester_id);
-    semesters.push({ id: row.semester_id, label: row.semester_label?.trim() || 'Semester' });
+    semesters.push({
+      id: row.semester_id,
+      label: row.semester_label?.trim() || "Semester",
+    });
   }
   const actions = [
-    { key: 'all', label: 'Check All', match: () => true },
+    { key: "all", label: "Check All", match: () => true },
     ...semesters.map((item) => ({
       key: `semester:${item.id}`,
       label: `Check All Semester ${item.label}`,
       match: (row) => row.semester_id === item.id,
     })),
-    { key: 'transkrip', label: 'Check All MK Transkrip', match: (row) => row.is_transkrip },
+    {
+      key: "transkrip",
+      label: "Check All MK Transkrip",
+      match: (row) => row.is_transkrip,
+    },
     ...semesters.map((item) => ({
       key: `transkrip:${item.id}`,
       label: `Check All MK Transkrip Semester ${item.label}`,
       match: (row) => row.is_transkrip && row.semester_id === item.id,
     })),
   ];
-  return actions.filter((action) => action.key === 'all' || rows.some(action.match));
+  return actions.filter(
+    (action) => action.key === "all" || rows.some(action.match),
+  );
 };
 
 export const applyMatchingInGroup = (selected, groupRows, match) => {
@@ -49,7 +58,9 @@ export const applyMatchingInGroup = (selected, groupRows, match) => {
 };
 
 export const activeCheckActionKey = (selected, groupRows, actions) => {
-  const selectedIds = new Set(groupRows.filter((row) => selected.has(row.id)).map((row) => row.id));
+  const selectedIds = new Set(
+    groupRows.filter((row) => selected.has(row.id)).map((row) => row.id),
+  );
   if (!selectedIds.size) return null;
   for (let i = actions.length - 1; i >= 0; i -= 1) {
     const matchIds = groupRows.filter(actions[i].match).map((row) => row.id);
@@ -81,11 +92,16 @@ export const itemsFromSelected = (rows, selected) =>
 
 export const selectedFromItems = (items = []) =>
   new Set(
-    items.map((item) => `${item.cpmk_id}:${item.matakuliah_id}:${item.semester_id || 'none'}`)
+    items.map(
+      (item) =>
+        `${item.cpmk_id}:${item.matakuliah_id}:${item.semester_id || "none"}`,
+    ),
   );
 
 export const averageCapaian = (rows = []) => {
-  const values = rows.map((row) => row.capaian).filter((value) => value != null && value !== '');
+  const values = rows
+    .map((row) => row.capaian)
+    .filter((value) => value != null && value !== "");
   if (!values.length) return null;
   const sum = values.reduce((total, value) => total + Number(value), 0);
   return Math.round((sum / values.length) * 100) / 100;
@@ -101,8 +117,12 @@ export const withGroupedCapaian = (rows = []) => {
     if (!byCp.has(row.cp_id)) byCp.set(row.cp_id, []);
     byCp.get(row.cp_id).push(row);
   }
-  const scpAvg = new Map([...byScp.entries()].map(([key, list]) => [key, averageCapaian(list)]));
-  const cpAvg = new Map([...byCp.entries()].map(([key, list]) => [key, averageCapaian(list)]));
+  const scpAvg = new Map(
+    [...byScp.entries()].map(([key, list]) => [key, averageCapaian(list)]),
+  );
+  const cpAvg = new Map(
+    [...byCp.entries()].map(([key, list]) => [key, averageCapaian(list)]),
+  );
   return rows.map((row) => ({
     ...row,
     capaian_scp: scpAvg.get(`${row.cp_id}\u001f${row.scp_id}`) ?? null,
@@ -111,8 +131,8 @@ export const withGroupedCapaian = (rows = []) => {
 };
 
 export const TINDAK_LANJUT_UNIT = [
-  { key: 'team_teaching', label: 'Team Teaching' },
-  { key: 'prodi', label: 'Prodi' },
-  { key: 'jurusan', label: 'Jurusan' },
-  { key: 'fakultas', label: 'Fakultas' },
+  { key: "team_teaching", label: "Team Teaching" },
+  { key: "prodi", label: "Prodi" },
+  { key: "jurusan", label: "Jurusan" },
+  { key: "fakultas", label: "Fakultas" },
 ];

@@ -1,84 +1,84 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const cpmkValidation = require('../../validations/obe/cpmk.validation');
-const cpmkController = require('../../controllers/obe/cpmk.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const cpmkValidation = require("../../validations/obe/cpmk.validation");
+const cpmkController = require("../../controllers/obe/cpmk.controller");
 
-const subject = 'Cpmk';
+const subject = "Cpmk";
 
-/cpmk */
+/cpmk */;
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: cpmkValidation.list }),
-  cpmkController.list
+  cpmkController.list,
 );
 
 /** POST /cpmk */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: cpmkValidation.create }),
-  cpmkController.create
+  cpmkController.create,
 );
 
 /** POST /cpmk/bulk */
 router.post(
-  '/bulk',
+  "/bulk",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: cpmkValidation.createBulk }),
-  cpmkController.createBulk
+  cpmkController.createBulk,
 );
 
 /** POST /cpmk/:id/restore */
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: cpmkValidation.idParam }),
-  cpmkController.restore
+  cpmkController.restore,
 );
 
 /** GET /cpmk/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: cpmkValidation.idParam }),
-  cpmkController.getById
+  cpmkController.getById,
 );
 
 /** PUT /cpmk/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
+  checkPermission("update", subject),
   validate({ params: cpmkValidation.idParam, body: cpmkValidation.update }),
-  cpmkController.update
+  cpmkController.update,
 );
 
 /** DELETE /cpmk/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: cpmkValidation.idParam }),
-  cpmkController.remove
+  cpmkController.remove,
 );
 
 module.exports = router;

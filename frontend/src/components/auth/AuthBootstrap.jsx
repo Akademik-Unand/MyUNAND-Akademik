@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { getCurrentUser } from '../../services/api';
-import { useAuthStore } from '../../store/auth.store';
+import { useEffect } from "react";
+import { getCurrentUser } from "../../services/api";
+import { useAuthStore } from "../../store/auth.store";
 
 export const AuthBootstrap = () => {
   const token = useAuthStore((state) => state.token);
@@ -9,7 +9,9 @@ export const AuthBootstrap = () => {
 
   useEffect(() => {
     if (!token && !refreshToken) return undefined;
-    getCurrentUser().then(setUser).catch(() => {});
+    getCurrentUser()
+      .then(setUser)
+      .catch(() => {});
     return undefined;
   }, [token, refreshToken, setUser]);
 

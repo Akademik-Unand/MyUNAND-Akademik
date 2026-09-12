@@ -8,7 +8,7 @@ const { rekapCpFilters, ORG_FILTER_FIELDS } = require('../../helpers/academicFil
 const LIST_OPTIONS = {
   searchFields: [],
   sortableFields: ["createdAt"],
-  filterableFields: ["mahasiswa_id", "cp_id", "semester_prodi_id", ...ORG_FILTER_FIELDS],
+  filterableFields: ["mahasiswa_id", "cp_id", "semester_id", ...ORG_FILTER_FIELDS],
   virtualFilters: rekapCpFilters(sequelize),
   defaultInclude: [
     { model: Mahasiswa, as: 'mahasiswa' },

@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
-const Redis = require('ioredis');
-const logger = require('../utils/logger');
+const Redis = require("ioredis");
+const logger = require("../utils/logger");
 
 const redisConfig = {
-  host: process.env.REDIS_HOST || '127.0.0.1',
+  host: process.env.REDIS_HOST || "127.0.0.1",
   port: Number(process.env.REDIS_PORT) || 6379,
   username: process.env.REDIS_USERNAME || undefined,
   password: process.env.REDIS_PASSWORD || undefined,
@@ -36,8 +36,8 @@ let client;
 function getRedisClient() {
   if (!client) {
     client = new Redis(clientOptions());
-    client.on('error', (err) => {
-      logger.warn({ err }, 'Redis connection error');
+    client.on("error", (err) => {
+      logger.warn({ err }, "Redis connection error");
     });
   }
   return client;
@@ -46,20 +46,20 @@ function getRedisClient() {
 async function connectRedis() {
   const redis = getRedisClient();
   try {
-    if (redis.status === 'wait') {
+    if (redis.status === "wait") {
       await redis.connect();
     } else {
       await redis.ping();
     }
-    return redis.status === 'ready';
+    return redis.status === "ready";
   } catch (err) {
-    logger.warn({ err }, 'Redis tidak terhubung; cache dilewati');
+    logger.warn({ err }, "Redis tidak terhubung; cache dilewati");
     return false;
   }
 }
 
 function isRedisReady() {
-  return Boolean(client && client.status === 'ready');
+  return Boolean(client && client.status === "ready");
 }
 
 module.exports = {

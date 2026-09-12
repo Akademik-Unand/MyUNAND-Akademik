@@ -1,17 +1,17 @@
-'use strict';
+"use strict";
 
-const pinoHttp = require('pino-http');
-const logger = require('../utils/logger');
+const pinoHttp = require("pino-http");
+const logger = require("../utils/logger");
 
 const requestLogger = pinoHttp({
   logger,
   autoLogging: {
-    ignore: (req) => req.url === '/up',
+    ignore: (req) => req.url === "/up",
   },
   customLogLevel(req, res, err) {
-    if (err || res.statusCode >= 500) return 'error';
-    if (res.statusCode >= 400) return 'warn';
-    return 'info';
+    if (err || res.statusCode >= 500) return "error";
+    if (res.statusCode >= 400) return "warn";
+    return "info";
   },
   customSuccessMessage(req, res) {
     return `${req.method} ${req.originalUrl || req.url} ${res.statusCode}`;

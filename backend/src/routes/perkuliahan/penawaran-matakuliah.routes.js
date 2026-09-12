@@ -1,6 +1,90 @@
-'use strict';
-const router=require('express').Router();const{authenticate}=require('../../middleware/auth');const attachAbility=require('../../middleware/attachAbility');const checkPermission=require('../../middleware/checkPermission');const validate=require('../../middleware/validate');const v=require('../../validations/perkuliahan/penawaran-matakuliah.validation');const c=require('../../controllers/perkuliahan/penawaran-matakuliah.controller');
-const guard=a=>[authenticate,attachAbility,checkPermission(a,'PenawaranMatakuliah')];const ids=require('joi').object({id:require('joi').string().uuid().required(),classId:require('joi').string().uuid().required(),scheduleId:require('joi').string().uuid()});
-router.get('/catalog',...guard('catalog'),validate({query:v.catalog}),c.catalog);router.get('/',...guard('read'),validate({query:v.list}),c.list);router.post('/',...guard('create'),validate({body:v.create}),c.create);router.put('/:id/matakuliah',...guard('sync'),validate({params:v.idParam,body:v.sync}),c.bulkSync);router.post('/:id/publish',...guard('publish'),validate({params:v.idParam}),c.publish);router.post('/:id/close',...guard('close'),validate({params:v.idParam}),c.close);router.post('/:id/restore',...guard('restore'),validate({params:v.idParam}),c.restore);
-router.post('/:id/classes/:classId/schedules',...guard('schedule'),validate({params:ids.fork(['scheduleId'],x=>x.forbidden()),body:v.schedule}),c.createSchedule);router.put('/:id/classes/:classId/schedules/:scheduleId',...guard('schedule'),validate({params:ids,body:v.schedule}),c.updateSchedule);router.delete('/:id/classes/:classId/schedules/:scheduleId',...guard('schedule'),validate({params:ids}),c.deleteSchedule);
-router.get('/:id',...guard('read'),validate({params:v.idParam}),c.getById);router.put('/:id',...guard('update'),validate({params:v.idParam,body:v.update}),c.update);router.delete('/:id',...guard('delete'),validate({params:v.idParam}),c.remove);module.exports=router;
+"use strict";
+const router = require("express").Router();
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const v = require("../../validations/perkuliahan/penawaran-matakuliah.validation");
+const c = require("../../controllers/perkuliahan/penawaran-matakuliah.controller");
+const guard = (a) => [
+  authenticate,
+  attachAbility,
+  checkPermission(a, "PenawaranMatakuliah"),
+];
+const ids = require("joi").object({
+  id: require("joi").string().uuid().required(),
+  classId: require("joi").string().uuid().required(),
+  scheduleId: require("joi").string().uuid(),
+});
+router.get(
+  "/catalog",
+  ...guard("catalog"),
+  validate({ query: v.catalog }),
+  c.catalog,
+);
+router.get("/", ...guard("read"), validate({ query: v.list }), c.list);
+router.post("/", ...guard("create"), validate({ body: v.create }), c.create);
+router.put(
+  "/:id/matakuliah",
+  ...guard("sync"),
+  validate({ params: v.idParam, body: v.sync }),
+  c.bulkSync,
+);
+router.post(
+  "/:id/publish",
+  ...guard("publish"),
+  validate({ params: v.idParam }),
+  c.publish,
+);
+router.post(
+  "/:id/close",
+  ...guard("close"),
+  validate({ params: v.idParam }),
+  c.close,
+);
+router.post(
+  "/:id/restore",
+  ...guard("restore"),
+  validate({ params: v.idParam }),
+  c.restore,
+);
+router.post(
+  "/:id/classes/:classId/schedules",
+  ...guard("schedule"),
+  validate({
+    params: ids.fork(["scheduleId"], (x) => x.forbidden()),
+    body: v.schedule,
+  }),
+  c.createSchedule,
+);
+router.put(
+  "/:id/classes/:classId/schedules/:scheduleId",
+  ...guard("schedule"),
+  validate({ params: ids, body: v.schedule }),
+  c.updateSchedule,
+);
+router.delete(
+  "/:id/classes/:classId/schedules/:scheduleId",
+  ...guard("schedule"),
+  validate({ params: ids }),
+  c.deleteSchedule,
+);
+router.get(
+  "/:id",
+  ...guard("read"),
+  validate({ params: v.idParam }),
+  c.getById,
+);
+router.put(
+  "/:id",
+  ...guard("update"),
+  validate({ params: v.idParam, body: v.update }),
+  c.update,
+);
+router.delete(
+  "/:id",
+  ...guard("delete"),
+  validate({ params: v.idParam }),
+  c.remove,
+);
+module.exports = router;

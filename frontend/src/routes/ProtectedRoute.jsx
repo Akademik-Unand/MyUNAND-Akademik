@@ -1,5 +1,5 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../store/auth.store';
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuthStore } from "../store/auth.store";
 
 /** Mengarahkan ke /login jika sesi belum ada. */
 export const ProtectedRoute = () => {

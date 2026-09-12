@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-const STORAGE_KEY = 'myunand_auth';
+const STORAGE_KEY = "myunand_auth";
 
 const emptySession = () => ({
   user: null,
@@ -37,7 +37,7 @@ const writeSession = (session) => {
       user: session.user,
       token: session.token || null,
       refreshToken: session.refreshToken || null,
-    })
+    }),
   );
 };
 

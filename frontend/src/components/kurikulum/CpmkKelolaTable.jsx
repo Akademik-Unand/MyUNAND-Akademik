@@ -1,11 +1,11 @@
-import { Fragment, useState } from 'react';
-import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react';
-import { IconButton, IconLink } from '../common/IconButton';
-import { Badge } from '../ui/Badge';
-import { Can } from '../auth/Can';
+import { Fragment, useState } from "react";
+import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { IconButton, IconLink } from "../common/IconButton";
+import { Badge } from "../ui/Badge";
+import { Can } from "../auth/Can";
 
 const ScpBadges = ({ items }) => {
-  if (!items?.length) return '—';
+  if (!items?.length) return "—";
   return (
     <div className="flex flex-wrap gap-1">
       {items.map((scp) => (
@@ -17,7 +17,14 @@ const ScpBadges = ({ items }) => {
   );
 };
 
-export const CpmkKelolaTable = ({ roots, childrenByParent, mkId, suffix, onDelete, canMutate = true }) => {
+export const CpmkKelolaTable = ({
+  roots,
+  childrenByParent,
+  mkId,
+  suffix,
+  onDelete,
+  canMutate = true,
+}) => {
   const [openIds, setOpenIds] = useState(() => new Set());
 
   const toggle = (id) => {
@@ -56,13 +63,19 @@ export const CpmkKelolaTable = ({ roots, childrenByParent, mkId, suffix, onDelet
                           className="btn btn-ghost btn-xs gap-1 px-1"
                           onClick={() => toggle(item.id)}
                         >
-                          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                          {open ? 'Sembunyikan Sub-CPMK' : `Lihat ${children.length} Sub-CPMK`}
+                          {open ? (
+                            <ChevronDown size={14} />
+                          ) : (
+                            <ChevronRight size={14} />
+                          )}
+                          {open
+                            ? "Sembunyikan Sub-CPMK"
+                            : `Lihat ${children.length} Sub-CPMK`}
                         </button>
                       )}
                     </div>
                   </td>
-                  <td>{item.deskripsi || '—'}</td>
+                  <td>{item.deskripsi || "—"}</td>
                   <td>
                     <ScpBadges items={children.length ? [] : item.scp} />
                   </td>
@@ -105,7 +118,7 @@ export const CpmkKelolaTable = ({ roots, childrenByParent, mkId, suffix, onDelet
                   children.map((child) => (
                     <tr key={child.id} className="bg-base-200/40">
                       <td className="pl-8">{child.nama_cpmk}</td>
-                      <td>{child.deskripsi || '—'}</td>
+                      <td>{child.deskripsi || "—"}</td>
                       <td>
                         <ScpBadges items={child.scp} />
                       </td>
@@ -142,7 +155,8 @@ export const CpmkKelolaTable = ({ roots, childrenByParent, mkId, suffix, onDelet
           {roots.length === 0 && (
             <tr>
               <td colSpan={4} className="text-sm text-base-content/60">
-                Belum ada CPMK. Tambah CPMK, pilih apakah punya Sub-CPMK, lalu petakan ke CP/SCP.
+                Belum ada CPMK. Tambah CPMK, pilih apakah punya Sub-CPMK, lalu
+                petakan ke CP/SCP.
               </td>
             </tr>
           )}

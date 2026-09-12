@@ -1,9 +1,9 @@
-import { useId } from 'react';
-import { Input } from '../ui/Input';
-import { Textarea } from '../ui/Textarea';
-import { ScpPicker } from './ScpPicker';
-import { SubCpmkFields } from './SubCpmkFields';
-import { emptySubCpmk } from '../../helpers/cpmkForm';
+import { useId } from "react";
+import { Input } from "../ui/Input";
+import { Textarea } from "../ui/Textarea";
+import { ScpPicker } from "./ScpPicker";
+import { SubCpmkFields } from "./SubCpmkFields";
+import { emptySubCpmk } from "../../helpers/cpmkForm";
 
 export const CpmkForm = ({
   values,
@@ -23,12 +23,17 @@ export const CpmkForm = ({
     <div className="space-y-3">
       <Input
         label="Nama *"
-        value={values.nama_cpmk || ''}
-        onChange={set('nama_cpmk')}
-        placeholder={showHasSub ? 'CPMK 1' : 'Sub-CPMK 1'}
+        value={values.nama_cpmk || ""}
+        onChange={set("nama_cpmk")}
+        placeholder={showHasSub ? "CPMK 1" : "Sub-CPMK 1"}
         required
       />
-      <Textarea label="Deskripsi *" value={values.deskripsi || ''} onChange={set('deskripsi')} required />
+      <Textarea
+        label="Deskripsi *"
+        value={values.deskripsi || ""}
+        onChange={set("deskripsi")}
+        required
+      />
       {showHasSub && (
         <fieldset className="fieldset p-0 gap-1">
           <legend className="text-xs font-medium text-base-content/80">
@@ -41,7 +46,9 @@ export const CpmkForm = ({
                 className="radio radio-sm radio-primary"
                 name={radioName}
                 checked={!hasSub}
-                onChange={() => onChange({ ...values, has_sub: false, sub_cpmk: [] })}
+                onChange={() =>
+                  onChange({ ...values, has_sub: false, sub_cpmk: [] })
+                }
               />
               Tidak, petakan langsung ke SCP
             </label>
@@ -56,7 +63,9 @@ export const CpmkForm = ({
                     ...values,
                     has_sub: true,
                     scp_ids: [],
-                    sub_cpmk: values.sub_cpmk?.length ? values.sub_cpmk : [emptySubCpmk()],
+                    sub_cpmk: values.sub_cpmk?.length
+                      ? values.sub_cpmk
+                      : [emptySubCpmk()],
                   })
                 }
               />

@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { emptyOrganizationContext } from '../helpers/organizationContext';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { emptyOrganizationContext } from "../helpers/organizationContext";
 
 export const useOrganizationContextStore = create(
   persist(
@@ -8,7 +8,9 @@ export const useOrganizationContextStore = create(
       contextsByUser: {},
       setContext: (userKey, context) => {
         if (!userKey) return;
-        set((state) => ({ contextsByUser: { ...state.contextsByUser, [userKey]: context } }));
+        set((state) => ({
+          contextsByUser: { ...state.contextsByUser, [userKey]: context },
+        }));
       },
       clearContext: (userKey) => {
         if (!userKey) return;
@@ -20,10 +22,10 @@ export const useOrganizationContextStore = create(
       },
     }),
     {
-      name: 'myunand_organization_context',
+      name: "myunand_organization_context",
       partialize: (state) => ({ contextsByUser: state.contextsByUser }),
-    }
-  )
+    },
+  ),
 );
 
 export const selectOrganizationContext = (userKey) => (state) =>

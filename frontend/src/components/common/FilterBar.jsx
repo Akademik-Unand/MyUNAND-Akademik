@@ -1,13 +1,13 @@
-import { Select } from '../ui/Select';
-import { Button } from '../ui/Button';
+import { Select } from "../ui/Select";
+import { Button } from "../ui/Button";
 
 export const FilterBar = ({
   fields = [],
-  className = '',
+  className = "",
   onApply,
   onReset,
-  applyLabel = 'Terapkan',
-  resetLabel = 'Reset',
+  applyLabel = "Terapkan",
+  resetLabel = "Reset",
   applyDisabled = false,
 }) => {
   return (
@@ -21,7 +21,7 @@ export const FilterBar = ({
           placeholder={field.placeholder}
           options={field.options || []}
           value={field.value}
-          defaultValue={field.value === undefined ? '' : undefined}
+          defaultValue={field.value === undefined ? "" : undefined}
           onChange={field.onChange}
           disabled={field.disabled}
         />

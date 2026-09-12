@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 
-const asyncHandler = require('../../middleware/asyncHandler');
-const { success } = require('../../helpers/response');
-const cpmkService = require('../../services/obe/cpmk.service');
+const asyncHandler = require("../../middleware/asyncHandler");
+const { success } = require("../../helpers/response");
+const cpmkService = require("../../services/obe/cpmk.service");
 
 const list = asyncHandler(async (req, res) => {
   const { rows, pagination } = await cpmkService.list(req.query);
   return success(res, {
-    message: 'Data CPMK berhasil diambil',
+    message: "Data CPMK berhasil diambil",
     data: rows,
     pagination,
   });
@@ -15,12 +15,16 @@ const list = asyncHandler(async (req, res) => {
 
 const getById = asyncHandler(async (req, res) => {
   const data = await cpmkService.getById(req.params.id);
-  return success(res, { message: 'Detail CPMK berhasil diambil', data });
+  return success(res, { message: "Detail CPMK berhasil diambil", data });
 });
 
 const create = asyncHandler(async (req, res) => {
   const data = await cpmkService.create(req.body);
-  return success(res, { code: 201, message: 'CPMK berhasil ditambahkan', data });
+  return success(res, {
+    code: 201,
+    message: "CPMK berhasil ditambahkan",
+    data,
+  });
 });
 
 const createBulk = asyncHandler(async (req, res) => {
@@ -34,17 +38,17 @@ const createBulk = asyncHandler(async (req, res) => {
 
 const update = asyncHandler(async (req, res) => {
   const data = await cpmkService.update(req.params.id, req.body);
-  return success(res, { message: 'CPMK berhasil diperbarui', data });
+  return success(res, { message: "CPMK berhasil diperbarui", data });
 });
 
 const remove = asyncHandler(async (req, res) => {
   const data = await cpmkService.remove(req.params.id);
-  return success(res, { message: 'CPMK berhasil dihapus', data });
+  return success(res, { message: "CPMK berhasil dihapus", data });
 });
 
 const restore = asyncHandler(async (req, res) => {
   const data = await cpmkService.restore(req.params.id);
-  return success(res, { message: 'CPMK berhasil dipulihkan', data });
+  return success(res, { message: "CPMK berhasil dipulihkan", data });
 });
 
 module.exports = { list, getById, create, createBulk, update, remove, restore };

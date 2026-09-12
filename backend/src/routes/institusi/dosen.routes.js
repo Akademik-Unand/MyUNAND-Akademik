@@ -1,74 +1,74 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const dosenValidation = require('../../validations/institusi/dosen.validation');
-const dosenController = require('../../controllers/institusi/dosen.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const dosenValidation = require("../../validations/institusi/dosen.validation");
+const dosenController = require("../../controllers/institusi/dosen.controller");
 
-const subject = 'Dosen';
+const subject = "Dosen";
 
-/dosen */
+/dosen */;
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: dosenValidation.list }),
-  dosenController.list
+  dosenController.list,
 );
 
 /** POST /dosen */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: dosenValidation.create }),
-  dosenController.create
+  dosenController.create,
 );
 
 /** POST /dosen/:id/restore */
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: dosenValidation.idParam }),
-  dosenController.restore
+  dosenController.restore,
 );
 
 /** GET /dosen/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: dosenValidation.idParam }),
-  dosenController.getById
+  dosenController.getById,
 );
 
 /** PUT /dosen/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
+  checkPermission("update", subject),
   validate({ params: dosenValidation.idParam, body: dosenValidation.update }),
-  dosenController.update
+  dosenController.update,
 );
 
 /** DELETE /dosen/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: dosenValidation.idParam }),
-  dosenController.remove
+  dosenController.remove,
 );
 
 module.exports = router;

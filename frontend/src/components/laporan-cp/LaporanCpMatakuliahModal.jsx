@@ -1,32 +1,37 @@
-import { useState } from 'react';
-import { Users } from 'lucide-react';
-import { Modal } from '../ui/Modal';
-import { DetailList } from '../common/DetailList';
-import { Skeleton } from '../ui/Skeleton';
-import { useLaporanCpMatakuliahDetail } from '../../hooks/useLaporanCpMatakuliahDetail';
-import { LaporanCpCpmkSemesterTab } from './LaporanCpCpmkSemesterTab';
-import { LaporanCpRangkumanTab } from './LaporanCpRangkumanTab';
-import { LaporanCpGrafikTab } from './LaporanCpGrafikTab';
-import { LaporanCpNilaiPesertaTab } from './LaporanCpNilaiPesertaTab';
-import { LaporanCpDokumenTab } from './LaporanCpDokumenTab';
+import { useState } from "react";
+import { Users } from "lucide-react";
+import { Modal } from "../ui/Modal";
+import { DetailList } from "../common/DetailList";
+import { Skeleton } from "../ui/Skeleton";
+import { useLaporanCpMatakuliahDetail } from "../../hooks/useLaporanCpMatakuliahDetail";
+import { LaporanCpCpmkSemesterTab } from "./LaporanCpCpmkSemesterTab";
+import { LaporanCpRangkumanTab } from "./LaporanCpRangkumanTab";
+import { LaporanCpGrafikTab } from "./LaporanCpGrafikTab";
+import { LaporanCpNilaiPesertaTab } from "./LaporanCpNilaiPesertaTab";
+import { LaporanCpDokumenTab } from "./LaporanCpDokumenTab";
 
 const TABS = [
-  { key: 'cpmk', label: 'CPMK Semester' },
-  { key: 'rangkuman', label: 'Rangkuman Evaluasi CPMK' },
-  { key: 'grafik', label: 'Grafik Rangkuman Evaluasi' },
-  { key: 'nilai', label: 'Nilai Peserta Matakuliah' },
-  { key: 'dokumen', label: 'Dokumen Evaluasi' },
+  { key: "cpmk", label: "CPMK Semester" },
+  { key: "rangkuman", label: "Rangkuman Evaluasi CPMK" },
+  { key: "grafik", label: "Grafik Rangkuman Evaluasi" },
+  { key: "nilai", label: "Nilai Peserta Matakuliah" },
+  { key: "dokumen", label: "Dokumen Evaluasi" },
 ];
 
-export const LaporanCpMatakuliahModal = ({ matakuliahId, semesterId, kurikulumId, onClose }) => {
-  const [tab, setTab] = useState('cpmk');
+export const LaporanCpMatakuliahModal = ({
+  matakuliahId,
+  semesterId,
+  kurikulumId,
+  onClose,
+}) => {
+  const [tab, setTab] = useState("cpmk");
   const query = useLaporanCpMatakuliahDetail(
     matakuliahId,
     {
       semester_id: semesterId || undefined,
       kurikulum_id: kurikulumId || undefined,
     },
-    { enabled: Boolean(matakuliahId) }
+    { enabled: Boolean(matakuliahId) },
   );
   const data = query.data;
 
@@ -35,7 +40,7 @@ export const LaporanCpMatakuliahModal = ({ matakuliahId, semesterId, kurikulumId
       open={Boolean(matakuliahId)}
       onClose={onClose}
       size="full"
-      title={data?.matakuliah?.nama_resmi || 'Detail Mata Kuliah'}
+      title={data?.matakuliah?.nama_resmi || "Detail Mata Kuliah"}
       subtitle={data?.matakuliah?.kode_matakuliah}
     >
       {query.isPending ? (
@@ -47,18 +52,23 @@ export const LaporanCpMatakuliahModal = ({ matakuliahId, semesterId, kurikulumId
           <Skeleton className="h-48 w-full" />
         </div>
       ) : query.isError ? (
-        <p className="text-sm text-error">{query.error?.message || 'Gagal memuat detail mata kuliah.'}</p>
+        <p className="text-sm text-error">
+          {query.error?.message || "Gagal memuat detail mata kuliah."}
+        </p>
       ) : (
         <div className="space-y-5">
           <DetailList
             items={[
-              { label: 'Mata Kuliah', value: data?.matakuliah?.nama_resmi },
-              { label: 'Kode MK', value: data?.matakuliah?.kode_matakuliah },
-              { label: 'SKS', value: data?.matakuliah?.jumlah_sks_kurikulum },
-              { label: 'Program Studi', value: data?.program_studi },
-              { label: 'Kurikulum', value: data?.kurikulum?.nama },
-              { label: 'Semester', value: data?.semester?.label || 'Semua semester' },
-              { label: 'Jumlah Peserta', value: data?.jumlah_peserta ?? 0 },
+              { label: "Mata Kuliah", value: data?.matakuliah?.nama_resmi },
+              { label: "Kode MK", value: data?.matakuliah?.kode_matakuliah },
+              { label: "SKS", value: data?.matakuliah?.jumlah_sks_kurikulum },
+              { label: "Program Studi", value: data?.program_studi },
+              { label: "Kurikulum", value: data?.kurikulum?.nama },
+              {
+                label: "Semester",
+                value: data?.semester?.label || "Semua semester",
+              },
+              { label: "Jumlah Peserta", value: data?.jumlah_peserta ?? 0 },
             ]}
           />
 
@@ -70,17 +80,27 @@ export const LaporanCpMatakuliahModal = ({ matakuliahId, semesterId, kurikulumId
             {data?.kelas?.length ? (
               <ul className="divide-y divide-base-200 rounded-lg border border-base-200">
                 {data.kelas.map((kelas) => (
-                  <li key={kelas.id} className="flex flex-col gap-2 px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <li
+                    key={kelas.id}
+                    className="flex flex-col gap-2 px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
+                  >
                     <span className="font-medium">
                       {data.matakuliah?.kode_matakuliah} {kelas.nama}
                     </span>
                     <span className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                      <span className="badge badge-ghost badge-sm">{kelas.jumlah_peserta} peserta</span>
+                      <span className="badge badge-ghost badge-sm">
+                        {kelas.jumlah_peserta} peserta
+                      </span>
                       {kelas.dosen?.length > 0 && (
                         <span className="flex flex-wrap items-center gap-1.5">
-                          <span className="text-xs text-base-content/60">Dosen:</span>
+                          <span className="text-xs text-base-content/60">
+                            Dosen:
+                          </span>
                           {kelas.dosen.map((nama) => (
-                            <span key={nama} className="badge badge-outline badge-sm font-normal">
+                            <span
+                              key={nama}
+                              className="badge badge-outline badge-sm font-normal"
+                            >
                               {nama}
                             </span>
                           ))}
@@ -91,7 +111,9 @@ export const LaporanCpMatakuliahModal = ({ matakuliahId, semesterId, kurikulumId
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-base-content/60">Belum ada kelas penyelenggara.</p>
+              <p className="text-sm text-base-content/60">
+                Belum ada kelas penyelenggara.
+              </p>
             )}
           </div>
 
@@ -101,7 +123,7 @@ export const LaporanCpMatakuliahModal = ({ matakuliahId, semesterId, kurikulumId
                 <button
                   key={item.key}
                   type="button"
-                  className={`tab whitespace-nowrap ${tab === item.key ? 'tab-active' : ''}`}
+                  className={`tab whitespace-nowrap ${tab === item.key ? "tab-active" : ""}`}
                   onClick={() => setTab(item.key)}
                 >
                   {item.label}
@@ -109,13 +131,24 @@ export const LaporanCpMatakuliahModal = ({ matakuliahId, semesterId, kurikulumId
               ))}
             </div>
 
-            {tab === 'cpmk' && <LaporanCpCpmkSemesterTab cpmk={data?.cpmk || []} />}
-            {tab === 'rangkuman' && (
-              <LaporanCpRangkumanTab evaluasi={data?.evaluasi || []} semesterLabel={data?.semester?.label} />
+            {tab === "cpmk" && (
+              <LaporanCpCpmkSemesterTab cpmk={data?.cpmk || []} />
             )}
-            {tab === 'grafik' && <LaporanCpGrafikTab evaluasi={data?.evaluasi || []} />}
-            {tab === 'nilai' && <LaporanCpNilaiPesertaTab nilai={data?.nilai} />}
-            {tab === 'dokumen' && <LaporanCpDokumenTab dokumen={data?.dokumen || []} />}
+            {tab === "rangkuman" && (
+              <LaporanCpRangkumanTab
+                evaluasi={data?.evaluasi || []}
+                semesterLabel={data?.semester?.label}
+              />
+            )}
+            {tab === "grafik" && (
+              <LaporanCpGrafikTab evaluasi={data?.evaluasi || []} />
+            )}
+            {tab === "nilai" && (
+              <LaporanCpNilaiPesertaTab nilai={data?.nilai} />
+            )}
+            {tab === "dokumen" && (
+              <LaporanCpDokumenTab dokumen={data?.dokumen || []} />
+            )}
           </div>
         </div>
       )}

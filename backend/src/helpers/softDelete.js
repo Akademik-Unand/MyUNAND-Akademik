@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const AppError = require('./AppError');
+const AppError = require("./AppError");
 
 const restoreRecord = async (Model, id, label) => {
   const item = await Model.findByPk(id, { paranoid: false });

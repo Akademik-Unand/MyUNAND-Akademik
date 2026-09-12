@@ -58,6 +58,15 @@ describe('buildListQuery', () => {
     expect(RESERVED_PARAMS).toContain('trashed');
   });
 
+  it('memakai defaultOrder bila sortBy tidak dikirim', () => {
+    const result = buildListQuery(Model, {}, {
+      ...options,
+      defaultOrder: [['is_aktif', 'DESC'], ['tahun', 'DESC']],
+    });
+
+    expect(result.order).toEqual([['is_aktif', 'DESC'], ['tahun', 'DESC']]);
+  });
+
   it('ignores filter fields outside the whitelist', () => {
     const result = buildListQuery(Model, {
       filter: { createdAt: '2026-01-01' },

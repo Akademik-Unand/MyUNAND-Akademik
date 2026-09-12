@@ -1,43 +1,51 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Search, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { PageHeader } from '../../components/common/PageHeader';
-import { PageSkeleton } from '../../components/common/PageSkeleton';
-import { RoleMatrixTable } from '../../components/iam/RoleMatrixTable';
-import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { getRolePermissionMatrix, syncRolePermissions } from '../../services/api';
-import { Can } from '../../components/auth/Can';
-import { useCan } from '../../hooks/useCan';
-import { useBusyAction } from '../../hooks/useBusyAction';
-import { isUniversityAdminRole, roleLabel } from '../../constants/roles';
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Search, X } from "lucide-react";
+import { toast } from "sonner";
+import { PageHeader } from "../../components/common/PageHeader";
+import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { RoleMatrixTable } from "../../components/iam/RoleMatrixTable";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import {
+  getRolePermissionMatrix,
+  syncRolePermissions,
+} from "../../services/api";
+import { Can } from "../../components/auth/Can";
+import { useCan } from "../../hooks/useCan";
+import { useBusyAction } from "../../hooks/useBusyAction";
+import { isUniversityAdminRole, roleLabel } from "../../constants/roles";
 
 const matchesQuery = (permission, query) => {
-  const haystack = [permission.name, permission.description, permission.group, permission.subject]
+  const haystack = [
+    permission.name,
+    permission.description,
+    permission.group,
+    permission.subject,
+  ]
     .filter(Boolean)
-    .join(' ')
+    .join(" ")
     .toLowerCase();
   return haystack.includes(query);
 };
 
 export const RoleMatrixPage = () => {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['roles', 'matrix'],
+    queryKey: ["roles", "matrix"],
     queryFn: getRolePermissionMatrix,
   });
   const [draft, setDraft] = useState({});
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const { busy, run } = useBusyAction();
   const can = useCan();
-  const canSync = can('sync-permissions', 'Role');
+  const canSync = can("sync-permissions", "Role");
 
   useEffect(() => {
     if (data?.grants) setDraft(data.grants);
   }, [data]);
 
   useEffect(() => {
-    if (error) toast.error(error.message || 'Gagal memuat matriks');
+    if (error) toast.error(error.message || "Gagal memuat matriks");
   }, [error]);
 
   const groups = useMemo(() => {
@@ -45,7 +53,7 @@ export const RoleMatrixPage = () => {
     const map = {};
     for (const permission of data?.permissions || []) {
       if (query && !matchesQuery(permission, query)) continue;
-      const group = permission.group || 'lainnya';
+      const group = permission.group || "lainnya";
       if (!map[group]) map[group] = [];
       map[group].push(permission);
     }
@@ -68,7 +76,9 @@ export const RoleMatrixPage = () => {
       await refetch();
     });
 
-  const roles = (data?.roles || []).filter((role) => !isUniversityAdminRole(role.name));
+  const roles = (data?.roles || []).filter(
+    (role) => !isUniversityAdminRole(role.name),
+  );
 
   if (isLoading) return <PageSkeleton />;
 
@@ -77,7 +87,7 @@ export const RoleMatrixPage = () => {
       <PageHeader
         title="Peran & Permission"
         subtitle="Centang aksi yang boleh dilakukan tiap peran. Admin Universitas selalu punya semua akses."
-        breadcrumbs={[{ label: 'Pengguna & Akses' }, { label: 'Peran' }]}
+        breadcrumbs={[{ label: "Pengguna & Akses" }, { label: "Peran" }]}
       />
       <Card className="overflow-x-auto">
         {roles.length > 0 && (
@@ -92,7 +102,11 @@ export const RoleMatrixPage = () => {
                 aria-label="Cari permission"
               />
               {search && (
-                <button type="button" onClick={() => setSearch('')} aria-label="Bersihkan pencarian">
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Bersihkan pencarian"
+                >
                   <X size={14} className="opacity-50" />
                 </button>
               )}
@@ -110,7 +124,13 @@ export const RoleMatrixPage = () => {
           <Can I="sync-permissions" a="Role">
             <div className="flex flex-wrap gap-2 p-4 border-t border-base-300">
               {roles.map((role) => (
-                <Button key={role.id} size="sm" onClick={() => saveRole(role)} isLoading={Boolean(busy)} disabled={Boolean(busy)}>
+                <Button
+                  key={role.id}
+                  size="sm"
+                  onClick={() => saveRole(role)}
+                  isLoading={Boolean(busy)}
+                  disabled={Boolean(busy)}
+                >
                   Simpan {roleLabel(role.name)}
                 </Button>
               ))}

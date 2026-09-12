@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
-const { sequelize } = require('../models');
-const { normalizeListQuery } = require('./listQuery');
-const { idList, prodiIdsSql, semesterProdiIdsSql } = require('./academicFilters');
+const { sequelize } = require("../models");
+const { normalizeListQuery } = require("./listQuery");
+const { idList, prodiIdsSql } = require("./academicFilters");
 
 const FROM_SQL = `
 FROM nilai_mahasiswa AS nm
@@ -20,8 +20,7 @@ LEFT JOIN cpmk_scp AS parent_cs ON parent_cs.cpmk_id = cpmk.parent_cpmk_id
   AND direct_cs.id IS NULL
 LEFT JOIN scp ON scp.id = COALESCE(direct_cs.scp_id, parent_cs.scp_id) AND scp.deletedAt IS NULL
 LEFT JOIN cp ON cp.id = scp.cp_id AND cp.deletedAt IS NULL
-LEFT JOIN semester_prodi AS smp ON smp.id = COALESCE(k.semester_prodi_id, kr.semester_prodi_id)
-LEFT JOIN semester AS sm ON sm.id = smp.semester_id AND sm.deletedAt IS NULL
+LEFT JOIN semester AS sm ON sm.id = COALESCE(k.semester_id, kr.semester_id) AND sm.deletedAt IS NULL
 LEFT JOIN jenis_semester AS js ON js.id = sm.jenis_semester_id AND js.deletedAt IS NULL
 `;
 
@@ -62,23 +61,30 @@ SELECT
 
 const buildWhere = (query = {}) => {
   const parsed = normalizeListQuery(query);
-  const filter = parsed.filter && typeof parsed.filter === 'object' ? parsed.filter : {};
-  const clauses = ['nm.nilai IS NOT NULL'];
+  const filter =
+    parsed.filter && typeof parsed.filter === "object" ? parsed.filter : {};
+  const clauses = ["nm.nilai IS NOT NULL"];
 
   const andIn = (column, val) => {
-    if (val === undefined || val === '' || val === null) return;
+    if (val === undefined || val === "" || val === null) return;
     clauses.push(`${column} IN (${idList(sequelize, val)})`);
   };
 
   if (filter.fakultas_id) {
-    clauses.push(`m.program_studi_id IN (${prodiIdsSql(sequelize, { fakultas_id: filter.fakultas_id })})`);
+    clauses.push(
+      `m.program_studi_id IN (${prodiIdsSql(sequelize, { fakultas_id: filter.fakultas_id })})`,
+    );
   }
   if (filter.departemen_id) {
-    clauses.push(`m.program_studi_id IN (${prodiIdsSql(sequelize, { departemen_id: filter.departemen_id })})`);
+    clauses.push(
+      `m.program_studi_id IN (${prodiIdsSql(sequelize, { departemen_id: filter.departemen_id })})`,
+    );
   }
-  andIn('m.program_studi_id', filter.program_studi_id);
+  andIn("m.program_studi_id", filter.program_studi_id);
   if (filter.semester_id) {
-    clauses.push(`smp.id IN (${semesterProdiIdsSql(sequelize, { semester_id: filter.semester_id })})`);
+    clauses.push(
+      `COALESCE(k.semester_id, kr.semester_id) IN (${idList(sequelize, filter.semester_id)})`,
+    );
   }
   if (filter.kurikulum_id) {
     const ids = idList(sequelize, filter.kurikulum_id);
@@ -87,17 +93,21 @@ const buildWhere = (query = {}) => {
       OR mk.id IN (SELECT mkk.matakuliah_id FROM matakuliah_kurikulum AS mkk WHERE mkk.kurikulum_id IN (${ids}))
     )`);
   }
-  andIn('cp.id', filter.cp_id);
-  andIn('scp.id', filter.scp_id);
-  andIn('mk.id', filter.matakuliah_id);
-  andIn('k.id', filter.kelas_id);
-  if (filter.angkatan !== undefined && filter.angkatan !== '') {
+  andIn("cp.id", filter.cp_id);
+  andIn("scp.id", filter.scp_id);
+  andIn("mk.id", filter.matakuliah_id);
+  andIn("k.id", filter.kelas_id);
+  if (filter.angkatan !== undefined && filter.angkatan !== "") {
     clauses.push(`m.angkatan = ${sequelize.escape(Number(filter.angkatan))}`);
   }
-  if (filter.transkrip_saja === '1' || filter.transkrip_saja === 1 || filter.transkrip_saja === true) {
+  if (
+    filter.transkrip_saja === "1" ||
+    filter.transkrip_saja === 1 ||
+    filter.transkrip_saja === true
+  ) {
     const kur = filter.kurikulum_id
       ? `AND mkk.kurikulum_id IN (${idList(sequelize, filter.kurikulum_id)})`
-      : '';
+      : "";
     clauses.push(`mk.id IN (
       SELECT mkk.matakuliah_id FROM matakuliah_kurikulum AS mkk
       WHERE mkk.status = 'transkrip' ${kur}
@@ -107,10 +117,17 @@ const buildWhere = (query = {}) => {
   const search = parsed.search;
   if (search) {
     const like = sequelize.escape(`%${search}%`);
-    clauses.push(`(m.nama LIKE ${like} OR m.niu LIKE ${like} OR mk.nama_resmi LIKE ${like} OR mk.kode_matakuliah LIKE ${like})`);
+    clauses.push(
+      `(m.nama LIKE ${like} OR m.niu LIKE ${like} OR mk.nama_resmi LIKE ${like} OR mk.kode_matakuliah LIKE ${like})`,
+    );
   }
 
-  return { whereSql: clauses.join(' AND '), page: parseInt(parsed.page, 10) || 1, limit: parseInt(parsed.limit, 10) || 20, pilihan: filter.pilihan_data };
+  return {
+    whereSql: clauses.join(" AND "),
+    page: parseInt(parsed.page, 10) || 1,
+    limit: parseInt(parsed.limit, 10) || 20,
+    pilihan: filter.pilihan_data,
+  };
 };
 
 module.exports = { FROM_SQL, SELECT_SQL, buildWhere };

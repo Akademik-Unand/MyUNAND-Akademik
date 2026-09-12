@@ -1,52 +1,64 @@
-import { describe, expect, it } from 'vitest';
-import { can, parsePermission } from './defineAbility';
+import { describe, expect, it } from "vitest";
+import { can, parsePermission } from "./defineAbility";
 
 const mahasiswa = {
-  role: 'mahasiswa',
-  roles: [{ name: 'mahasiswa' }],
-  permissions: ['krs.read', 'krs.create', 'krs.update', 'rekap-cp.read', 'laporan-cp.read'],
+  role: "mahasiswa",
+  roles: [{ name: "mahasiswa" }],
+  permissions: [
+    "krs.read",
+    "krs.create",
+    "krs.update",
+    "rekap-cp.read",
+    "laporan-cp.read",
+  ],
 };
 
 const universityAdmin = {
-  role: 'admin-universitas',
-  roles: [{ name: 'admin-universitas' }],
+  role: "admin-universitas",
+  roles: [{ name: "admin-universitas" }],
   permissions: [],
 };
 
 const legacySuperadmin = {
-  role: 'superadmin',
-  roles: [{ name: 'superadmin' }],
+  role: "superadmin",
+  roles: [{ name: "superadmin" }],
   permissions: [],
 };
 
-describe('parsePermission', () => {
-  it('parses fine-grained names including upload', () => {
-    expect(parsePermission('fakultas.create')).toEqual({ action: 'create', subject: 'Fakultas' });
-    expect(parsePermission('nilai.upload')).toEqual({ action: 'upload', subject: 'NilaiMahasiswa' });
-    expect(parsePermission('dokumen-evaluasi.read')).toEqual({
-      action: 'read',
-      subject: 'DokumenEvaluasi',
+describe("parsePermission", () => {
+  it("parses fine-grained names including upload", () => {
+    expect(parsePermission("fakultas.create")).toEqual({
+      action: "create",
+      subject: "Fakultas",
+    });
+    expect(parsePermission("nilai.upload")).toEqual({
+      action: "upload",
+      subject: "NilaiMahasiswa",
+    });
+    expect(parsePermission("dokumen-evaluasi.read")).toEqual({
+      action: "read",
+      subject: "DokumenEvaluasi",
     });
   });
 });
 
-describe('can', () => {
-  it('returns false without user or permissions', () => {
-    expect(can(null, 'read', 'Fakultas')).toBe(false);
-    expect(can({ permissions: [] }, 'read', 'Fakultas')).toBe(false);
+describe("can", () => {
+  it("returns false without user or permissions", () => {
+    expect(can(null, "read", "Fakultas")).toBe(false);
+    expect(can({ permissions: [] }, "read", "Fakultas")).toBe(false);
   });
 
-  it('lets admin-universitas do everything', () => {
-    expect(can(universityAdmin, 'delete', 'Fakultas')).toBe(true);
-    expect(can(universityAdmin, 'read', 'Role')).toBe(true);
-    expect(can(legacySuperadmin, 'create', 'Cpmk')).toBe(true);
+  it("lets admin-universitas do everything", () => {
+    expect(can(universityAdmin, "delete", "Fakultas")).toBe(true);
+    expect(can(universityAdmin, "read", "Role")).toBe(true);
+    expect(can(legacySuperadmin, "create", "Cpmk")).toBe(true);
   });
 
-  it('limits mahasiswa to laporan and krs', () => {
-    expect(can(mahasiswa, 'read', 'RekapCp')).toBe(true);
-    expect(can(mahasiswa, 'read', 'LaporanCp')).toBe(true);
-    expect(can(mahasiswa, 'create', 'LaporanCp')).toBe(false);
-    expect(can(mahasiswa, 'read', 'Fakultas')).toBe(false);
-    expect(can(mahasiswa, 'read', 'Role')).toBe(false);
+  it("limits mahasiswa to laporan and krs", () => {
+    expect(can(mahasiswa, "read", "RekapCp")).toBe(true);
+    expect(can(mahasiswa, "read", "LaporanCp")).toBe(true);
+    expect(can(mahasiswa, "create", "LaporanCp")).toBe(false);
+    expect(can(mahasiswa, "read", "Fakultas")).toBe(false);
+    expect(can(mahasiswa, "read", "Role")).toBe(false);
   });
 });

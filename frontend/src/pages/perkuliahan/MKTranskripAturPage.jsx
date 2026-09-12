@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { PageHeader } from '../../components/common/PageHeader';
-import { Card } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { FilterBar } from '../../components/common/FilterBar';
-import { PageSkeleton } from '../../components/common/PageSkeleton';
-import { useResourceQuery } from '../../hooks/useResourceQuery';
-import { useAcademicFilter } from '../../hooks/useAcademicFilter';
-import { Can } from '../../components/auth/Can';
-import { updateResourceItem } from '../../services/api';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { PageHeader } from "../../components/common/PageHeader";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { FilterBar } from "../../components/common/FilterBar";
+import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { useResourceQuery } from "../../hooks/useResourceQuery";
+import { useAcademicFilter } from "../../hooks/useAcademicFilter";
+import { Can } from "../../components/auth/Can";
+import { updateResourceItem } from "../../services/api";
 
-const FILTER_KEYS = ['fakultas', 'departemen', 'prodi', 'kurikulum'];
+const FILTER_KEYS = ["fakultas", "departemen", "prodi", "kurikulum"];
 
 export const MKTranskripAturPage = () => {
   const navigate = useNavigate();
   const academic = useAcademicFilter({ keys: FILTER_KEYS });
   const extraFilter = academic.extraFilter;
-  const query = useResourceQuery('mk-transkrip', {
+  const query = useResourceQuery("mk-transkrip", {
     params: extraFilter ? { filter: extraFilter } : {},
     enabled: Boolean(extraFilter),
   });
@@ -25,7 +25,9 @@ export const MKTranskripAturPage = () => {
   const [saving, setSaving] = useState(false);
 
   const rows = extraFilter ? (query.data ?? []) : [];
-  const defaultSelected = rows.filter((row) => row.status === 'transkrip').map((row) => row.id);
+  const defaultSelected = rows
+    .filter((row) => row.status === "transkrip")
+    .map((row) => row.id);
   const checked = selected ?? defaultSelected;
   const allSelected = rows.length > 0 && checked.length === rows.length;
   const midpoint = Math.ceil(rows.length / 2);
@@ -34,7 +36,9 @@ export const MKTranskripAturPage = () => {
   const toggle = (id) => {
     setSelected((prev) => {
       const current = prev ?? defaultSelected;
-      return current.includes(id) ? current.filter((item) => item !== id) : [...current, id];
+      return current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id];
     });
   };
 
@@ -45,14 +49,14 @@ export const MKTranskripAturPage = () => {
     setSaving(true);
     try {
       for (const row of rows) {
-        const next = checked.includes(row.id) ? 'transkrip' : null;
+        const next = checked.includes(row.id) ? "transkrip" : null;
         if ((row.status || null) === next) continue;
-        await updateResourceItem('mk-transkrip', row.id, { status: next });
+        await updateResourceItem("mk-transkrip", row.id, { status: next });
       }
-      toast.success('MK transkrip disimpan');
-      navigate('/perkuliahan/mk-semester');
+      toast.success("MK transkrip disimpan");
+      navigate("/perkuliahan/mk-semester");
     } catch (err) {
-      toast.error(err.message || 'Gagal menyimpan MK transkrip');
+      toast.error(err.message || "Gagal menyimpan MK transkrip");
     } finally {
       setSaving(false);
     }
@@ -64,9 +68,9 @@ export const MKTranskripAturPage = () => {
         title="Atur Matakuliah Transkrip"
         subtitle="Pilih mata kuliah yang masuk ke transkrip capaian pembelajaran"
         breadcrumbs={[
-          { label: 'Semester & Perkuliahan' },
-          { label: 'MK Semester', path: '/perkuliahan/mk-semester' },
-          { label: 'Atur Transkrip' },
+          { label: "Kurikulum & MK" },
+          { label: "MK Semester", path: "/perkuliahan/mk-semester" },
+          { label: "Atur Transkrip" },
         ]}
       />
 
@@ -87,54 +91,74 @@ export const MKTranskripAturPage = () => {
 
       <Card title="Daftar Mata Kuliah">
         {!extraFilter && (
-          <p className="text-sm text-base-content/60">Pilih fakultas hingga kurikulum, lalu klik Terapkan.</p>
+          <p className="text-sm text-base-content/60">
+            Pilih fakultas hingga kurikulum, lalu klik Terapkan.
+          </p>
         )}
         {extraFilter && query.isPending && <PageSkeleton tableCols={2} />}
         {extraFilter && !query.isPending && (
           <>
-        <label className="mb-4 flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            className="checkbox checkbox-sm checkbox-primary"
-            checked={allSelected}
-            onChange={(e) => setSelected(e.target.checked ? rows.map((row) => row.id) : [])}
-          />
-          Check All
-        </label>
+            <label className="mb-4 flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="checkbox checkbox-sm checkbox-primary"
+                checked={allSelected}
+                onChange={(e) =>
+                  setSelected(e.target.checked ? rows.map((row) => row.id) : [])
+                }
+              />
+              Check All
+            </label>
 
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-          {columns.map((group, idx) => (
-            <div key={idx} className="space-y-2">
-              {group.map((row) => (
-                <label key={row.id} className="flex cursor-pointer items-start gap-2 rounded-box px-2 py-1.5 hover:bg-base-200">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-sm checkbox-primary mt-0.5"
-                    checked={checked.includes(row.id)}
-                    onChange={() => toggle(row.id)}
-                  />
-                  <span className="text-sm">
-                    <span className="font-medium">{row.matakuliah?.kode_matakuliah}</span> — {row.matakuliah?.nama_resmi}
-                  </span>
-                </label>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              {columns.map((group, idx) => (
+                <div key={idx} className="space-y-2">
+                  {group.map((row) => (
+                    <label
+                      key={row.id}
+                      className="flex cursor-pointer items-start gap-2 rounded-box px-2 py-1.5 hover:bg-base-200"
+                    >
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-sm checkbox-primary mt-0.5"
+                        checked={checked.includes(row.id)}
+                        onChange={() => toggle(row.id)}
+                      />
+                      <span className="text-sm">
+                        <span className="font-medium">
+                          {row.matakuliah?.kode_matakuliah}
+                        </span>{" "}
+                        — {row.matakuliah?.nama_resmi}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               ))}
             </div>
-          ))}
-        </div>
 
-        <div className="mt-6 flex justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/perkuliahan/mk-semester')} disabled={saving}>
-            Batal
-          </Button>
-          <Button variant="ghost" size="sm" onClick={reset} disabled={saving}>
-            Reset
-          </Button>
-          <Can I="update" a="MatakuliahKurikulum">
-            <Button size="sm" onClick={save} isLoading={saving}>
-              Simpan
-            </Button>
-          </Can>
-        </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/perkuliahan/mk-semester")}
+                disabled={saving}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={reset}
+                disabled={saving}
+              >
+                Reset
+              </Button>
+              <Can I="update" a="MatakuliahKurikulum">
+                <Button size="sm" onClick={save} isLoading={saving}>
+                  Simpan
+                </Button>
+              </Can>
+            </div>
           </>
         )}
       </Card>

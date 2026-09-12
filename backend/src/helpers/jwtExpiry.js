@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 const UNIT_MS = {
   s: 1000,
@@ -8,7 +8,9 @@ const UNIT_MS = {
 };
 
 const durationToMs = (value, fallbackMs) => {
-  const match = String(value || '').trim().match(/^(\d+)\s*([smhd])$/i);
+  const match = String(value || "")
+    .trim()
+    .match(/^(\d+)\s*([smhd])$/i);
   if (!match) return fallbackMs;
   return Number(match[1]) * UNIT_MS[match[2].toLowerCase()];
 };

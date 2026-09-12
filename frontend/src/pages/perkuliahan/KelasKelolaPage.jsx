@@ -1,14 +1,14 @@
-import { Link, useParams } from 'react-router-dom';
-import { PageHeader } from '../../components/common/PageHeader';
-import { PageSkeleton } from '../../components/common/PageSkeleton';
-import { KelasInfoCard } from '../../components/kelas/KelasInfoCard';
-import { KelasHub } from '../../components/kelas/KelasHub';
-import { useResourceItem } from '../../hooks/useResourceQuery';
-import { kelasTitle } from '../../helpers/kelasInfo';
+import { Link, useParams } from "react-router-dom";
+import { PageHeader } from "../../components/common/PageHeader";
+import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { KelasInfoCard } from "../../components/kelas/KelasInfoCard";
+import { KelasHub } from "../../components/kelas/KelasHub";
+import { useResourceItem } from "../../hooks/useResourceQuery";
+import { kelasTitle } from "../../helpers/kelasInfo";
 
 export const KelasKelolaPage = () => {
   const { id } = useParams();
-  const kelas = useResourceItem('kelas', id);
+  const kelas = useResourceItem("kelas", id);
   const title = kelasTitle(kelas.data);
 
   if (kelas.isPending) return <PageSkeleton cards={2} />;
@@ -19,8 +19,8 @@ export const KelasKelolaPage = () => {
         title="Kelola Kelas"
         subtitle={title}
         breadcrumbs={[
-          { label: 'Semester & Perkuliahan' },
-          { label: 'Kelas', path: '/perkuliahan/kelas' },
+          { label: "Perkuliahan" },
+          { label: "Kelas", path: "/perkuliahan/kelas" },
           { label: title },
         ]}
       />

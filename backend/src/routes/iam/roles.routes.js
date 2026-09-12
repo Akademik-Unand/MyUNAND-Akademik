@@ -1,93 +1,96 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const rolesValidation = require('../../validations/iam/roles.validation');
-const rolesController = require('../../controllers/iam/roles.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const rolesValidation = require("../../validations/iam/roles.validation");
+const rolesController = require("../../controllers/iam/roles.controller");
 
-const subject = 'Role';
+const subject = "Role";
 
 /** GET /roles */
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: rolesValidation.list }),
-  rolesController.list
+  rolesController.list,
 );
 
 /** GET /roles/matrix */
 router.get(
-  '/matrix',
+  "/matrix",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
-  rolesController.matrix
+  checkPermission("read", subject),
+  rolesController.matrix,
 );
 
 /** POST /roles */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: rolesValidation.create }),
-  rolesController.create
+  rolesController.create,
 );
 
 /** PUT /roles/:id/permissions */
 router.put(
-  '/:id/permissions',
+  "/:id/permissions",
   authenticate,
   attachAbility,
-  checkPermission('sync-permissions', subject),
-  validate({ params: rolesValidation.idParam, body: rolesValidation.syncPermissions }),
-  rolesController.syncPermissions
+  checkPermission("sync-permissions", subject),
+  validate({
+    params: rolesValidation.idParam,
+    body: rolesValidation.syncPermissions,
+  }),
+  rolesController.syncPermissions,
 );
 
 /** POST /roles/:id/restore */
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: rolesValidation.idParam }),
-  rolesController.restore
+  rolesController.restore,
 );
 
 /** GET /roles/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: rolesValidation.idParam }),
-  rolesController.getById
+  rolesController.getById,
 );
 
 /** PUT /roles/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
+  checkPermission("update", subject),
   validate({ params: rolesValidation.idParam, body: rolesValidation.update }),
-  rolesController.update
+  rolesController.update,
 );
 
 /** DELETE /roles/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: rolesValidation.idParam }),
-  rolesController.remove
+  rolesController.remove,
 );
 
 module.exports = router;

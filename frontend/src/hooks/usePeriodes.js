@@ -1,8 +1,11 @@
-import { useResourceQuery } from './useResourceQuery';
-import { bolehCpmk, bolehNilai } from '../helpers/academicPeriod';
+import { useResourceQuery } from "./useResourceQuery";
+import { bolehCpmk, bolehNilai } from "../helpers/academicPeriod";
 
 export const usePeriodes = (options = {}) =>
-  useResourceQuery('periode', { params: { limit: 200, ...options.params }, ...options });
+  useResourceQuery("periode", {
+    params: { limit: 200, ...options.params },
+    ...options,
+  });
 
 export const useCpmkPeriodOpen = () => {
   const query = usePeriodes();

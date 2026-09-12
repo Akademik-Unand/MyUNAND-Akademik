@@ -1,21 +1,24 @@
-import { Link } from 'react-router-dom';
-import { Card } from '../ui/Card';
-import { Can } from '../auth/Can';
-import { semesterAkademikLabel, prodiDepartemenLabel } from '../../helpers/semesterProdi';
+import { Link } from "react-router-dom";
+import { Card } from "../ui/Card";
+import { Can } from "../auth/Can";
+import {
+  semesterAkademikLabel,
+  prodiDepartemenLabel,
+} from "../../helpers/academicLabel";
 import {
   kelasDisplayName,
   kelasDosenNames,
   kurikulumLabel,
   matakuliahKurikulumId,
   pickKurikulum,
-} from '../../helpers/kelasInfo';
-import { bolehCpmk, periodeInputNilai } from '../../helpers/academicPeriod';
-import { usePeriodes } from '../../hooks/usePeriodes';
+} from "../../helpers/kelasInfo";
+import { bolehCpmk, periodeInputNilai } from "../../helpers/academicPeriod";
+import { usePeriodes } from "../../hooks/usePeriodes";
 
 const Field = ({ label, children }) => (
   <div>
     <p className="text-xs text-base-content/60">{label}</p>
-    <div className="text-sm font-medium">{children ?? '—'}</div>
+    <div className="text-sm font-medium">{children ?? "—"}</div>
   </div>
 );
 
@@ -32,24 +35,35 @@ export const KelasInfoCard = ({ kelas }) => {
         <div className="space-y-4">
           <Field label="Nama Kelas">{kelasDisplayName(kelas)}</Field>
           <Field label="Mata Kuliah">
-            <span className="text-primary">{kelas?.matakuliah?.nama_resmi || '—'}</span>
+            <span className="text-primary">
+              {kelas?.matakuliah?.nama_resmi || "—"}
+            </span>
             <div className="mt-2 flex flex-wrap gap-2">
               {mkId && (
                 <>
                   {cpmkOpen && (
                     <Can I="update" a="Cpmk">
-                      <Link to={`/perkuliahan/mk-semester/${mkId}/atur`} className="btn btn-success btn-xs">
+                      <Link
+                        to={`/perkuliahan/mk-semester/${mkId}/atur`}
+                        className="btn btn-success btn-xs"
+                      >
                         CPMK Semester
                       </Link>
                     </Can>
                   )}
                   <Can I="read" a="EvaluasiCpmk">
-                    <Link to={`/perkuliahan/mk-semester/${mkId}/evaluasi`} className="btn btn-success btn-xs">
+                    <Link
+                      to={`/perkuliahan/mk-semester/${mkId}/evaluasi`}
+                      className="btn btn-success btn-xs"
+                    >
                       Evaluasi Semester
                     </Link>
                   </Can>
                   <Can I="read" a="DokumenEvaluasi">
-                    <Link to={`/perkuliahan/mk-semester/${mkId}/dokumen`} className="btn btn-success btn-xs">
+                    <Link
+                      to={`/perkuliahan/mk-semester/${mkId}/dokumen`}
+                      className="btn btn-success btn-xs"
+                    >
                       Upload Dokumen Semester
                     </Link>
                   </Can>
@@ -57,17 +71,29 @@ export const KelasInfoCard = ({ kelas }) => {
               )}
             </div>
           </Field>
-          <Field label="Semester">{semesterAkademikLabel(kelas?.semesterProdi?.semester)}</Field>
-          <Field label="Program Studi">{prodiDepartemenLabel(kelas?.semesterProdi?.programStudi)}</Field>
-          <Field label="Kurikulum">{kurikulumLabel(pickKurikulum(kelas))}</Field>
-          <Field label="Jumlah Peserta">{peserta == null ? '—' : peserta}</Field>
+          <Field label="Semester">
+            {semesterAkademikLabel(kelas?.semester)}
+          </Field>
+          <Field label="Program Studi">
+            {prodiDepartemenLabel(kelas?.programStudi)}
+          </Field>
+          <Field label="Kurikulum">
+            {kurikulumLabel(pickKurikulum(kelas))}
+          </Field>
+          <Field label="Jumlah Peserta">
+            {peserta == null ? "—" : peserta}
+          </Field>
         </div>
         <div className="space-y-4">
           <Field label="Input Nilai">
             {periode.label}
             {periode.hasRange && (
-              <p className={`mt-1 text-sm ${periode.boleh ? 'text-success' : 'text-error'}`}>
-                {periode.boleh ? 'Boleh input nilai' : 'Belum boleh input nilai'}
+              <p
+                className={`mt-1 text-sm ${periode.boleh ? "text-success" : "text-error"}`}
+              >
+                {periode.boleh
+                  ? "Boleh input nilai"
+                  : "Belum boleh input nilai"}
               </p>
             )}
           </Field>

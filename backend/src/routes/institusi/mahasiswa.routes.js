@@ -1,74 +1,77 @@
-'use strict';
+"use strict";
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../../middleware/auth');
-const attachAbility = require('../../middleware/attachAbility');
-const checkPermission = require('../../middleware/checkPermission');
-const validate = require('../../middleware/validate');
-const mahasiswaValidation = require('../../validations/institusi/mahasiswa.validation');
-const mahasiswaController = require('../../controllers/institusi/mahasiswa.controller');
+const { authenticate } = require("../../middleware/auth");
+const attachAbility = require("../../middleware/attachAbility");
+const checkPermission = require("../../middleware/checkPermission");
+const validate = require("../../middleware/validate");
+const mahasiswaValidation = require("../../validations/institusi/mahasiswa.validation");
+const mahasiswaController = require("../../controllers/institusi/mahasiswa.controller");
 
-const subject = 'Mahasiswa';
+const subject = "Mahasiswa";
 
-/mahasiswa */
+/mahasiswa */;
 router.get(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ query: mahasiswaValidation.list }),
-  mahasiswaController.list
+  mahasiswaController.list,
 );
 
 /** POST /mahasiswa */
 router.post(
-  '/',
+  "/",
   authenticate,
   attachAbility,
-  checkPermission('create', subject),
+  checkPermission("create", subject),
   validate({ body: mahasiswaValidation.create }),
-  mahasiswaController.create
+  mahasiswaController.create,
 );
 
 /** POST /mahasiswa/:id/restore */
 router.post(
-  '/:id/restore',
+  "/:id/restore",
   authenticate,
   attachAbility,
-  checkPermission('restore', subject),
+  checkPermission("restore", subject),
   validate({ params: mahasiswaValidation.idParam }),
-  mahasiswaController.restore
+  mahasiswaController.restore,
 );
 
 /** GET /mahasiswa/:id */
 router.get(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('read', subject),
+  checkPermission("read", subject),
   validate({ params: mahasiswaValidation.idParam }),
-  mahasiswaController.getById
+  mahasiswaController.getById,
 );
 
 /** PUT /mahasiswa/:id */
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('update', subject),
-  validate({ params: mahasiswaValidation.idParam, body: mahasiswaValidation.update }),
-  mahasiswaController.update
+  checkPermission("update", subject),
+  validate({
+    params: mahasiswaValidation.idParam,
+    body: mahasiswaValidation.update,
+  }),
+  mahasiswaController.update,
 );
 
 /** DELETE /mahasiswa/:id */
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   attachAbility,
-  checkPermission('delete', subject),
+  checkPermission("delete", subject),
   validate({ params: mahasiswaValidation.idParam }),
-  mahasiswaController.remove
+  mahasiswaController.remove,
 );
 
 module.exports = router;

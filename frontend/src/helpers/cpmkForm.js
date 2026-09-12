@@ -1,14 +1,14 @@
 export const emptySubCpmk = () => ({
   key: crypto.randomUUID(),
-  nama_cpmk: '',
-  deskripsi: '',
+  nama_cpmk: "",
+  deskripsi: "",
   scp_ids: [],
 });
 
 export const emptyCpmkRow = () => ({
   key: crypto.randomUUID(),
-  nama_cpmk: '',
-  deskripsi: '',
+  nama_cpmk: "",
+  deskripsi: "",
   scp_ids: [],
   has_sub: false,
   sub_cpmk: [],
@@ -16,8 +16,8 @@ export const emptyCpmkRow = () => ({
 
 export const toSubCpmkPayload = (items = []) =>
   items.map(({ nama_cpmk, deskripsi, scp_ids }) => ({
-    nama_cpmk: (nama_cpmk || '').trim(),
-    deskripsi: (deskripsi || '').trim(),
+    nama_cpmk: (nama_cpmk || "").trim(),
+    deskripsi: (deskripsi || "").trim(),
     scp_ids: scp_ids || [],
   }));
 
@@ -26,8 +26,8 @@ export const toCpmkPayload = (row, matakuliahId) => {
   const hasSub = Boolean(row.has_sub && (row.sub_cpmk || []).length);
   const payload = {
     matakuliah_id: matakuliahId,
-    nama_cpmk: (row.nama_cpmk || '').trim(),
-    deskripsi: (row.deskripsi || '').trim(),
+    nama_cpmk: (row.nama_cpmk || "").trim(),
+    deskripsi: (row.deskripsi || "").trim(),
     parent_cpmk_id: null,
     scp_ids: hasSub ? [] : row.scp_ids || [],
   };

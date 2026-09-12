@@ -1,4 +1,9 @@
-export const LaporanCpStickyCell = ({ rowSpan, children, style, className = '' }) => (
+export const LaporanCpStickyCell = ({
+  rowSpan,
+  children,
+  style,
+  className = "",
+}) => (
   <td
     rowSpan={rowSpan > 1 ? rowSpan : undefined}
     className={`align-top max-w-xs bg-base-100 ${className}`}

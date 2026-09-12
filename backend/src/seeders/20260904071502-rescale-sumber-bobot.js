@@ -1,14 +1,14 @@
-'use strict';
+"use strict";
 
 /** Menyesuaikan bobot sumber penilaian per mata kuliah agar total daun tidak > 100%. */
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
     const [cpmks] = await queryInterface.sequelize.query(
-      'SELECT id, matakuliah_id, parent_cpmk_id FROM cpmk WHERE deletedAt IS NULL'
+      "SELECT id, matakuliah_id, parent_cpmk_id FROM cpmk WHERE deletedAt IS NULL",
     );
     const [sumbers] = await queryInterface.sequelize.query(
-      'SELECT id, cpmk_id, bobot FROM sumber_penilaian'
+      "SELECT id, cpmk_id, bobot FROM sumber_penilaian",
     );
 
     const byMk = new Map();
@@ -24,10 +24,17 @@ module.exports = {
     }
 
     for (const rows of byMk.values()) {
-      const parentIds = new Set(rows.map((row) => row.parent_cpmk_id).filter(Boolean));
-      const leafIds = rows.filter((row) => !parentIds.has(row.id)).map((row) => row.id);
+      const parentIds = new Set(
+        rows.map((row) => row.parent_cpmk_id).filter(Boolean),
+      );
+      const leafIds = rows
+        .filter((row) => !parentIds.has(row.id))
+        .map((row) => row.id);
       const leafSumber = leafIds.flatMap((id) => sumberByCpmk.get(id) || []);
-      const total = leafSumber.reduce((sum, row) => sum + Number(row.bobot || 0), 0);
+      const total = leafSumber.reduce(
+        (sum, row) => sum + Number(row.bobot || 0),
+        0,
+      );
       if (total <= 100 || total === 0) continue;
       const factor = 100 / total;
       for (let i = 0; i < leafSumber.length; i += 1) {
@@ -38,13 +45,20 @@ module.exports = {
                 (100 -
                   leafSumber
                     .slice(0, -1)
-                    .reduce((sum, item) => sum + Math.round(Number(item.bobot) * factor * 10) / 10, 0)) *
-                  10
+                    .reduce(
+                      (sum, item) =>
+                        sum + Math.round(Number(item.bobot) * factor * 10) / 10,
+                      0,
+                    )) *
+                  10,
               ) / 10
             : Math.round(Number(row.bobot) * factor * 10) / 10;
-        await queryInterface.sequelize.query('UPDATE sumber_penilaian SET bobot = ? WHERE id = ?', {
-          replacements: [next, row.id],
-        });
+        await queryInterface.sequelize.query(
+          "UPDATE sumber_penilaian SET bobot = ? WHERE id = ?",
+          {
+            replacements: [next, row.id],
+          },
+        );
       }
     }
   },
