@@ -23,7 +23,7 @@ import {
   deteksiKonflikJadwal,
 } from "../../helpers/jadwal";
 import { kelasDisplayName } from "../../helpers/kelasInfo";
-import { semesterAkademikLabel } from "../../helpers/academicLabel";
+import { semesterAkademikLabel, programStudiLabel } from "../../helpers/academicLabel";
 import { filterProdiByScope } from "../../helpers/organizationContext";
 
 const ruangLabel = (ruang) => {
@@ -313,7 +313,7 @@ export const JadwalRuangPage = () => {
             placeholder="Pilih program studi"
             options={prodiList.map((row) => ({
               value: row.id,
-              label: row.nama_resmi || row.nama_singkat || row.kode_prodi,
+              label: programStudiLabel(row),
             }))}
             value={activeProdiId}
             disabled={org.scoped && Boolean(org.prodiId)}
@@ -357,7 +357,7 @@ export const JadwalRuangPage = () => {
 
       <Card
         title={
-          activeProdi ? `Grid Jadwal — ${activeProdi.nama_resmi}` : "Grid Jadwal"
+          activeProdi ? `Grid Jadwal — ${programStudiLabel(activeProdi)}` : "Grid Jadwal"
         }
         actions={
           kelasList.length ? (

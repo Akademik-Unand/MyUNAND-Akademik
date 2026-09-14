@@ -38,6 +38,7 @@ export const MasterListPage = ({
   rowActionExtra,
   detailResource,
   extraFilter,
+  dataLocked,
   beforeTable,
   createDefaults,
   validate,
@@ -177,6 +178,7 @@ export const MasterListPage = ({
           resource={resource}
           columns={tableColumns}
           extraFilter={extraFilter}
+          dataLocked={dataLocked}
           rowKey={rowKey}
           searchPlaceholder={
             searchPlaceholder || `Cari ${title.toLowerCase()}...`

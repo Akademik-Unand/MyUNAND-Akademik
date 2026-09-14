@@ -9,7 +9,7 @@ import { LaporanCpMatakuliahModal } from "../../components/laporan-cp/LaporanCpM
 import { useResourceItem } from "../../hooks/useResourceQuery";
 import { useLaporanCpPreview } from "../../hooks/useLaporanCpPreview";
 import { selectedFromItems, withGroupedCapaian } from "../../helpers/laporanCp";
-import { semesterDanSebelumnyaLabel } from "../../helpers/academicLabel";
+import { semesterDanSebelumnyaLabel, programStudiLabel } from "../../helpers/academicLabel";
 
 export const LaporanCPViewPage = () => {
   const { id } = useParams();
@@ -50,7 +50,7 @@ export const LaporanCPViewPage = () => {
             { label: "Dibuat oleh", value: laporan?.pembuat?.name },
             {
               label: "Program studi",
-              value: laporan?.programStudi?.nama_resmi,
+              value: programStudiLabel(laporan?.programStudi, ""),
             },
             { label: "Kurikulum", value: laporan?.kurikulum?.nama },
             {

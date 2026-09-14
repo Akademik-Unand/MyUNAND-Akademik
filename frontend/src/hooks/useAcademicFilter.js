@@ -58,9 +58,7 @@ export const useAcademicFilter = ({
     }
     return base;
   }, [
-    localKeySignature,
-    global.fakultasId,
-    global.departemenId,
+    localKeys,
     global.prodiId,
     activeSemesterId,
     semesterConfigurable,
@@ -84,6 +82,8 @@ export const useAcademicFilter = ({
 
   const options = useMemo(
     () =>
+      // draft dibuat ulang tiap render (spread global+draftLocal), jadi deps memakai
+      // field-fieldnya — menyertakan draft justru mengalahkan memoization.
       cascadeAcademicOptions(
         {
           fakultas: raw.fakultasRows,
@@ -95,6 +95,7 @@ export const useAcademicFilter = ({
         draft,
         scope,
       ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- draft identity tidak stabil
     [
       raw.fakultasRows,
       raw.departemenRows,
@@ -112,6 +113,7 @@ export const useAcademicFilter = ({
 
   const setField = useCallback(
     (key, value) => {
+      // global/org dibangun ulang tiap render; field-fieldnya sudah ada di deps.
       if (
         GLOBAL_KEYS.has(
           keys.find(
@@ -132,6 +134,7 @@ export const useAcademicFilter = ({
         return { kurikulumId: next.kurikulumId, semesterId: next.semesterId };
       });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- global/org identity tidak stabil
     [
       global.fakultasId,
       global.departemenId,
@@ -143,6 +146,7 @@ export const useAcademicFilter = ({
 
   const fields = useMemo(
     () =>
+      // sama seperti options: draft dibangun ulang tiap render.
       buildAcademicFilterFields({
         keys: localKeys,
         draft,
@@ -150,6 +154,7 @@ export const useAcademicFilter = ({
         onChange: setField,
         scope,
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- draft identity tidak stabil
     [
       localKeySignature,
       draft.kurikulumId,
@@ -162,9 +167,11 @@ export const useAcademicFilter = ({
   );
 
   const extraFilter = useMemo(() => {
+    // applied dibangun ulang tiap render; keysSignature mewakili keys.
     const base = toAcademicExtraFilter(applied, keys);
     if (base) return base;
     return scoped ? {} : undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- applied identity tidak stabil
   }, [
     applied.fakultasId,
     applied.departemenId,
@@ -180,6 +187,7 @@ export const useAcademicFilter = ({
     applied,
     fields,
     extraFilter,
+    locked: extraFilter !== undefined,
     scope,
     canApply: isAcademicDraftReady(draft) || scoped,
     apply: () => setAppliedLocal({ ...draftLocal }),

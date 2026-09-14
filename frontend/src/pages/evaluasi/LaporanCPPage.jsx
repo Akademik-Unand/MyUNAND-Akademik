@@ -5,14 +5,19 @@ import { IconButton, IconLink } from "../../components/common/IconButton";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { FilterBar } from "../../components/common/FilterBar";
 import { DataTable } from "../../components/common/DataTable";
 import { ConfirmDeleteModal } from "../../components/common/ConfirmDeleteModal";
 import { Can } from "../../components/auth/Can";
 import { useResourceMutations } from "../../hooks/useResourceMutations";
+import { useAcademicFilter } from "../../hooks/useAcademicFilter";
 
 export const LaporanCPPage = () => {
   const mutations = useResourceMutations("laporan-cp", {
     remove: "Laporan CP berhasil dihapus.",
+  });
+  const academic = useAcademicFilter({
+    keys: ["fakultas", "departemen", "prodi"],
   });
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -87,10 +92,20 @@ export const LaporanCPPage = () => {
           </Can>
         }
       />
+      <Card title="Filter Laporan">
+        <FilterBar
+          fields={academic.fields}
+          onApply={academic.apply}
+          onReset={academic.reset}
+          applyDisabled={!academic.canApply}
+        />
+      </Card>
       <Card title="Daftar Laporan">
         <DataTable
           resource="laporan-cp"
           columns={columns}
+          extraFilter={academic.extraFilter}
+          dataLocked={academic.locked}
           rowKey={(row) => row.id}
           searchPlaceholder="Cari nama laporan atau pembuat..."
         />

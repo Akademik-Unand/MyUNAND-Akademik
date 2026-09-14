@@ -135,6 +135,7 @@ export const MKSemesterPage = () => {
             tableKey="mk_"
             columns={columns}
             extraFilter={extraFilter}
+            dataLocked={academic.locked}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari kode atau nama mata kuliah..."
           />
@@ -147,6 +148,7 @@ export const MKSemesterPage = () => {
             tableKey="tr_"
             columns={columns}
             extraFilter={{ status: "transkrip", ...(extraFilter || {}) }}
+            dataLocked={academic.locked}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari mata kuliah transkrip..."
           />

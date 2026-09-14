@@ -58,7 +58,9 @@ export const DosenPaPage = () => {
     [extraFilter],
   );
 
-  const summary = useBimbinganSummary(summaryParams);
+  const summary = useBimbinganSummary(summaryParams, {
+    enabled: academic.locked,
+  });
   const mutations = useBimbinganMutations();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -249,10 +251,12 @@ export const DosenPaPage = () => {
         }
       />
 
-      <BimbinganSummaryCards
-        summary={summary.data}
-        isLoading={summary.isPending}
-      />
+      {academic.locked && (
+        <BimbinganSummaryCards
+          summary={summary.data}
+          isLoading={summary.isPending}
+        />
+      )}
 
       <Card title="Filter">
         <FilterBar
@@ -269,6 +273,7 @@ export const DosenPaPage = () => {
           tableKey="pa_"
           columns={columns}
           extraFilter={extraFilter}
+          dataLocked={academic.locked}
           rowKey={(row) => row.id}
           searchPlaceholder="Cari nama/NIU mahasiswa atau nama dosen..."
         />

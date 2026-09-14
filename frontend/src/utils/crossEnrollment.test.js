@@ -14,12 +14,12 @@ describe("cross enrollment presentation", () => {
       krs: {
         mahasiswa: {
           nama: "Ayu",
-          programStudi: { nama_resmi: "Teknik Industri" },
+          programStudi: { nama_singkat: "S1 Teknik Industri" },
         },
       },
     };
     expect(participantName(row)).toBe("Ayu");
-    expect(participantProgram(row)).toBe("Teknik Industri");
+    expect(participantProgram(row)).toBe("S1 Teknik Industri");
   });
 
   it("maps approval states for dosen PA flow", () => {

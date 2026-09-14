@@ -16,11 +16,13 @@ const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const logger = require('../../utils/logger');
 const { assertNilaiPeriodForKelas, assertNilaiPeriodForKrsDetil } = require('../../helpers/academicPeriod');
+const { nilaiFilters } = require('../../helpers/academicFilters');
 
 const LIST_OPTIONS = {
   searchFields: [],
   sortableFields: ['nilai', 'createdAt'],
-  filterableFields: ['krs_detil_id', 'sumber_penilaian_id'],
+  filterableFields: ['krs_detil_id', 'sumber_penilaian_id', 'kelas_id', 'matakuliah_id'],
+  virtualFilters: nilaiFilters(sequelize),
   defaultInclude: [
     {
       model: KrsDetil,

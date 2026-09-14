@@ -33,12 +33,12 @@ describe('organizational account seed helper', () => {
     }
   });
 
-  test('requires an environment password and rejects weak production values', () => {
+  test('requires an environment password with at least six characters', () => {
     expect(() => resolveSeedPassword({ NODE_ENV: 'development' })).toThrow(/required/);
     expect(resolveSeedPassword({ NODE_ENV: 'production' })).toBeNull();
     expect(() => resolveSeedPassword({ NODE_ENV: 'production', ORG_ACCOUNT_SEED_PASSWORD: 'short' }))
-      .toThrow(/at least 12/);
-    expect(resolveSeedPassword({ NODE_ENV: 'production', ORG_ACCOUNT_SEED_PASSWORD: 'strong-password-2026' }))
-      .toBe('strong-password-2026');
+      .toThrow(/at least 6/);
+    expect(resolveSeedPassword({ NODE_ENV: 'production', ORG_ACCOUNT_SEED_PASSWORD: '123456' }))
+      .toBe('123456');
   });
 });

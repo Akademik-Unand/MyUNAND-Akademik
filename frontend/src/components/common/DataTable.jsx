@@ -6,6 +6,7 @@ import { applyQuery } from "../../utils/queryRows";
 import { consecutiveRowSpans } from "../../helpers/tableSpans";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableToolbar } from "./DataTableToolbar";
+import { DataGate } from "./DataGate";
 import { Select } from "../ui/Select";
 import { Skeleton } from "../ui/Skeleton";
 
@@ -72,6 +73,7 @@ export const DataTable = ({
   toolbarActions,
   className = "",
   extraFilter,
+  dataLocked,
 }) => {
   const table = useTableParams({
     prefix: tableKey || paramPrefix,
@@ -133,6 +135,15 @@ export const DataTable = ({
     observer.observe(tableEl);
     return () => observer.disconnect();
   }, [rows, columns, isLoading]);
+
+  if (dataLocked === false) {
+    return (
+      <DataGate
+        title="Pilih filter dulu"
+        message="Pilih unit organisasi (fakultas/departemen/prodi) di navbar atau terapkan filter di atas untuk melihat datanya."
+      />
+    );
+  }
 
   return (
     <div className={`w-full ${className}`}>

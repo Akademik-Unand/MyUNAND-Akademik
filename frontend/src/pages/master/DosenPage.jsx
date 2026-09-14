@@ -3,6 +3,7 @@ import { DosenForm } from "../../components/master/DosenForm";
 import { FilterBar } from "../../components/common/FilterBar";
 import { Card } from "../../components/ui/Card";
 import { useAcademicFilter } from "../../hooks/useAcademicFilter";
+import { programStudiLabel } from "../../helpers/academicLabel";
 
 const emptyForm = {
   nip: "",
@@ -30,6 +31,7 @@ export const DosenPage = () => {
       emptyForm={emptyForm}
       createDefaults={{ program_studi_id: academic.applied.prodiId || "" }}
       extraFilter={academic.extraFilter}
+      dataLocked={academic.locked}
       beforeTable={
         <Card title="Filter Dosen">
           <FilterBar
@@ -46,14 +48,14 @@ export const DosenPage = () => {
           key: "program_studi_id",
           header: "Program Studi",
           sortable: true,
-          render: (row) => row.programStudi?.nama_resmi || "—",
+          render: (row) => programStudiLabel(row.programStudi),
         },
         { key: "nip", header: "NIP", sortable: true },
         { key: "nama", header: "Nama", sortable: true },
         { key: "nidn", header: "NIDN", sortable: true },
       ]}
       detailItems={(row) => [
-        { label: "Program Studi", value: row.programStudi?.nama_resmi },
+        { label: "Program Studi", value: programStudiLabel(row.programStudi, "") },
         { label: "NIP", value: row.nip },
         { label: "Nama", value: row.nama },
         { label: "NIDN", value: row.nidn },

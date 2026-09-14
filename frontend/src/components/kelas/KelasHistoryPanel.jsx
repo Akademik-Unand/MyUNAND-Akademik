@@ -10,6 +10,7 @@ export const KelasHistoryPanel = ({
   kelasId,
   extraFilter,
   tableKey = "hist_",
+  dataLocked,
 }) => {
   const [item, setItem] = useState(null);
   const mergedFilter = {
@@ -51,6 +52,7 @@ export const KelasHistoryPanel = ({
         extraFilter={
           Object.keys(mergedFilter).length ? mergedFilter : undefined
         }
+        dataLocked={dataLocked}
         rowKey={(row) => row.id}
         searchPlaceholder="Cari berkas atau pengunggah..."
       />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { PageHeader } from "../../components/common/PageHeader";
@@ -29,19 +29,19 @@ export const AturCPMKSemesterPage = () => {
   });
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
+  const [loadedCpmkData, setLoadedCpmkData] = useState(null);
+  if (query.data && query.data !== loadedCpmkData) {
+    setLoadedCpmkData(query.data);
+    setItems(
+      query.data.map((row) => ({
+        ...row,
+        sumberPenilaian: row.sumberPenilaian || [],
+      })),
+    );
+  }
   const [saving, setSaving] = useState(false);
   const cpmkOpen = useCpmkPeriodOpen().open;
   const back = `/perkuliahan/mk-semester/${id}`;
-
-  useEffect(() => {
-    if (query.data)
-      setItems(
-        query.data.map((row) => ({
-          ...row,
-          sumberPenilaian: row.sumberPenilaian || [],
-        })),
-      );
-  }, [query.data]);
 
   const save = async () => {
     if (saving) return;

@@ -12,6 +12,7 @@ const {
   assertRoleHierarchy,
   isUniversityActor,
 } = require('../../helpers/organizationScopeGuard');
+const { orgFiltersOnUserId } = require('../../helpers/academicFilters');
 
 const UNIT_INCLUDE = [
   { model: Fakultas, as: 'fakultas' },
@@ -23,6 +24,7 @@ const LIST_OPTIONS = {
   searchFields: ['name', 'email'],
   sortableFields: ['name', 'email', 'role', 'createdAt'],
   filterableFields: ['email', 'role'],
+  virtualFilters: orgFiltersOnUserId(sequelize),
   defaultInclude: [
     { model: Dosen, as: 'dosen' },
     { model: Mahasiswa, as: 'mahasiswa' },
@@ -38,7 +40,7 @@ const unitDetail = (unit) => ({
   program_studi_id: unit.program_studi_id || null,
   fakultas: unit.fakultas ? { id: unit.fakultas.id, kode: unit.fakultas.kode_fakultas || null, nama: unit.fakultas.nama_resmi || unit.fakultas.nama_singkat || null } : null,
   departemen: unit.departemen ? { id: unit.departemen.id, kode: unit.departemen.kode_departemen || null, nama: unit.departemen.nama_resmi || unit.departemen.nama_singkat || null, fakultas_id: unit.departemen.fakultas_id || null } : null,
-  program_studi: unit.programStudi ? { id: unit.programStudi.id, kode: unit.programStudi.kode_prodi || null, nama: unit.programStudi.nama_resmi || null, fakultas_id: unit.programStudi.fakultas_id || null, departemen_id: unit.programStudi.departemen_id || null } : null,
+  program_studi: unit.programStudi ? { id: unit.programStudi.id, kode: unit.programStudi.kode_prodi || null, nama: unit.programStudi.nama_resmi || null, nama_singkat: unit.programStudi.nama_singkat || null, fakultas_id: unit.programStudi.fakultas_id || null, departemen_id: unit.programStudi.departemen_id || null } : null,
 });
 
 const actorContext = (context = {}) => {

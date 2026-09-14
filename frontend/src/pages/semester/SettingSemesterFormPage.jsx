@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
@@ -20,20 +20,19 @@ export const SettingSemesterFormPage = () => {
   const navigate = useNavigate();
   const existing = useResourceItem("setting-semester", id);
   const [values, setValues] = useState(empty);
+  const [loadedSettingId, setLoadedSettingId] = useState(null);
+  if (existing.data && existing.data.id !== loadedSettingId) {
+    setLoadedSettingId(existing.data.id);
+    setValues({
+      tahun: existing.data.tahun || "",
+      jenis_semester_id: existing.data.jenis_semester_id || "",
+      tanggal_mulai: existing.data.tanggal_mulai || "",
+      tanggal_selesai: existing.data.tanggal_selesai || "",
+    });
+  }
   const isEdit = Boolean(id);
   const mutations = useResourceMutations("setting-semester");
   const saving = mutations.create.isPending || mutations.update.isPending;
-
-  useEffect(() => {
-    if (existing.data) {
-      setValues({
-        tahun: existing.data.tahun || "",
-        jenis_semester_id: existing.data.jenis_semester_id || "",
-        tanggal_mulai: existing.data.tanggal_mulai || "",
-        tanggal_selesai: existing.data.tanggal_selesai || "",
-      });
-    }
-  }, [existing.data]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

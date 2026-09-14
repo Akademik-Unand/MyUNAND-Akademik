@@ -1,3 +1,5 @@
+import { programStudiLabel } from "../helpers/academicLabel";
+
 export const formatDateTime = (value) =>
   value
     ? new Intl.DateTimeFormat("id-ID", {
@@ -16,12 +18,15 @@ export const participantNiu = (row) =>
   row?.krs?.mahasiswa?.niu || row?.niu || "—";
 
 export const participantProgram = (row) =>
-  row?.krs?.mahasiswa?.programStudi?.nama_resmi ||
-  row?.mahasiswa?.programStudi?.nama_resmi ||
-  "Program studi tidak tersedia";
+  programStudiLabel(
+    row?.krs?.mahasiswa?.programStudi || row?.mahasiswa?.programStudi,
+    "Program studi tidak tersedia",
+  );
 
 export const hostProgram = (row) =>
-  row?.kelas?.penawaranMatakuliah?.penawaran?.programStudi?.nama_resmi || "—";
+  programStudiLabel(
+    row?.kelas?.penawaranMatakuliah?.penawaran?.programStudi,
+  );
 
 export const approvalStatusLabel = (status) =>
   ({

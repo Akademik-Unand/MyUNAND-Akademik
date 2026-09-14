@@ -7,11 +7,21 @@ import { IconButton } from "../../components/common/IconButton";
 import { Can } from "../../components/auth/Can";
 import { assignUserRoles } from "../../services/api";
 import { roleLabel } from "../../constants/roles";
+import { programStudiLabel } from "../../helpers/academicLabel";
 
 const unitLabel = (unit) => {
   if (!unit) return null;
-  // Nama resmi unit biasanya sudah memuat kata Fakultas/Departemen/Prodi.
-  if (unit.programStudi?.nama) return unit.programStudi.nama;
+  // Prodi memakai nama singkat (sudah memuat jenjang, mis. "S1 SI"); unit lain
+  // memakai nama resmi yang sudah memuat kata Fakultas/Departemen.
+  if (unit.programStudi) {
+    return programStudiLabel(
+      {
+        nama_singkat: unit.programStudi.nama_singkat,
+        kode_prodi: unit.programStudi.kode,
+      },
+      null,
+    );
+  }
   if (unit.departemen?.nama) return unit.departemen.nama;
   if (unit.fakultas?.nama) return unit.fakultas.nama;
   return null;
@@ -29,7 +39,7 @@ export const UsersPage = () => {
     <>
       <MasterListPage
         title="Pengguna"
-        subtitle="Kelola akun, tetapkan peran, dan batasi data sesuai unit organisasi"
+        subtitle="Kelola akun dan peran untuk seluruh unit organisasi"
         breadcrumbs={[{ label: "Pengguna & Akses" }, { label: "Pengguna" }]}
         subject="User"
         resource="users"

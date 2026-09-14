@@ -47,6 +47,7 @@ const contextFromOrgScope = (user) => {
 };
 
 /** Apakah role user memiliki scope organisasi yang sudah ditetapkan (tidak bisa dipilih manual). */
+// eslint-disable-next-line react-refresh/only-export-components -- helper dibutuhkan bareng provider
 export const isScopedRole = (user) => {
   const scope = user?.org_scope;
   return Boolean(scope?.level && SCOPED_LEVELS.has(scope.level));
@@ -168,6 +169,7 @@ export const OrganizationProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook dibutuhkan bareng provider
 export const useOrganizationContext = () => {
   const value = useContext(OrganizationContext);
   if (!value)

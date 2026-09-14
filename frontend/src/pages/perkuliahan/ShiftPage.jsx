@@ -1,11 +1,13 @@
 import { MasterListPage } from "../../components/master/MasterListPage";
 import { ShiftForm } from "../../components/master/ShiftForm";
-import { useOrgContext } from "../../hooks/useOrgContext";
+import { FilterBar } from "../../components/common/FilterBar";
+import { Card } from "../../components/ui/Card";
+import { useAcademicFilter } from "../../hooks/useAcademicFilter";
 
 const formatJam = (value) => (value ? String(value).slice(0, 5) : "");
 
 export const ShiftPage = () => {
-  const org = useOrgContext();
+  const academic = useAcademicFilter({ keys: ["fakultas"] });
 
   return (
     <MasterListPage
@@ -18,7 +20,21 @@ export const ShiftPage = () => {
       FormComponent={ShiftForm}
       emptyForm={{ fakultas_id: "", kode: "", jam_mulai: "", jam_selesai: "" }}
       createDefaults={
-        org.fakultasId ? { fakultas_id: org.fakultasId } : undefined
+        academic.applied.fakultasId
+          ? { fakultas_id: academic.applied.fakultasId }
+          : undefined
+      }
+      extraFilter={academic.extraFilter}
+      dataLocked={academic.locked}
+      beforeTable={
+        <Card title="Filter Shift">
+          <FilterBar
+            fields={academic.fields}
+            onApply={academic.apply}
+            onReset={academic.reset}
+            applyDisabled={!academic.canApply}
+          />
+        </Card>
       }
       rowKey={(row) => row.id}
       searchPlaceholder="Cari shift..."

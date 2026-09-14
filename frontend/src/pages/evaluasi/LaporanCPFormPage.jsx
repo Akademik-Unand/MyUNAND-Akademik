@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { PageHeader } from "../../components/common/PageHeader";
@@ -28,14 +28,9 @@ export const LaporanCPFormPage = () => {
   const existing = useResourceItem("laporan-cp", id);
   const [values, setValues] = useState(empty);
   const [selected, setSelected] = useState(() => new Set());
-  const isEdit = Boolean(id);
-  const mutations = useResourceMutations("laporan-cp");
-  const saving = mutations.create.isPending || mutations.update.isPending;
-  const preview = useLaporanCpPreview(values.kurikulum_id, values.semester_id);
-  const rows = preview.data || [];
-
-  useEffect(() => {
-    if (!existing.data) return;
+  const [loadedLaporanId, setLoadedLaporanId] = useState(null);
+  if (existing.data && existing.data.id !== loadedLaporanId) {
+    setLoadedLaporanId(existing.data.id);
     setValues({
       nama_laporan: existing.data.nama_laporan || "",
       keterangan: existing.data.keterangan || "",
@@ -43,7 +38,12 @@ export const LaporanCPFormPage = () => {
       semester_id: existing.data.semester_id || "",
     });
     setSelected(selectedFromItems(existing.data.items || []));
-  }, [existing.data]);
+  }
+  const isEdit = Boolean(id);
+  const mutations = useResourceMutations("laporan-cp");
+  const saving = mutations.create.isPending || mutations.update.isPending;
+  const preview = useLaporanCpPreview(values.kurikulum_id, values.semester_id);
+  const rows = preview.data || [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();

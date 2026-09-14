@@ -54,6 +54,13 @@ const kurikulumIdsSql = (
   return `${sql} WHERE ${where.join(" AND ")}`;
 };
 
+const departemenIdsSql = (sequelize, { fakultas_id } = {}) => {
+  const where = ["d.deletedAt IS NULL"];
+  if (fakultas_id)
+    where.push(`d.fakultas_id IN (${idList(sequelize, fakultas_id)})`);
+  return `SELECT d.id FROM departemen d WHERE ${where.join(" AND ")}`;
+};
+
 const prodiIdsSql = (sequelize, { fakultas_id, departemen_id } = {}) => {
   const where = ["p.deletedAt IS NULL"];
   let sql = "SELECT p.id FROM program_studi p";
@@ -285,6 +292,115 @@ const orgFiltersOnKelasId = (sequelize) => ({
   }),
 });
 
+/** Filter daftar evaluasi CPMK: org/semester via kelas + filter matakuliah_id langsung. */
+const evaluasiCpmkFilters = (sequelize) => ({
+  ...orgFiltersOnKelasId(sequelize),
+  matakuliah_id: (val) => ({
+    kelas_id: inSql(
+      sequelize,
+      kelasIdsSql(`k.matakuliah_id IN (${idList(sequelize, val)})`),
+    ),
+  }),
+});
+
+/** Subquery id krs_detil yang kelasnya memenuhi kondisi scope/filter nilai. */
+const krsDetilIdsByKelasSql = (sequelize, conditionSql) =>
+  `SELECT kd.id FROM krs_detil kd INNER JOIN kelas k ON k.id = kd.kelas_id WHERE kd.deletedAt IS NULL AND k.deletedAt IS NULL AND (${conditionSql})`;
+
+/** Filter untuk daftar nilai mahasiswa lewat kelas pemilik krs_detil. */
+const nilaiFilters = (sequelize) => ({
+  kelas_id: (val) => ({
+    krs_detil_id: inSql(
+      sequelize,
+      krsDetilIdsByKelasSql(
+        sequelize,
+        `kd.kelas_id IN (${idList(sequelize, val)})`,
+      ),
+    ),
+  }),
+  matakuliah_id: (val) => ({
+    krs_detil_id: inSql(
+      sequelize,
+      krsDetilIdsByKelasSql(
+        sequelize,
+        `k.matakuliah_id IN (${idList(sequelize, val)})`,
+      ),
+    ),
+  }),
+  semester_id: (val) => ({
+    krs_detil_id: inSql(
+      sequelize,
+      krsDetilIdsByKelasSql(
+        sequelize,
+        `k.semester_id IN (${idList(sequelize, val)})`,
+      ),
+    ),
+  }),
+  program_studi_id: (val) => ({
+    krs_detil_id: inSql(
+      sequelize,
+      krsDetilIdsByKelasSql(
+        sequelize,
+        `k.program_studi_id IN (${idList(sequelize, val)})`,
+      ),
+    ),
+  }),
+  departemen_id: (val) => ({
+    krs_detil_id: inSql(
+      sequelize,
+      krsDetilIdsByKelasSql(
+        sequelize,
+        kelasScopeSql(sequelize, { departemen_id: val }),
+      ),
+    ),
+  }),
+  fakultas_id: (val) => ({
+    krs_detil_id: inSql(
+      sequelize,
+      krsDetilIdsByKelasSql(
+        sequelize,
+        kelasScopeSql(sequelize, { fakultas_id: val }),
+      ),
+    ),
+  }),
+});
+
+/** Subquery id user yang unit organisasinya memenuhi scope/filter (tabel user_units). */
+const userUnitIdsSql = (
+  sequelize,
+  { fakultas_id, departemen_id, program_studi_id } = {},
+) => {
+  const clauses = [];
+  if (program_studi_id)
+    clauses.push(
+      `u.program_studi_id IN (${idList(sequelize, program_studi_id)})`,
+    );
+  if (departemen_id) {
+    clauses.push(
+      `(u.departemen_id IN (${idList(sequelize, departemen_id)}) OR u.program_studi_id IN (${prodiIdsSql(sequelize, { departemen_id })})`,
+    );
+  }
+  if (fakultas_id) {
+    clauses.push(
+      `(u.fakultas_id IN (${idList(sequelize, fakultas_id)}) OR u.departemen_id IN (${departemenIdsSql(sequelize, { fakultas_id })}) OR u.program_studi_id IN (${prodiIdsSql(sequelize, { fakultas_id })})`,
+    );
+  }
+  return `SELECT u.user_id FROM user_units u WHERE ${clauses.join(" OR ")}`;
+};
+
+/** Filter organisasi untuk daftar user lewat unit organisasi yang dipegangnya. */
+const orgFiltersOnUserId = (sequelize) => ({
+  program_studi_id: (val) => ({
+    id: inSql(sequelize, userUnitIdsSql(sequelize, { program_studi_id: val })),
+  }),
+  departemen_id: (val) => ({
+    id: inSql(sequelize, userUnitIdsSql(sequelize, { departemen_id: val })),
+  }),
+  fakultas_id: (val) => ({
+    id: inSql(sequelize, userUnitIdsSql(sequelize, { fakultas_id: val })),
+  }),
+});
+
 /** Filter untuk daftar fakultas itu sendiri: fakultas_id → id. */
 const orgFiltersOnFakultasId = () => ({
   fakultas_id: (val) => ({ id: val }),
@@ -397,6 +513,9 @@ module.exports = {
   orgFiltersOnCpmkId,
   orgFiltersOnKelasId,
   orgFiltersOnFakultasId,
+  evaluasiCpmkFilters,
+  nilaiFilters,
+  orgFiltersOnUserId,
   // Catatan: `orgFiltersOnSemesterProdiId` dihapus bersama tabel
   // `semester_prodi` (Fase 5).
   mkKurikulumFilters,

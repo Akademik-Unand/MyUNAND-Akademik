@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { PageHeader } from "../../components/common/PageHeader";
@@ -29,6 +29,21 @@ export const ProdiFormPage = () => {
   const navigate = useNavigate();
   const existing = useResourceItem("prodi", id);
   const [values, setValues] = useState(empty);
+  const [loadedProdiId, setLoadedProdiId] = useState(null);
+  if (existing.data && existing.data.id !== loadedProdiId) {
+    setLoadedProdiId(existing.data.id);
+    setValues({
+      ...empty,
+      ...existing.data,
+      jenjang_akademik_id: existing.data.jenjang_akademik_id || "",
+      model_kurikulum_id: existing.data.model_kurikulum_id || "",
+      universitas_id: existing.data.universitas_id || "",
+      fakultas_id: existing.data.fakultas_id || "",
+      departemen_id: existing.data.departemen_id || "",
+      sks_default: existing.data.sks_default ?? "",
+      sks_maksimal: existing.data.sks_maksimal ?? "",
+    });
+  }
   const isEdit = Boolean(id);
   const mutations = useResourceMutations("prodi");
   const can = useCan();
@@ -36,22 +51,6 @@ export const ProdiFormPage = () => {
   // tetapi bukan angka SKS-nya.
   const canEditSks = can("update-sks", "ProgramStudi");
   const saving = mutations.create.isPending || mutations.update.isPending;
-
-  useEffect(() => {
-    if (existing.data) {
-      setValues({
-        ...empty,
-        ...existing.data,
-        jenjang_akademik_id: existing.data.jenjang_akademik_id || "",
-        model_kurikulum_id: existing.data.model_kurikulum_id || "",
-        universitas_id: existing.data.universitas_id || "",
-        fakultas_id: existing.data.fakultas_id || "",
-        departemen_id: existing.data.departemen_id || "",
-        sks_default: existing.data.sks_default ?? "",
-        sks_maksimal: existing.data.sks_maksimal ?? "",
-      });
-    }
-  }, [existing.data]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

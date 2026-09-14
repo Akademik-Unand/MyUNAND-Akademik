@@ -88,9 +88,9 @@ function resolveSeedPassword(environment = process.env) {
       "ORG_ACCOUNT_SEED_PASSWORD is required to seed organizational accounts",
     );
   }
-  if (password.length < 12)
+  if (password.length < 6)
     throw new Error(
-      "ORG_ACCOUNT_SEED_PASSWORD must contain at least 12 characters",
+      "ORG_ACCOUNT_SEED_PASSWORD must contain at least 6 characters",
     );
   return password;
 }

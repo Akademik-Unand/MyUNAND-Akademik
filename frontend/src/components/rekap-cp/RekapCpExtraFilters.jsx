@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { FilterBar } from "../common/FilterBar";
 import { ResourceSelect } from "../common/ResourceSelect";
-import { Select } from "../ui/Select";
 import { kelasDisplayName } from "../../helpers/kelasInfo";
 
 const EMPTY = {

@@ -13,6 +13,7 @@ import { FilterBar } from "../../components/common/FilterBar";
 import { Can } from "../../components/auth/Can";
 import { useResourceMutations } from "../../hooks/useResourceMutations";
 import { useAcademicFilter } from "../../hooks/useAcademicFilter";
+import { programStudiLabel } from "../../helpers/academicLabel";
 
 const FILTER_KEYS = ["fakultas", "departemen", "prodi"];
 
@@ -128,7 +129,7 @@ export const KurikulumDataPage = () => {
               { label: "Tahun", value: detail.tahun },
               {
                 label: "Program studi",
-                value: detail.programStudi?.nama_resmi,
+                value: programStudiLabel(detail.programStudi, ""),
               },
               { label: "Masa ideal", value: detail.masa_studi_ideal },
               { label: "Masa maksimum", value: detail.masa_studi_maksimal },

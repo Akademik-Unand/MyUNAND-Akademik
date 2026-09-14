@@ -10,7 +10,7 @@ Auth publik: `POST /api/v1/auth/login` mengembalikan `access_token` (pendek) dan
 `POST /api/v1/auth/logout` `{ refresh_token }` — mencabut refresh token.
 Endpoint lain memakai access JWT + CASL.
 
-Administrasi user (`/api/v1/users`) menerapkan scope organisasi pada service untuk list, detail, update, delete/restore, assign role, dan assign unit. Aktor tanpa scope valid ditolak (fail closed); admin unit hanya dapat mengelola target dalam unit dan hierarki role di bawahnya. Seeder akun organisasi memakai `ORG_ACCOUNT_SEED_PASSWORD` (minimal 12 karakter), tidak berjalan di production bila env tidak disediakan, dan menghasilkan dua akun deterministik per fakultas/departemen/prodi (`admin-*` dan `pimpinan-*`; 472 akun pada master canonical 16/67/153).
+Administrasi user (`/api/v1/users`) menerapkan scope organisasi pada service untuk list, detail, update, delete/restore, assign role, dan assign unit. Aktor tanpa scope valid ditolak (fail closed); admin unit hanya dapat mengelola target dalam unit dan hierarki role di bawahnya. Seeder akun organisasi memakai `ORG_ACCOUNT_SEED_PASSWORD` (minimal 6 karakter), tidak berjalan di production bila env tidak disediakan, dan menghasilkan dua akun deterministik per fakultas/departemen/prodi (`admin-*` dan `pimpinan-*`; 472 akun pada master canonical 16/67/153).
 Health: `GET /up`.
 
 Redis opsional (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`). Backend tetap boot jika Redis down. Cache JSON: `helpers/cache.js` (`get` / `set` / `del`).

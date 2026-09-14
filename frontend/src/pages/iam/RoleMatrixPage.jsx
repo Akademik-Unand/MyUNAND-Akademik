@@ -36,13 +36,14 @@ export const RoleMatrixPage = () => {
   });
   const [draft, setDraft] = useState({});
   const [search, setSearch] = useState("");
+  const [loadedGrants, setLoadedGrants] = useState(null);
+  if (data?.grants && data.grants !== loadedGrants) {
+    setLoadedGrants(data.grants);
+    setDraft(data.grants);
+  }
   const { busy, run } = useBusyAction();
   const can = useCan();
   const canSync = can("sync-permissions", "Role");
-
-  useEffect(() => {
-    if (data?.grants) setDraft(data.grants);
-  }, [data]);
 
   useEffect(() => {
     if (error) toast.error(error.message || "Gagal memuat matriks");

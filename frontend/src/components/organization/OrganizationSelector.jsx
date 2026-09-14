@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, ChevronDown, RefreshCw, Lock } from "lucide-react";
 import { Select } from "../ui/Select";
 import { Modal } from "../ui/Modal";
@@ -24,8 +24,11 @@ export const OrganizationSelector = () => {
   } = useOrganizationContext();
   const [draft, setDraft] = useState(context);
   const [open, setOpen] = useState(false);
-
-  useEffect(() => setDraft(context), [context]);
+  const [prevContext, setPrevContext] = useState(context);
+  if (!same(context, prevContext)) {
+    setPrevContext(context);
+    setDraft(context);
+  }
 
   const filtered = useMemo(
     () => ({

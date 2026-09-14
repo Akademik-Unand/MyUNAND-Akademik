@@ -201,6 +201,7 @@ export const KelasPage = () => {
           resource="kelas"
           columns={columns}
           extraFilter={extraFilter}
+          dataLocked={academic.locked}
           rowKey={(row) => row.id}
           searchPlaceholder="Cari kelas atau mata kuliah..."
         />

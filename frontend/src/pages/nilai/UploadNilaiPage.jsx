@@ -68,12 +68,17 @@ export const UploadNilaiPage = () => {
             tableKey="unl_"
             columns={columns}
             extraFilter={extraFilter}
+            dataLocked={academic.locked}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari kelas atau mata kuliah..."
           />
         </Card>
       ) : can("read", "HistoryUploadNilai") ? (
-        <KelasHistoryPanel extraFilter={extraFilter} tableKey="unh_" />
+        <KelasHistoryPanel
+          extraFilter={extraFilter}
+          tableKey="unh_"
+          dataLocked={academic.locked}
+        />
       ) : (
         <Card title="History Upload Nilai">
           <p className="text-sm text-base-content/60">

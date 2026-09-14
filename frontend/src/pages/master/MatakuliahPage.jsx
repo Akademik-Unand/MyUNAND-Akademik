@@ -3,6 +3,7 @@ import { MatakuliahForm } from "../../components/master/MatakuliahForm";
 import { FilterBar } from "../../components/common/FilterBar";
 import { Card } from "../../components/ui/Card";
 import { useAcademicFilter } from "../../hooks/useAcademicFilter";
+import { programStudiLabel } from "../../helpers/academicLabel";
 
 const emptyForm = {
   program_studi_id: "",
@@ -37,6 +38,7 @@ export const MatakuliahPage = () => {
       emptyForm={emptyForm}
       createDefaults={{ program_studi_id: academic.applied.prodiId || "" }}
       extraFilter={academic.extraFilter}
+      dataLocked={academic.locked}
       beforeTable={
         <Card title="Filter Mata Kuliah">
           <FilterBar
@@ -53,7 +55,7 @@ export const MatakuliahPage = () => {
           key: "program_studi_id",
           header: "Program Studi",
           sortable: true,
-          render: (row) => row.programStudi?.nama_resmi || "—",
+          render: (row) => programStudiLabel(row.programStudi),
         },
         { key: "kode_matakuliah", header: "Kode", sortable: true },
         { key: "nama_resmi", header: "Nama Mata Kuliah", sortable: true },
@@ -71,7 +73,7 @@ export const MatakuliahPage = () => {
         },
       ]}
       detailItems={(row) => [
-        { label: "Program Studi", value: row.programStudi?.nama_resmi },
+        { label: "Program Studi", value: programStudiLabel(row.programStudi, "") },
         { label: "Kode", value: row.kode_matakuliah },
         { label: "Nama", value: row.nama_resmi },
         { label: "SKS", value: row.jumlah_sks_kurikulum },

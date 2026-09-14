@@ -17,7 +17,7 @@ import { createResourceItem, deleteResourceItem } from "../../services/api";
 import { getStudentKrsContext } from "../../services/krs.service";
 import { submitCrossEnrollment } from "../../services/crossEnrollment.service";
 import { CpmkOutline } from "../../components/cpmk/CpmkOutline";
-import { semesterAkademikLabel } from "../../helpers/academicLabel";
+import { semesterAkademikLabel, programStudiLabel } from "../../helpers/academicLabel";
 import {
   isKrsPeriodOpen,
   krsPeriodNotice,
@@ -143,10 +143,10 @@ export const PengambilanKrsPage = () => {
     if (ps?.id && ps.id !== prodiId) hostProdiMap.set(ps.id, ps);
   });
   const prodiOptions = [
-    { value: prodiId, label: ownProdi?.nama_resmi || "Prodi Anda" },
+    { value: prodiId, label: ownProdi ? programStudiLabel(ownProdi, "Prodi Anda") : "Prodi Anda" },
     ...[...hostProdiMap.values()].map((ps) => ({
       value: ps.id,
-      label: ps.nama_resmi,
+      label: programStudiLabel(ps),
     })),
   ].filter((opt) => opt.value);
   const hasCrossProdi = prodiOptions.some((opt) => opt.value !== prodiId);

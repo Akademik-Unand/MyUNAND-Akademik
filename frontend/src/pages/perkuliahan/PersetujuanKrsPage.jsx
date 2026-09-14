@@ -8,10 +8,13 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { DataTable } from '../../components/common/DataTable';
+import { FilterBar } from '../../components/common/FilterBar';
 import { IconButton } from '../../components/common/IconButton';
 import { CpmkOutline } from '../../components/cpmk/CpmkOutline';
+import { useFilterOptions } from '../../hooks/useFilterOptions';
 import { approveKrs } from '../../services/krs.service';
 import { semesterAkademikLabel } from '../../helpers/academicLabel';
+import { programStudiLabel } from '../../helpers/academicLabel';
 import { kelasDosenNames, kelasJadwalLines } from '../../helpers/kelasInfo';
 import {
   krsRowStatus,
@@ -36,6 +39,26 @@ export const PersetujuanKrsPage = () => {
   const client = useQueryClient();
   const [detailTarget, setDetailTarget] = useState(null);
   const [cpmkTarget, setCpmkTarget] = useState(null);
+  const { semesterRows = [] } = useFilterOptions();
+  const activeSemester = semesterRows.find((row) => row.is_aktif);
+  const [draftSemester, setDraftSemester] = useState('');
+  const [appliedSemester, setAppliedSemester] = useState('');
+  const effectiveSemester = appliedSemester || activeSemester?.id || '';
+  const extraFilter = effectiveSemester
+    ? { semester_id: effectiveSemester }
+    : undefined;
+
+  const semesterField = {
+    name: 'semester_id',
+    label: 'Semester',
+    placeholder: semesterRows.length ? 'Pilih Semester' : 'Belum ada semester',
+    options: semesterRows.map((row) => ({
+      value: row.id,
+      label: `${semesterAkademikLabel(row)}${row.is_aktif ? ' (Aktif)' : ''}`,
+    })),
+    value: draftSemester || activeSemester?.id || '',
+    onChange: (e) => setDraftSemester(e.target.value),
+  };
 
   const mutation = useMutation({
     mutationFn: approveKrs,
@@ -157,6 +180,17 @@ export const PersetujuanKrsPage = () => {
         subtitle="Setujui KRS mahasiswa bimbingan Anda — pengajuan mata kuliah lintas prodi ikut diputuskan di sini"
         breadcrumbs={[{ label: 'Perkuliahan' }, { label: 'Persetujuan KRS' }]}
       />
+      <Card title="Filter KRS">
+        <FilterBar
+          fields={[semesterField]}
+          onApply={() => setAppliedSemester(draftSemester)}
+          onReset={() => {
+            setDraftSemester('');
+            setAppliedSemester('');
+          }}
+          applyDisabled={!draftSemester}
+        />
+      </Card>
       <Card title="Daftar KRS">
         <DataTable
           resource="krs"
@@ -164,6 +198,8 @@ export const PersetujuanKrsPage = () => {
           rowKey={(row) => row.id}
           searchPlaceholder="Cari nama atau NIU mahasiswa..."
           columns={columns}
+          extraFilter={extraFilter}
+          dataLocked={extraFilter !== undefined}
         />
       </Card>
 
@@ -188,7 +224,7 @@ export const PersetujuanKrsPage = () => {
               <div>
                 <p className="text-xs text-base-content/60">Program Studi</p>
                 <p className="font-medium">
-                  {detailTarget.mahasiswa?.programStudi?.nama_resmi || '—'}
+                  {detailTarget.mahasiswa?.programStudi ? programStudiLabel(detailTarget.mahasiswa.programStudi) : '—'}
                 </p>
               </div>
               <div>

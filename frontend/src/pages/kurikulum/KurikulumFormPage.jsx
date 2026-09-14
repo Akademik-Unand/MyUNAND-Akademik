@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
@@ -25,21 +25,20 @@ export const KurikulumFormPage = () => {
     ...empty,
     program_studi_id: params.get("prodi") || "",
   });
+  const [loadedKurikulumId, setLoadedKurikulumId] = useState(null);
+  if (existing.data && existing.data.id !== loadedKurikulumId) {
+    setLoadedKurikulumId(existing.data.id);
+    setValues({
+      program_studi_id: existing.data.program_studi_id || "",
+      nama: existing.data.nama || "",
+      tahun: existing.data.tahun || "",
+      masa_studi_ideal: existing.data.masa_studi_ideal ?? 8,
+      masa_studi_maksimal: existing.data.masa_studi_maksimal ?? 14,
+    });
+  }
   const isEdit = Boolean(id);
   const mutations = useResourceMutations("kurikulum");
   const saving = mutations.create.isPending || mutations.update.isPending;
-
-  useEffect(() => {
-    if (existing.data) {
-      setValues({
-        program_studi_id: existing.data.program_studi_id || "",
-        nama: existing.data.nama || "",
-        tahun: existing.data.tahun || "",
-        masa_studi_ideal: existing.data.masa_studi_ideal ?? 8,
-        masa_studi_maksimal: existing.data.masa_studi_maksimal ?? 14,
-      });
-    }
-  }, [existing.data]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
