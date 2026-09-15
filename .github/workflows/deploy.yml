@@ -31,8 +31,8 @@ jobs:
 
           docker compose up -d --build
 
-          echo "===== MIGRATE DATABASE ====="
-          docker compose exec -T backend npm run db:migrate
+          # Migrasi database tidak dijalankan di sini; jalankan manual bila perlu:
+          #   docker compose exec backend npm run db:migrate
 
           # Docker membuat folder bind-mount (uploads, logs) sebagai root, padahal
           # container jalan sebagai user node (uid 1000). Chown sekali agar bisa ditulis.
