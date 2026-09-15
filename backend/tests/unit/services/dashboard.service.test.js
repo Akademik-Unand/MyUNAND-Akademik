@@ -5,6 +5,8 @@ jest.mock('../../../src/models', () => ({
     query: jest.fn(),
     escape: jest.fn((value) => `'${value}'`),
     QueryTypes: { SELECT: 'SELECT' },
+    fn: jest.fn((name, value) => ({ name, value })),
+    col: jest.fn((name) => name),
   },
   Mahasiswa: { count: jest.fn() },
   Dosen: { count: jest.fn(), findByPk: jest.fn() },
@@ -17,6 +19,10 @@ jest.mock('../../../src/models', () => ({
   User: { findByPk: jest.fn() },
   ProgramStudi: { findAll: jest.fn(), findByPk: jest.fn() },
   Departemen: {},
+  RekapCp: { findAll: jest.fn() },
+  Cp: {},
+  Kurikulum: {},
+  Fakultas: { findAll: jest.fn() },
   Periode: { findOne: jest.fn() },
 }));
 
@@ -31,6 +37,8 @@ const {
   PenawaranMatakuliah,
   ProgramStudi,
   User,
+  RekapCp,
+  Fakultas,
   Periode,
 } = require('../../../src/models');
 const { Op } = require('sequelize');
@@ -53,17 +61,34 @@ describe('dashboard.service.summary', () => {
     jest.clearAllMocks();
   });
 
-  it('returns live counts', async () => {
+  it('returns live counts and operational-academic datasets', async () => {
+    Semester.findOne.mockResolvedValue(null);
     Mahasiswa.count.mockResolvedValue(10);
     Dosen.count.mockResolvedValue(4);
     Matakuliah.count.mockResolvedValue(7);
     Kelas.count.mockResolvedValue(3);
+    Fakultas.findAll.mockResolvedValue([]);
+    sequelize.query
+      .mockResolvedValueOnce([{ disetujui: 6, menunggu: 1, belum_mengisi: 3 }])
+      .mockResolvedValueOnce([{ total: 10, memiliki_pa: 8 }]);
 
     await expect(dashboardService.summary()).resolves.toEqual({
       mahasiswa: 10,
       dosen: 4,
       matakuliah: 7,
       kelas: 3,
+      penawaran: 0,
+      semester: null,
+      fakultas: [],
+      status_krs: [
+        { nama: 'Disetujui', jumlah: 6 },
+        { nama: 'Menunggu', jumlah: 1 },
+        { nama: 'Belum mengisi', jumlah: 3 },
+      ],
+      cakupan_pa: [
+        { nama: 'Memiliki PA', jumlah: 8 },
+        { nama: 'Belum memiliki PA', jumlah: 2 },
+      ],
     });
   });
 });
@@ -124,6 +149,8 @@ describe('dashboard.service periode KRS', () => {
     PenawaranMatakuliah.count.mockResolvedValue(1);
     Krs.count.mockResolvedValue(4);
     ProgramStudi.findByPk.mockResolvedValue({ id: 'prodi-1', sks_maksimal: 24 });
+    ProgramStudi.findAll.mockResolvedValue([{ id: 'prodi-1', nama_resmi: 'Prodi 1' }]);
+    RekapCp.findAll.mockResolvedValue([]);
   };
 
   it('orgSummary mengirim semester global dan kuota SKS prodi', async () => {
@@ -169,8 +196,8 @@ describe('dashboard.service periode KRS', () => {
   });
 
   it('orgSummary level fakultas menghitung seluruh prodi di fakultas itu', async () => {
-    ProgramStudi.findAll.mockResolvedValue([{ id: 'p-a' }, { id: 'p-b' }]);
     mockOrgCounts();
+    ProgramStudi.findAll.mockResolvedValue([{ id: 'p-a' }, { id: 'p-b' }]);
 
     const result = await dashboardService.orgSummary({
       level: 'fakultas',
@@ -201,8 +228,8 @@ describe('dashboard.service periode KRS', () => {
   });
 
   it('orgSummary level departemen memakai scope departemen', async () => {
-    ProgramStudi.findAll.mockResolvedValue([{ id: 'p-x' }]);
     mockOrgCounts();
+    ProgramStudi.findAll.mockResolvedValue([{ id: 'p-x' }]);
 
     await dashboardService.orgSummary({
       level: 'departemen',
@@ -235,6 +262,8 @@ describe('dashboard.service periode KRS', () => {
       periode: null,
       semester: null,
       sks_maksimal: null,
+      prodi: [],
+      cpl: [],
     });
   });
 });

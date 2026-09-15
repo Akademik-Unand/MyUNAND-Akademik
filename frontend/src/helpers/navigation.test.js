@@ -151,8 +151,6 @@ const adminUnit = (role) => ({
 /** Sidebar yang diharapkan untuk admin departemen: unitnya sendiri, termasuk prodinya. */
 const MENU_ADMIN_DEPARTEMEN = [
   "/",
-  "/master/prodi",
-  "/master/dosen",
   "/master/matakuliah",
   "/kurikulum/data",
   "/kurikulum/cp",
@@ -167,6 +165,8 @@ const MENU_ADMIN_DEPARTEMEN = [
   "/perkuliahan/laporan-cp",
   "/kemahasiswaan/mahasiswa-bimbingan",
   "/kemahasiswaan/dosen-pa",
+  "/master/prodi",
+  "/master/dosen",
 ];
 
 /** Admin prodi tidak mengelola master Program Studi (termasuk kuota SKS-nya). */
@@ -314,9 +314,6 @@ describe("filterNavigation", () => {
   it("hides university-level & IAM menus for admin-fakultas", () => {
     expect(pathsOf(filterNavigation(NAVIGATION_MENU, adminFakultas))).toEqual([
       "/",
-      "/master/departemen",
-      "/master/prodi",
-      "/master/dosen",
       "/master/matakuliah",
       "/kurikulum/data",
       "/kurikulum/cp",
@@ -328,6 +325,9 @@ describe("filterNavigation", () => {
       "/perkuliahan/upload-nilai",
       "/perkuliahan/rekap-cp",
       "/perkuliahan/laporan-cp",
+      "/master/departemen",
+      "/master/prodi",
+      "/master/dosen",
     ]);
   });
 

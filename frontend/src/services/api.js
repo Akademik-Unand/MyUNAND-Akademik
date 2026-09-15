@@ -106,12 +106,6 @@ export const changePassword = (payload) =>
 
 export const getCurrentUser = () => apiRequest("/auth/me");
 
-export const getDashboardSummary = () => apiRequest("/dashboard/summary");
-export const getOrgDashboardSummary = () =>
-  apiRequest("/dashboard/org-summary");
-export const getDosenDashboardSummary = () =>
-  apiRequest("/dashboard/dosen-summary");
-
 export const getKelasNilaiMatriks = (kelasId) =>
   apiRequest(`/nilai/kelas/${kelasId}/matriks`);
 

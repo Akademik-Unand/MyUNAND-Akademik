@@ -23,8 +23,11 @@ import {
   krsPeriodNotice,
   krsPeriodStatus,
 } from "../../helpers/krsPeriod";
-import { kelasDosenNames } from "../../helpers/kelasInfo";
 import { deteksiBentrokKelasKrs, labelBentrokKrs } from "../../helpers/jadwal";
+import {
+  isEligibleKelasSelection,
+  kelasKrsOption,
+} from "../../helpers/kelasKrsEligibility";
 import {
   approvalStatusLabel,
   registeredKrsRows,
@@ -187,7 +190,10 @@ export const PengambilanKrsPage = () => {
   };
 
   const addItem = useMutation({
-    mutationFn: async ({ kelasId }) => {
+    mutationFn: async ({ kelasId, options }) => {
+      if (!isEligibleKelasSelection(options, kelasId)) {
+        throw new Error("Kelas tidak lagi siap diambil. Pilih kelas lain.");
+      }
       let target = krs;
       if (!target) {
         target = await createResourceItem("krs", {
@@ -209,7 +215,10 @@ export const PengambilanKrsPage = () => {
   });
 
   const crossSubmit = useMutation({
-    mutationFn: async ({ penawaranId, kelasId }) => {
+    mutationFn: async ({ penawaranId, kelasId, options }) => {
+      if (!isEligibleKelasSelection(options, kelasId)) {
+        throw new Error("Kelas tidak lagi siap diambil. Pilih kelas lain.");
+      }
       let target = krs;
       if (!target) {
         target = await createResourceItem("krs", {
@@ -283,14 +292,9 @@ export const PengambilanKrsPage = () => {
       cpmk: detail.matakuliah?.cpmk || [],
       kelas,
       taken,
-      options: kelas.map((k) => ({
-        value: k.id,
-        label: `Kelas ${k.nama}${k.dosenKelas?.length ? ` — ${kelasDosenNames(k)}` : ""}${
-          bentrokPerKelas.has(k.id)
-            ? ` ⚠ bentrok ${bentrokPerKelas.get(k.id)[0].kode}`
-            : ""
-        }`,
-      })),
+      options: kelas.map((k) =>
+        kelasKrsOption(k, bentrokPerKelas.get(k.id)?.[0]?.kode),
+      ),
     };
   });
 
@@ -472,9 +476,11 @@ export const PengambilanKrsPage = () => {
                                 ? crossSubmit.mutate({
                                     penawaranId: row.id,
                                     kelasId: selections[row.id],
+                                    options: row.options,
                                   })
                                 : addItem.mutate({
                                     kelasId: selections[row.id],
+                                    options: row.options,
                                   })
                             }
                           >

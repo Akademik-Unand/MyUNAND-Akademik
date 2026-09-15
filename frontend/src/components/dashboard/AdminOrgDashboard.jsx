@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import {
   Award,
   BookPlus,
@@ -19,7 +18,10 @@ import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { PeriodeAkademikCard } from "./PeriodeAkademikCard";
-import { getOrgDashboardSummary } from "../../services/api";
+import { getOrganizationDashboard } from "../../services/dashboard.service";
+import { useDashboardQuery } from "../../hooks/useDashboardQuery";
+import { countBarChart, cplBarChart } from "../../helpers/dashboardChart";
+import { DashboardChart } from "./DashboardChart";
 import { krsPeriodStatus } from "../../helpers/krsPeriod";
 import { isPrimaryPimpinan } from "../../helpers/navigation";
 import { useOrganizationContext } from "../../contexts/OrganizationContext";
@@ -163,10 +165,10 @@ export const AdminOrgDashboard = () => {
   const scopeLevel = organization.scopeLevel || "prodi";
   const user = useAuthStore((state) => state.user);
 
-  const { data, isPending } = useQuery({
-    queryKey: ["dashboard", "org-summary"],
-    queryFn: getOrgDashboardSummary,
-  });
+  const { data, isPending } = useDashboardQuery(
+    "org-summary",
+    getOrganizationDashboard,
+  );
 
   const scope = SCOPE_META[scopeLevel] || SCOPE_META.prodi;
   const title = isPrimaryPimpinan(user)
@@ -228,6 +230,12 @@ export const AdminOrgDashboard = () => {
           icon={ClipboardCheck}
         />
       </div>
+
+      <DashboardChart
+        title={isPrimaryPimpinan(user) ? "Capaian CPL Semester Aktif" : "Mahasiswa per Program Studi"}
+        subtitle={isPrimaryPimpinan(user) ? "Rata-rata capaian dibanding target" : "Distribusi dalam scope organisasi"}
+        config={isPrimaryPimpinan(user) ? cplBarChart(data?.cpl) : countBarChart(data?.prodi, "mahasiswa")}
+      />
 
       {/* Quick Actions — 3 kolom pertama */}
       <div className="grid gap-4 lg:grid-cols-3">

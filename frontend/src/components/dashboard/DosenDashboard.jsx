@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import {
   AlertCircle,
   BarChart3,
@@ -16,7 +15,10 @@ import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
 import { DashboardSkeleton } from "./DashboardSkeleton";
-import { getDosenDashboardSummary } from "../../services/api";
+import { getLecturerDashboard } from "../../services/dashboard.service";
+import { useDashboardQuery } from "../../hooks/useDashboardQuery";
+import { statusDonutChart } from "../../helpers/dashboardChart";
+import { DashboardChart } from "./DashboardChart";
 import { semesterAkademikLabel } from "../../helpers/academicLabel";
 
 const QuickAction = ({
@@ -96,10 +98,10 @@ const SebaranAngkatan = ({ angkatan = [] }) => {
  */
 export const DosenDashboard = () => {
   const navigate = useNavigate();
-  const { data, isPending, error } = useQuery({
-    queryKey: ["dashboard", "dosen-summary"],
-    queryFn: getDosenDashboardSummary,
-  });
+  const { data, isPending, error } = useDashboardQuery(
+    "dosen-summary",
+    getLecturerDashboard,
+  );
 
   if (isPending) return <DashboardSkeleton />;
 
@@ -192,9 +194,12 @@ export const DosenDashboard = () => {
         </Card>
       )}
 
-      <Card title="Sebaran Angkatan Mahasiswa Bimbingan" icon={BarChart3}>
-        <SebaranAngkatan angkatan={data?.angkatan} />
-      </Card>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <DashboardChart title="Status KRS Bimbingan" subtitle="Status yang saling eksklusif pada semester aktif" config={statusDonutChart(data?.status_krs)} type="donut" />
+        <Card title="Sebaran Angkatan Mahasiswa Bimbingan" icon={BarChart3}>
+          <SebaranAngkatan angkatan={data?.angkatan} />
+        </Card>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <QuickAction

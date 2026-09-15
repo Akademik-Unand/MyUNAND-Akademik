@@ -43,4 +43,12 @@ const dosenSummary = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { summary, orgSummary, dosenSummary };
+const academicSummary = asyncHandler(async (req, res) => {
+  const data = await dashboardService.academicSummary(req.user);
+  return success(res, {
+    message: "Ringkasan akademik berhasil diambil",
+    data,
+  });
+});
+
+module.exports = { summary, orgSummary, dosenSummary, academicSummary };

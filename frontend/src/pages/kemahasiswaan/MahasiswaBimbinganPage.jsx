@@ -10,7 +10,7 @@ import { can } from "../../policies/defineAbility";
 import { Badge } from "../../components/ui/Badge";
 import { DataTable } from "../../components/common/DataTable";
 import { StatCard } from "../../components/common/StatCard";
-import { getDosenDashboardSummary } from "../../services/api";
+import { getLecturerDashboard as getDosenDashboardSummary } from "../../services/dashboard.service";
 import { semesterAkademikLabel } from "../../helpers/academicLabel";
 import { unitLabel } from "../../helpers/bimbinganPa";
 

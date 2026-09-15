@@ -85,6 +85,7 @@ export const Select = ({
   }, []);
 
   const choose = (next) => {
+    if (options.find((opt) => String(opt.value) === String(next))?.disabled) return;
     if (!isControlled) setInner(next);
     emitChange(onChange, name, next);
     close();
@@ -199,6 +200,8 @@ export const Select = ({
                 <li key={String(opt.value)}>
                   <button
                     type="button"
+                    disabled={opt.disabled}
+                    aria-disabled={opt.disabled || undefined}
                     className={
                       String(opt.value) === String(selected)
                         ? "menu-active"

@@ -12,6 +12,7 @@ jest.mock('../../../src/models', () => ({
   Kelas: { findByPk: jest.fn() },
   Matakuliah: {},
   JadwalKelas: {},
+  DosenKelas: {},
   PenawaranMatakuliah: {},
   PenawaranMatakuliahDetil: {},
   User: { findByPk: jest.fn() },
@@ -78,6 +79,8 @@ describe('assertKelasPublishedOffering', () => {
     id: 'kelas-1',
     semester_id: 'sem-1',
     penawaranMatakuliah: status ? { penawaran: { status } } : null,
+    jadwalKelas: [{ hari: 'Senin', jam_mulai: '08:00:00', jam_selesai: '09:40:00' }],
+    dosenKelas: [{ id: 'dk-1' }],
   });
 
   it('mengizinkan kelas dari penawaran published', async () => {
@@ -171,7 +174,8 @@ describe('create — wajib dosen PA aktif', () => {
       jumlah_peserta_max: 30,
       penawaranMatakuliah: { penawaran: { status: 'published' } },
       matakuliah: { kode_matakuliah: 'PTN1105', nama_resmi: 'Bahasa Indonesia' },
-      jadwalKelas: [],
+      jadwalKelas: [{ hari: 'Senin', jam_mulai: '08:00:00', jam_selesai: '09:40:00' }],
+      dosenKelas: [{ id: 'dk-1' }],
     });
     KrsDetil.count.mockResolvedValue(0);
     KrsDetil.findAll.mockResolvedValue([]);
@@ -229,6 +233,7 @@ describe('create — wajib dosen PA aktif', () => {
       penawaranMatakuliah: { penawaran: { status: 'published' } },
       matakuliah: { kode_matakuliah: 'PTN1105', nama_resmi: 'Bahasa Indonesia' },
       jadwalKelas: [{ hari: 'Senin', jam_mulai: '08:00:00', jam_selesai: '09:40:00' }],
+      dosenKelas: [{ id: 'dk-1' }],
     });
     BimbinganAkademik.findOne.mockResolvedValue({ id: 'pa-1', status: 'aktif' });
     KrsDetil.findAll.mockResolvedValue([

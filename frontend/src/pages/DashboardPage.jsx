@@ -8,15 +8,12 @@ import {
   Clock3,
   GraduationCap,
   LibraryBig,
-  PlusCircle,
   Users,
 } from "lucide-react";
-import { toast } from "sonner";
 import { PageHeader } from "../components/common/PageHeader";
 import { StatCard } from "../components/common/StatCard";
 import { AdminOrgDashboard } from "../components/dashboard/AdminOrgDashboard";
 import { DosenDashboard } from "../components/dashboard/DosenDashboard";
-import { StackedBarOverview } from "../components/dashboard/StackedBarOverview";
 import { QuickActionCard } from "../components/dashboard/QuickActionCard";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeleton";
 import { PeriodeAkademikCard } from "../components/dashboard/PeriodeAkademikCard";
@@ -26,7 +23,17 @@ import { Badge } from "../components/ui/Badge";
 import { useAuthStore } from "../store/auth.store";
 import { isPrimaryDosen, isPrimaryMahasiswa } from "../helpers/navigation";
 import { isScopedRole } from "../contexts/OrganizationContext";
-import { getDashboardSummary } from "../services/api";
+import { getUniversityDashboard, getAcademicDashboard } from "../services/dashboard.service";
+import { useDashboardQuery } from "../hooks/useDashboardQuery";
+import {
+  countBarChart,
+  krsParticipationRadialChart,
+  statusDonutChart,
+  trendLineChart,
+} from "../helpers/dashboardChart";
+import { AcademicProgress } from "../components/dashboard/AcademicProgress";
+import { DashboardChart } from "../components/dashboard/DashboardChart";
+import { ParentDashboard } from "../components/dashboard/ParentDashboard";
 import { getStudentKrsContext } from "../services/krs.service";
 import { krsPeriodStatus } from "../helpers/krsPeriod";
 
@@ -73,6 +80,7 @@ const StudentDashboard = () => {
     queryFn: getStudentKrsContext,
     enabled: Boolean(user?.id),
   });
+  const academicQuery = useDashboardQuery("academic-summary", getAcademicDashboard);
 
   const semester = contextQuery.data?.semester;
   const periode = contextQuery.data?.periode;
@@ -142,6 +150,8 @@ const StudentDashboard = () => {
         />
       </div>
 
+      <AcademicProgress data={academicQuery.data} />
+
       <div className="grid gap-4 lg:grid-cols-3">
         <StudentAction
           icon={ClipboardList}
@@ -164,16 +174,10 @@ const StudentDashboard = () => {
 };
 
 const AdminDashboard = () => {
-  const { data, isPending } = useQuery({
-    queryKey: ["dashboard", "summary"],
-    queryFn: getDashboardSummary,
-  });
-
-  const handleCreate = () => {
-    toast.info("Fitur Input Data", {
-      description: "Silakan pilih menu pada sidebar untuk menginput data baru.",
-    });
-  };
+  const { data, isPending } = useDashboardQuery(
+    "summary",
+    getUniversityDashboard,
+  );
 
   if (isPending) return <DashboardSkeleton />;
 
@@ -183,17 +187,6 @@ const AdminDashboard = () => {
         title="Dashboard Admin"
         subtitle="Ringkasan capaian kurikulum dan perkuliahan semester berjalan"
         breadcrumbs={[{ label: "Dashboard" }]}
-        action={
-          <Button
-            variant="primary"
-            size="sm"
-            className="gap-1.5 text-xs font-semibold"
-            onClick={handleCreate}
-          >
-            <PlusCircle size={15} />
-            <span>Input Data Baru</span>
-          </Button>
-        }
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -223,7 +216,42 @@ const AdminDashboard = () => {
         />
       </div>
 
-      <StackedBarOverview />
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <DashboardChart
+            title="Sebaran Mahasiswa per Fakultas"
+            subtitle="Jumlah mahasiswa aktif berdasarkan fakultas"
+            config={countBarChart(
+              data?.fakultas?.filter((row) => Number(row.mahasiswa) > 0),
+              "mahasiswa",
+            )}
+            height={320}
+          />
+        </div>
+        <DashboardChart
+          title="Status KRS Semester Aktif"
+          subtitle="Disetujui, menunggu, dan belum mengisi"
+          config={statusDonutChart(data?.status_krs)}
+          type="donut"
+          height={320}
+        />
+        <DashboardChart
+          title="Partisipasi KRS"
+          subtitle="Persentase mahasiswa yang sudah mengisi KRS semester aktif"
+          config={krsParticipationRadialChart(data?.status_krs)}
+          type="radialBar"
+          height={300}
+        />
+        <div className="xl:col-span-2">
+          <DashboardChart
+            title="Tren Aktivitas Akademik"
+            subtitle="Mahasiswa aktif dan peserta KRS per semester"
+            config={trendLineChart(data?.tren_akademik)}
+            type="line"
+            height={300}
+          />
+        </div>
+      </div>
       <QuickActionCard />
     </div>
   );
@@ -231,7 +259,9 @@ const AdminDashboard = () => {
 
 export const DashboardPage = () => {
   const user = useAuthStore((state) => state.user);
+  const roleNames = new Set([user?.role, ...(user?.roles || []).map((role) => role.name)]);
   if (isPrimaryMahasiswa(user)) return <StudentDashboard />;
+  if (roleNames.has("orang-tua")) return <ParentDashboard />;
   if (isPrimaryDosen(user)) return <DosenDashboard />;
   if (isScopedRole(user)) return <AdminOrgDashboard />;
   return <AdminDashboard />;

@@ -22,6 +22,7 @@ jest.mock('../../../src/models', () => ({
   PenawaranMatakuliahDetil: { findByPk: jest.fn() },
   PenawaranMatakuliahProdi: {},
   JadwalKelas: {},
+  DosenKelas: {},
 }));
 
 const { assertKrsPeriodForSemester } = require('../../../src/helpers/academicPeriod');
@@ -102,7 +103,8 @@ describe('cross-enrollment service', () => {
       Kelas.findOne.mockResolvedValue({
         id: 'kelas-1',
         matakuliah: { has_prasyarat: false, jumlah_sks_kurikulum: 3 },
-        jadwalKelas: [],
+        jadwalKelas: [{ hari: 'Senin', jam_mulai: '08:00:00', jam_selesai: '09:40:00' }],
+        dosenKelas: [{ id: 'dk-1' }],
       });
       Krs.findOne.mockResolvedValue({ id: 'krs-1', semester_id: 'sem-1' });
       assertKrsPeriodForSemester.mockRejectedValue(

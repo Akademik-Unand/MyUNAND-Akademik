@@ -16,12 +16,14 @@ const {
   PenawaranMatakuliahDetil,
   PenawaranMatakuliahProdi,
   JadwalKelas,
+  DosenKelas,
 } = require('../../models');
 const AppError = require('../../helpers/AppError');
 const { paginate } = require('../../helpers/listQuery');
 const { assertKrsPeriodForSemester } = require('../../helpers/academicPeriod');
 const { assertActivePa } = require('../../helpers/activePa');
 const { assertJadwalKrsTidakBentrok } = require('../../helpers/jadwalBentrok');
+const { assertKelasKrsReady } = require('../../helpers/kelasKrsEligibility');
 
 /** Status yang masih dihitung memakai kapasitas kelas & kuota lintas prodi. */
 const ACTIVE_STATUSES = ['pending_pa', 'approved'];
@@ -202,7 +204,11 @@ const enroll = (userId, payload) =>
 
     const kelas = await Kelas.findOne({
       where: { id: payload.kelas_id, penawaran_matakuliah_id: detail.id },
-      include: [{ model: Matakuliah, as: 'matakuliah' }, { model: JadwalKelas, as: 'jadwalKelas' }],
+      include: [
+        { model: Matakuliah, as: 'matakuliah' },
+        { model: JadwalKelas, as: 'jadwalKelas' },
+        { model: DosenKelas, as: 'dosenKelas', attributes: ['id'] },
+      ],
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
@@ -210,6 +216,7 @@ const enroll = (userId, payload) =>
     if (kelas.matakuliah.has_prasyarat) {
       throw new AppError('Mata kuliah berprasyarat tidak dapat diambil lintas prodi', 422);
     }
+    assertKelasKrsReady(kelas);
 
     const krs = await Krs.findOne({
       where: { mahasiswa_id: student.id, semester_id: header.semester_id },

@@ -1,12 +1,13 @@
 'use strict';
 
 const { Op } = require('sequelize');
-const { KrsDetil, Krs, Mahasiswa, ProgramStudi, Kelas, Matakuliah, PenawaranMatakuliah, PenawaranMatakuliahDetil, JadwalKelas, User } = require('../../models');
+const { KrsDetil, Krs, Mahasiswa, ProgramStudi, Kelas, Matakuliah, PenawaranMatakuliah, PenawaranMatakuliahDetil, JadwalKelas, DosenKelas, User } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { assertKrsPeriodForKrs } = require('../../helpers/academicPeriod');
 const { assertActivePa } = require('../../helpers/activePa');
 const { assertJadwalKrsTidakBentrok } = require('../../helpers/jadwalBentrok');
+const { assertKelasKrsReady } = require('../../helpers/kelasKrsEligibility');
 
 const LIST_OPTIONS = {
   searchFields: ['$krs.mahasiswa.nama$', '$krs.mahasiswa.niu$'],
@@ -77,6 +78,7 @@ const assertKelasPublishedOffering = async (kelasId, semesterId, transaction) =>
       },
       { model: Matakuliah, as: 'matakuliah' },
       { model: JadwalKelas, as: 'jadwalKelas' },
+      { model: DosenKelas, as: 'dosenKelas', attributes: ['id'] },
     ],
     transaction,
   });
@@ -90,6 +92,7 @@ const assertKelasPublishedOffering = async (kelasId, semesterId, transaction) =>
   if (!offering || offering.status !== 'published') {
     throw new AppError('Mata kuliah belum dibuka pada semester ini', 409);
   }
+  assertKelasKrsReady(kelas);
   return kelas;
 };
 

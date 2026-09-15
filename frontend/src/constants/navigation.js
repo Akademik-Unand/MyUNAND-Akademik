@@ -14,75 +14,6 @@ export const NAVIGATION_MENU = [
   },
   {
     type: "group",
-    title: "Master Data",
-    items: [
-      {
-        label: "Fakultas",
-        path: "/master/fakultas",
-        icon: "Landmark",
-        permission: { action: "read", subject: "Fakultas" },
-      },
-      {
-        label: "Departemen",
-        path: "/master/departemen",
-        icon: "Building2",
-        permission: { action: "read", subject: "Departemen" },
-      },
-      {
-        label: "Program Studi",
-        path: "/master/prodi",
-        icon: "GraduationCap",
-        permission: { action: "read", subject: "ProgramStudi" },
-      },
-      {
-        label: "Dosen",
-        path: "/master/dosen",
-        icon: "UserCheck",
-        permission: { action: "read", subject: "Dosen" },
-      },
-      {
-        label: "Jenjang Akademik",
-        path: "/master/jenjang-akademik",
-        icon: "TrendingUp",
-        permission: { action: "read", subject: "JenjangAkademik" },
-      },
-      {
-        label: "Semester",
-        icon: "Calendar",
-        children: [
-          {
-            label: "Jenis Semester",
-            path: "/master/semester/jenis",
-            permission: { action: "read", subject: "JenisSemester" },
-          },
-          {
-            label: "Setting Semester",
-            path: "/master/semester/setting",
-            permission: { action: "read", subject: "Semester" },
-          },
-          {
-            label: "Periode",
-            path: "/master/semester/periode",
-            permission: { action: "read", subject: "Periode" },
-          },
-        ],
-      },
-      {
-        label: "Gedung",
-        path: "/master/gedung",
-        icon: "Building",
-        permission: { action: "read", subject: "Gedung" },
-      },
-      {
-        label: "Ruang",
-        path: "/master/ruang",
-        icon: "DoorOpen",
-        permission: { action: "read", subject: "Ruang" },
-      },
-    ],
-  },
-  {
-    type: "group",
     title: "Kurikulum & MK",
     items: [
       {
@@ -200,6 +131,75 @@ export const NAVIGATION_MENU = [
         path: "/kemahasiswaan/dosen-pa",
         icon: "UserCog",
         permission: { action: "create", subject: "BimbinganAkademik" },
+      },
+    ],
+  },
+  {
+    type: "group",
+    title: "Master Data",
+    items: [
+      {
+        label: "Fakultas",
+        path: "/master/fakultas",
+        icon: "Landmark",
+        permission: { action: "read", subject: "Fakultas" },
+      },
+      {
+        label: "Departemen",
+        path: "/master/departemen",
+        icon: "Building2",
+        permission: { action: "read", subject: "Departemen" },
+      },
+      {
+        label: "Program Studi",
+        path: "/master/prodi",
+        icon: "GraduationCap",
+        permission: { action: "read", subject: "ProgramStudi" },
+      },
+      {
+        label: "Dosen",
+        path: "/master/dosen",
+        icon: "UserCheck",
+        permission: { action: "read", subject: "Dosen" },
+      },
+      {
+        label: "Jenjang Akademik",
+        path: "/master/jenjang-akademik",
+        icon: "TrendingUp",
+        permission: { action: "read", subject: "JenjangAkademik" },
+      },
+      {
+        label: "Semester",
+        icon: "Calendar",
+        children: [
+          {
+            label: "Jenis Semester",
+            path: "/master/semester/jenis",
+            permission: { action: "read", subject: "JenisSemester" },
+          },
+          {
+            label: "Setting Semester",
+            path: "/master/semester/setting",
+            permission: { action: "read", subject: "Semester" },
+          },
+          {
+            label: "Periode",
+            path: "/master/semester/periode",
+            permission: { action: "read", subject: "Periode" },
+          },
+        ],
+      },
+      {
+        label: "Gedung",
+        path: "/master/gedung",
+        icon: "Building",
+        permission: { action: "read", subject: "Gedung" },
+      },
+      {
+        label: "Ruang",
+        path: "/master/ruang",
+        icon: "DoorOpen",
+        permission: { action: "read", subject: "Ruang" },
       },
     ],
   },

@@ -8,4 +8,5 @@ module.exports = {
   url: process.env.APP_URL || "http://localhost:3000",
   isProduction: env === "production",
   isTest: env === "test",
+  useDummyDashboard: env !== "production" && process.env.DUMMY_DASHBOARD === "true",
 };
