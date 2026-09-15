@@ -1,27 +1,25 @@
-'use strict';
+"use strict";
 
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const corsConfig = require('./config/cors');
-const routes = require('./routes');
-const requestLogger = require('./middleware/requestLogger');
-const activityLog = require('./middleware/activityLog');
-const errorHandler = require('./middleware/errorHandler');
-const { success, notFound } = require('./helpers/response');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const corsConfig = require("./config/cors");
+const routes = require("./routes");
+const requestLogger = require("./middleware/requestLogger");
+const activityLog = require("./middleware/activityLog");
+const errorHandler = require("./middleware/errorHandler");
+const { success, notFound } = require("./helpers/response");
 
 const app = express();
-app.set('query parser', 'extended');
+app.set("query parser", "extended");
 
 app.use(helmet());
 app.use(requestLogger);
 app.use(cors(corsConfig));
-// Limit body disamakan dengan `client_max_body_size` di frontend/nginx.conf. Kalau
-// tidak, nginx menolak lebih dulu (413) atau Express menolak upload nilai yang besar.
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(activityLog);
 
 const authLimiter = rateLimit({
@@ -31,19 +29,19 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     code: 429,
-    status: 'error',
-    message: 'Terlalu banyak percobaan. Coba lagi nanti.',
+    status: "error",
+    message: "Terlalu banyak percobaan. Coba lagi nanti.",
     error: null,
-    meta: { timestamp: new Date().toISOString(), version: '1.0' },
+    meta: { timestamp: new Date().toISOString(), version: "1.0" },
   },
 });
 
-app.use('/api/v1/auth/login', authLimiter);
-app.use('/api/v1/auth/register', authLimiter);
-app.use('/api/v1', routes);
+app.use("/api/v1/auth/login", authLimiter);
+app.use("/api/v1/auth/register", authLimiter);
+app.use("/api/v1", routes);
 
-app.get('/up', (req, res) => {
-  return success(res, { message: 'ok', data: { status: 'ok' } });
+app.get("/up", (req, res) => {
+  return success(res, { message: "ok", data: { status: "ok" } });
 });
 
 app.use((req, res) => {

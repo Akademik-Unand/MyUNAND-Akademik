@@ -10,6 +10,8 @@ services:
       - "3000:3000"
     env_file:
       - ./backend/.env
+    environment:
+      NODE_ENV: production
     volumes:
       - ./backend/uploads:/app/uploads
       - ./backend/logs:/app/logs
@@ -35,9 +37,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # Di-bake ke bundle saat build, jadi harus same-origin: nginx di container
-        # frontend yang mem-proxy /api/ ke backend:3000 (lihat frontend/nginx.conf).
-        - VITE_API_BASE_URL=/api/v1
+        - VITE_API_BASE_URL=http://10.250.30.14:3000/api/v1
     image: frontend:latest
     container_name: frontend
     restart: unless-stopped
