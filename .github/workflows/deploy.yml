@@ -1,0 +1,41 @@
+name: Deploy to VM
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Deploy
+        run: |
+          set -e
+
+          echo "===== START DEPLOY ====="
+          date
+
+          cd /home/docker/my-unand-akademik
+
+          docker compose down || true
+
+          git fetch origin
+          git checkout -f -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
+          git reset --hard "origin/${{ github.ref_name }}"
+
+          docker compose up -d --build
+
+          echo "===== MIGRATE DATABASE ====="
+          docker compose exec -T backend npm run db:migrate
+
+          # Docker membuat folder bind-mount (uploads, logs) sebagai root, padahal
+          # container jalan sebagai user node (uid 1000). Chown sekali agar bisa ditulis.
+          docker compose run --rm --user root backend chown -R node:node /app/uploads /app/logs
+
+          echo "===== DEPLOY SUCCESS ====="

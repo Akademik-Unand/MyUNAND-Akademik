@@ -18,8 +18,10 @@ app.set('query parser', 'extended');
 app.use(helmet());
 app.use(requestLogger);
 app.use(cors(corsConfig));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Limit body disamakan dengan `client_max_body_size` di frontend/nginx.conf. Kalau
+// tidak, nginx menolak lebih dulu (413) atau Express menolak upload nilai yang besar.
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(activityLog);
 
 const authLimiter = rateLimit({

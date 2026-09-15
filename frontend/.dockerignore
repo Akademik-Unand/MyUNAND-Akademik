@@ -1,7 +1,45 @@
+# Dependencies - installed inside container via npm ci
 node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output - generated inside container via vite build
 dist
+dist-ssr
+*.local
+
+# Environment files - values passed as build args
 .env
+.env.*
+!.env.example
+
+# Version control
 .git
 .gitignore
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yaml
+docker-compose*.yml
+
+# Docs & tests
+README.md
 *.md
-npm-debug.log
+tests
+coverage
+playwright-report
+test-results
