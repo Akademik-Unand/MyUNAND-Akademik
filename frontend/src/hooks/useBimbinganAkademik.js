@@ -23,6 +23,7 @@ const useInvalidateBimbingan = () => {
     queryClient.invalidateQueries({ queryKey: [RESOURCE] });
     queryClient.invalidateQueries({ queryKey: ["bimbingan-candidates"] });
     queryClient.invalidateQueries({ queryKey: ["bimbingan-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["academic-advisor"] });
   };
 };
 

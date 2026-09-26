@@ -17,7 +17,8 @@ import { AccessibilityMenu } from "./AccessibilityMenu";
 import { getInitials } from "../utils/initials";
 import { roleLabel } from "../constants/roles";
 import { OrganizationSelector } from "../components/organization/OrganizationSelector";
-import { accountUnitInfo } from "../helpers/accountUnit";
+import { ProfileAcademicAdvisor } from "../components/profile/ProfileAcademicAdvisor";
+import { accountUnitInfo, isMahasiswaAccount } from "../helpers/accountUnit";
 
 export const Navbar = () => {
   const { toggleSidebar, toggleMobileSidebar } = useUIStore();
@@ -146,6 +147,11 @@ export const Navbar = () => {
                 </div>
               </div>
             </li>
+            {isMahasiswaAccount(user) && (
+              <li className="menu-title min-w-0 px-3 py-2">
+                <ProfileAcademicAdvisor compact />
+              </li>
+            )}
             <li>
               <Link to="/profil" className="text-xs py-2">
                 <User size={15} /> Profil Saya

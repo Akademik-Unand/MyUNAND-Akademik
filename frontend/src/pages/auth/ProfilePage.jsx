@@ -1,5 +1,6 @@
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
+import { ProfileAcademicAdvisor } from "../../components/profile/ProfileAcademicAdvisor";
 import { ProfileIdentity } from "../../components/profile/ProfileIdentity";
 import { ProfileAccountForm } from "../../components/profile/ProfileAccountForm";
 import { ProfilePasswordForm } from "../../components/profile/ProfilePasswordForm";
@@ -19,6 +20,8 @@ export const ProfilePage = () => {
       <Card>
         <ProfileIdentity user={user} />
       </Card>
+
+      <ProfileAcademicAdvisor />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card title="Data akun">

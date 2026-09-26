@@ -21,6 +21,14 @@ Auth terautentikasi:
 - `PUT /api/v1/auth/change-password` `{ current_password, new_password }`
 - Payload akses memakai `user_roles` sebagai satu-satunya sumber otorisasi. `role` dipilih deterministik dari role yang diurutkan berdasarkan nama; `users.role` hanya data tampilan legacy. Payload menyertakan `roles`, permission gabungan, unit ringkas (ID/kode/nama/induk), dan `org_scope` efektif.
 
+
+Dosen PA pada profil mahasiswa:
+- `GET /api/v1/auth/academic-advisor` — autentikasi profil sendiri; tidak menerima ID mahasiswa atau query apa pun. Identitas mahasiswa dibaca ulang dari akun di database, bukan dari parameter klien/JWT.
+- Respons `data`: `{ status: 'assigned' | 'unassigned' | 'unlinked', advisor }`. Saat `assigned`, advisor memuat `id`, `nama`, `nip`, `program_studi: { id, nama } | null`, dan `tahun_akademik`. Selain itu `advisor: null`.
+- PA dipilih dari `bimbingan_akademik.status = 'aktif'`, urutan `updatedAt DESC`, sama dengan helper KRS. Dosen soft-deleted tidak ditampilkan; riwayat selesai tidak dipakai. Tidak bergantung semester aktif atau periode KRS.
+- `unlinked`: akun mahasiswa belum terhubung ke mahasiswa aktif; `unassigned`: tidak ada PA aktif yang dapat ditampilkan. Akun non-mahasiswa mendapat `403`; akun tidak ditemukan/tanpa autentikasi mendapat `401`. Error lookup tetap error, bukan dianggap belum punya PA.
+- Tidak memerlukan permission baca master bimbingan; akses hanya ke profil sendiri seperti `/auth/profile`. Profil dan navbar menggunakan query yang sama per akun, disegarkan saat mount/fokus dan invalidasi mutasi PA dalam sesi yang sama.
+
 IAM User (seluruh endpoint memerlukan permission CASL dan dibatasi scope organisasi aktor):
 - `GET /api/v1/users`, `GET /api/v1/users/:id` — admin unit hanya melihat user yang memiliki `user_units` di dalam scope-nya; scope kosong/tidak valid ditolak (fail closed).
 - `POST /api/v1/users` — pembuatan awal user tanpa role/unit hanya untuk admin universitas; role diberikan lewat endpoint khusus.

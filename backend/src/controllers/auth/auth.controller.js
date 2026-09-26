@@ -3,6 +3,12 @@
 const asyncHandler = require("../../middleware/asyncHandler");
 const { success } = require("../../helpers/response");
 const authService = require("../../services/auth/auth.service");
+const { getAcademicAdvisor } = require("../../services/auth/academic-advisor.service");
+
+const academicAdvisor = asyncHandler(async (req, res) => {
+  const data = await getAcademicAdvisor(req.user.id);
+  return success(res, { message: "Informasi dosen PA berhasil diambil", data });
+});
 
 const login = asyncHandler(async (req, res) => {
   const data = await authService.login(req.body);
@@ -45,6 +51,7 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  academicAdvisor,
   login,
   register,
   profile,
