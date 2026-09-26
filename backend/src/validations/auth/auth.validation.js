@@ -33,4 +33,6 @@ const logout = Joi.object({
   refresh_token: Joi.string().min(32).required(),
 });
 
-module.exports = { login, register, updateProfile, changePassword, refresh, logout };
+const academicAdvisor = Joi.object({}).unknown(false);
+
+module.exports = { login, register, updateProfile, changePassword, refresh, logout, academicAdvisor };

@@ -106,6 +106,8 @@ export const changePassword = (payload) =>
 
 export const getCurrentUser = () => apiRequest("/auth/me");
 
+export const getAcademicAdvisor = () => apiRequest("/auth/academic-advisor");
+
 export const getKelasNilaiMatriks = (kelasId) =>
   apiRequest(`/nilai/kelas/${kelasId}/matriks`);
 

@@ -32,6 +32,14 @@ router.get("/me", authenticate, authController.me);
 /** GET /auth/profile */
 router.get("/profile", authenticate, authController.profile);
 
+/** GET /auth/academic-advisor — own student profile, no master-data permission. */
+router.get(
+  "/academic-advisor",
+  authenticate,
+  validate({ query: authValidation.academicAdvisor }),
+  authController.academicAdvisor,
+);
+
 /** PUT /auth/profile */
 router.put(
   "/profile",
