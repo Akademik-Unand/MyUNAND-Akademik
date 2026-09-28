@@ -78,7 +78,7 @@ const refreshAccessToken = () => {
 
 export const apiRequest = async (
   path,
-  { method = "GET", body, params } = {},
+  { method = "GET", body, params, responseType = "json" } = {},
   isRetry = false,
 ) => {
   const token = readToken();
@@ -92,22 +92,26 @@ export const apiRequest = async (
     body: body != null ? JSON.stringify(body) : undefined,
   });
 
-  const json = await res.json().catch(() => ({}));
+  const json = responseType === "blob" ? null : await res.json().catch(() => ({}));
   if (res.status === 401 && !AUTH_SKIP_REFRESH.has(path) && !isRetry) {
     const nextToken = await refreshAccessToken();
     if (nextToken) {
-      return apiRequest(path, { method, body, params }, true);
+      return apiRequest(path, { method, body, params, responseType }, true);
     }
     redirectToLogin();
   }
 
-  if (!res.ok || json.status === "error") {
-    const firstError = Array.isArray(json.error)
-      ? json.error[0]?.message
+  if (!res.ok || json?.status === "error") {
+    const errorBody = json || await res.clone().json().catch(() => ({}));
+    const firstError = Array.isArray(errorBody.error)
+      ? errorBody.error[0]?.message
       : null;
-    throw new Error(firstError || json.message || "Permintaan gagal");
+    throw new Error(firstError || errorBody.message || "Permintaan gagal");
   }
 
+  if (responseType === "blob") {
+    return { blob: await res.blob(), disposition: res.headers.get("content-disposition") };
+  }
   if (json.pagination) {
     return { data: json.data, pagination: json.pagination };
   }

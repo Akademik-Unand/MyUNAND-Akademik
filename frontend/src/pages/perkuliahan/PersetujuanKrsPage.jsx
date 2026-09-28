@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Eye, ListTree } from 'lucide-react';
 import { PageHeader } from '../../components/common/PageHeader';
@@ -11,8 +11,12 @@ import { DataTable } from '../../components/common/DataTable';
 import { FilterBar } from '../../components/common/FilterBar';
 import { IconButton } from '../../components/common/IconButton';
 import { CpmkOutline } from '../../components/cpmk/CpmkOutline';
-import { useFilterOptions } from '../../hooks/useFilterOptions';
-import { approveKrs } from '../../services/krs.service';
+import { RejectKrsModal } from '../../components/krs/RejectKrsModal';
+import {
+  approveKrs,
+  getKrsApprovalSemesters,
+  rejectKrs,
+} from '../../services/krs.service';
 import { semesterAkademikLabel } from '../../helpers/academicLabel';
 import { programStudiLabel } from '../../helpers/academicLabel';
 import { kelasDosenNames, kelasJadwalLines } from '../../helpers/kelasInfo';
@@ -35,15 +39,50 @@ const detilStatus = (row) => {
   };
 };
 
+const approvalStatus = (row) => {
+  if (row.status_persetujuan) return row.status_persetujuan;
+  if (Number(row.approval_ke) > 0) return 'approved';
+  const details = row.krsDetil || [];
+  const hasPending = details.some((detail) => {
+    if (detail.is_cross_enrollment) {
+      return !['approved', 'rejected'].includes(detail.cross_enrollment_status);
+    }
+    return !['1', '2'].includes(String(detail.approved ?? '0'));
+  });
+  if (hasPending) return 'pending_pa';
+  return details.some(
+    (detail) =>
+      detail.cross_enrollment_status === 'rejected' ||
+      String(detail.approved) === '2',
+  )
+    ? 'rejected'
+    : 'pending_pa';
+};
+
+const HEADER_STATUS = {
+  approved: { label: 'Disetujui', variant: 'success' },
+  rejected: { label: 'Ditolak', variant: 'error' },
+  pending_pa: { label: 'Menunggu', variant: 'warning' },
+};
+
 export const PersetujuanKrsPage = () => {
   const client = useQueryClient();
   const [detailTarget, setDetailTarget] = useState(null);
   const [cpmkTarget, setCpmkTarget] = useState(null);
-  const { semesterRows = [] } = useFilterOptions();
-  const activeSemester = semesterRows.find((row) => row.is_aktif);
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const semesterQuery = useQuery({
+    queryKey: ['krs', 'approval-semesters'],
+    queryFn: getKrsApprovalSemesters,
+  });
+  const semesterRows = semesterQuery.data || [];
+  const defaultSemester =
+    semesterRows.find((row) => row.is_aktif && row.pending_count > 0) ||
+    semesterRows.find((row) => row.pending_count > 0) ||
+    semesterRows.find((row) => row.is_aktif) ||
+    semesterRows[0];
   const [draftSemester, setDraftSemester] = useState('');
   const [appliedSemester, setAppliedSemester] = useState('');
-  const effectiveSemester = appliedSemester || activeSemester?.id || '';
+  const effectiveSemester = appliedSemester || defaultSemester?.id || '';
   const extraFilter = effectiveSemester
     ? { semester_id: effectiveSemester }
     : undefined;
@@ -51,50 +90,45 @@ export const PersetujuanKrsPage = () => {
   const semesterField = {
     name: 'semester_id',
     label: 'Semester',
-    placeholder: semesterRows.length ? 'Pilih Semester' : 'Belum ada semester',
+    placeholder: semesterQuery.isPending
+      ? 'Memuat semester...'
+      : semesterRows.length
+        ? 'Pilih Semester'
+        : 'Tidak ada pengajuan KRS',
     options: semesterRows.map((row) => ({
       value: row.id,
-      label: `${semesterAkademikLabel(row)}${row.is_aktif ? ' (Aktif)' : ''}`,
+      label: `${semesterAkademikLabel(row)}${row.is_aktif ? ' (Aktif)' : ''}${row.pending_count ? ` · ${row.pending_count} menunggu` : ''}`,
     })),
-    value: draftSemester || activeSemester?.id || '',
+    value: draftSemester || defaultSemester?.id || '',
     onChange: (e) => setDraftSemester(e.target.value),
+    disabled: semesterQuery.isPending || semesterQuery.isError,
   };
 
-  const mutation = useMutation({
-    mutationFn: approveKrs,
-    onSuccess: (_data, variables) => {
-      client.invalidateQueries({ queryKey: ['table'] });
-      // Invalidate the mahasiswa KRS context so the student page reflects the
-      // latest approval status without a hard refresh.
-      client.invalidateQueries({ queryKey: ['krs'] });
-      // Patch the stale detailTarget snapshot so the open modal immediately
-      // reflects the approval (both header badge and per-row statuses). Baris
-      // lintas prodi yang masih `pending_pa` ikut disetujui bersama KRS-nya,
-      // sedangkan yang sudah diputuskan sebelumnya dibiarkan apa adanya.
-      if (detailTarget?.id === variables) {
-        setDetailTarget((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            approval_ke: (prev.approval_ke || 0) + 1,
-            krsDetil: (prev.krsDetil || []).map((d) => {
-              if (!d.is_cross_enrollment) return { ...d, approved: '1' };
-              // Hanya pengajuan yang sudah punya keputusan sendiri
-              // (approved/rejected) yang dibiarkan; status kosong pada data
-              // lama diperlakukan sebagai belum diputuskan.
-              if (['approved', 'rejected'].includes(d.cross_enrollment_status)) {
-                return d;
-              }
-              return {
-                ...d,
-                approved: '1',
-                cross_enrollment_status: 'approved',
-              };
-            }),
-          };
-        });
-      }
+  const refreshAfterDecision = (data, id, status) => {
+    client.invalidateQueries({ queryKey: ['table'] });
+    client.invalidateQueries({ queryKey: ['krs'] });
+    client.invalidateQueries({ queryKey: ['dashboard'] });
+    if (detailTarget?.id === id) {
+      setDetailTarget({ ...data, status_persetujuan: status });
+    }
+  };
+
+  const approveMutation = useMutation({
+    mutationFn: ({ id, semesterId }) => approveKrs(id, semesterId),
+    onSuccess: (data, variables) => {
+      refreshAfterDecision(data, variables.id, 'approved');
       toast.success('KRS berhasil disetujui.');
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: ({ id, semesterId, reason }) =>
+      rejectKrs(id, semesterId, reason),
+    onSuccess: (data, variables) => {
+      refreshAfterDecision(data, variables.id, 'rejected');
+      setRejectTarget(null);
+      toast.success('KRS berhasil ditolak.');
     },
     onError: (error) => toast.error(error.message),
   });
@@ -134,35 +168,58 @@ export const PersetujuanKrsPage = () => {
     {
       key: 'status',
       header: 'Status',
-      render: (row) =>
-        row.approval_ke > 0 ? (
-          <Badge variant="success" size="xs">Disetujui ({row.approval_ke})</Badge>
-        ) : (
-          <Badge variant="warning" size="xs">Menunggu</Badge>
-        ),
+      render: (row) => {
+        const status = approvalStatus(row);
+        const meta = HEADER_STATUS[status] || HEADER_STATUS.pending_pa;
+        return (
+          <Badge variant={meta.variant} size="xs">
+            {meta.label}{status === 'approved' ? ` (${row.approval_ke})` : ''}
+          </Badge>
+        );
+      },
     },
     {
       header: 'Aksi',
       className: 'text-right',
       cellClassName: 'text-right',
-      render: (row) => (
-        <div className="flex justify-end gap-1">
-          <IconButton
-            label="Lihat detail KRS"
-            icon={Eye}
-            onClick={() => setDetailTarget(row)}
-          />
-          <Button
-            size="xs"
-            variant={row.approval_ke > 0 ? 'ghost' : 'primary'}
-            disabled={row.approval_ke > 0}
-            isLoading={mutation.isPending}
-            onClick={() => mutation.mutate(row.id)}
-          >
-            {row.approval_ke > 0 ? 'Disetujui' : 'Setujui'}
-          </Button>
-        </div>
-      ),
+      render: (row) => {
+        const pending = approvalStatus(row) === 'pending_pa';
+        return (
+          <div className="flex justify-end gap-1">
+            <IconButton
+              label="Lihat detail KRS"
+              icon={Eye}
+              onClick={() => setDetailTarget(row)}
+            />
+            <Button
+              size="xs"
+              variant="error"
+              disabled={
+                !pending ||
+                approveMutation.isPending ||
+                rejectMutation.isPending
+              }
+              onClick={() => setRejectTarget(row)}
+            >
+              Tolak
+            </Button>
+            <Button
+              size="xs"
+              variant={pending ? 'primary' : 'ghost'}
+              disabled={!pending || rejectMutation.isPending}
+              isLoading={approveMutation.isPending}
+              onClick={() =>
+                approveMutation.mutate({
+                  id: row.id,
+                  semesterId: row.semester_id,
+                })
+              }
+            >
+              {pending ? 'Setujui' : HEADER_STATUS[approvalStatus(row)]?.label}
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -190,6 +247,11 @@ export const PersetujuanKrsPage = () => {
           }}
           applyDisabled={!draftSemester}
         />
+        {semesterQuery.isError && (
+          <p role="alert" className="mt-2 text-sm text-error">
+            Gagal memuat semester persetujuan. {semesterQuery.error.message}
+          </p>
+        )}
       </Card>
       <Card title="Daftar KRS">
         <DataTable
@@ -199,7 +261,8 @@ export const PersetujuanKrsPage = () => {
           searchPlaceholder="Cari nama atau NIU mahasiswa..."
           columns={columns}
           extraFilter={extraFilter}
-          dataLocked={extraFilter !== undefined}
+          dataLocked={Boolean(effectiveSemester)}
+          emptyText="Tidak ada KRS mahasiswa bimbingan pada semester ini."
         />
       </Card>
 
@@ -236,9 +299,7 @@ export const PersetujuanKrsPage = () => {
               <div>
                 <p className="text-xs text-base-content/60">Status Persetujuan</p>
                 <p className="font-medium">
-                  {detailTarget.approval_ke > 0
-                    ? `Disetujui (ke-${detailTarget.approval_ke})`
-                    : 'Menunggu'}
+                  {HEADER_STATUS[approvalStatus(detailTarget)]?.label || 'Menunggu'}
                 </p>
               </div>
             </div>
@@ -316,6 +377,21 @@ export const PersetujuanKrsPage = () => {
           </div>
         )}
       </Modal>
+
+      {rejectTarget && (
+        <RejectKrsModal
+          target={rejectTarget}
+          onClose={() => setRejectTarget(null)}
+          onConfirm={(reason) =>
+            rejectMutation.mutate({
+              id: rejectTarget.id,
+              semesterId: rejectTarget.semester_id,
+              reason,
+            })
+          }
+          isLoading={rejectMutation.isPending}
+        />
+      )}
 
       <Modal
         open={Boolean(cpmkTarget)}

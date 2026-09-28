@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AlertTriangle, CalendarClock, Info, ListTree } from "lucide-react";
+import { KrsClassActions } from "../../components/krs/KrsClassActions";
+import { KrsSchedulePanel } from "../../components/krs/KrsSchedulePanel";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -14,7 +16,7 @@ import { PageSkeleton } from "../../components/common/PageSkeleton";
 import { useAuthStore } from "../../store/auth.store";
 import { useResourceQuery } from "../../hooks/useResourceQuery";
 import { createResourceItem, deleteResourceItem } from "../../services/api";
-import { getStudentKrsContext } from "../../services/krs.service";
+import { downloadKrsPdf, getStudentKrsContext } from "../../services/krs.service";
 import { submitCrossEnrollment } from "../../services/crossEnrollment.service";
 import { CpmkOutline } from "../../components/cpmk/CpmkOutline";
 import { semesterAkademikLabel, programStudiLabel } from "../../helpers/academicLabel";
@@ -102,6 +104,7 @@ export const PengambilanKrsPage = () => {
   const contextQuery = useQuery({
     queryKey: ["krs", "student-context", user?.id],
     queryFn: getStudentKrsContext,
+    refetchOnWindowFocus: true,
     enabled: Boolean(user?.id),
   });
   const mahasiswa = contextQuery.data?.mahasiswa;
@@ -134,6 +137,7 @@ export const PengambilanKrsPage = () => {
   const catalogQuery = useResourceQuery("katalog-lintas-prodi", {
     params: semesterId ? { filter: { semester_id: semesterId } } : undefined,
     enabled: Boolean(semesterId),
+    refetchOnWindowFocus: true,
   });
   const offerings = catalogQuery.data || [];
 
@@ -174,19 +178,27 @@ export const PengambilanKrsPage = () => {
   // daftar "Mata Kuliah di KRS Anda" (dan badge "Diambil") tidak pernah terisi
   // sampai halaman dimuat ulang. `createdKrs` hanya jaring pengaman sebelum
   // refetch pertama selesai — dan id-nya sama dengan yang dikembalikan server.
-  const krs = contextQuery.data?.krs || createdKrs;
+  const krs = contextQuery.data?.krs ||
+    (createdKrs?.semester_id === semesterId && createdKrs?.mahasiswa_id === mahasiswaId ? createdKrs : null);
   // Detil yang baru ditambahkan menyusul lewat refetch, jadi beri tanda halus
   // bahwa daftarnya sedang menyegarkan diri.
   const krsRefreshing = contextQuery.isFetching;
 
   const [selections, setSelections] = useState({});
+  const [scheduleView, setScheduleView] = useState("list");
+  const [previewTarget, setPreviewTarget] = useState(null);
+  const scheduleRef = useRef(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [cpmkTarget, setCpmkTarget] = useState(null);
 
-  const invalidateKrs = () => {
-    client.invalidateQueries({
-      queryKey: ["krs", "student-context", user?.id],
-    });
+  const invalidateKrs = () => Promise.all([
+    client.invalidateQueries({ queryKey: ["krs", "student-context", user?.id] }),
+    client.invalidateQueries({ queryKey: ["katalog-lintas-prodi", "all"] }),
+  ]);
+  const handleKrsError = (error) => {
+    toast.error(error.message);
+    // Backend dapat menolak pratinjau yang kedaluwarsa: segarkan KRS dan katalog.
+    return invalidateKrs();
   };
 
   const addItem = useMutation({
@@ -207,11 +219,12 @@ export const PengambilanKrsPage = () => {
         kelas_id: kelasId,
       });
     },
-    onSuccess: () => {
-      invalidateKrs();
+    onSuccess: async () => {
+      setPreviewTarget(null);
+      await invalidateKrs();
       toast.success("Mata kuliah ditambahkan ke KRS.");
     },
-    onError: (error) => toast.error(error.message),
+    onError: handleKrsError,
   });
 
   const crossSubmit = useMutation({
@@ -229,24 +242,40 @@ export const PengambilanKrsPage = () => {
       }
       return submitCrossEnrollment({ penawaranId, kelasId });
     },
-    onSuccess: () => {
-      invalidateKrs();
+    onSuccess: async () => {
+      setPreviewTarget(null);
+      await invalidateKrs();
       toast.success("Pengajuan lintas program studi dikirim ke dosen PA.");
     },
-    onError: (error) => toast.error(error.message),
+    onError: handleKrsError,
   });
 
   // Satu jalur untuk semua baris KRS: selama KRS belum disetujui, baris reguler
   // maupun pengajuan lintas prodi sama-sama dihapus dari krs_detil.
-  const removeItem = useMutation({
-    mutationFn: (row) => deleteResourceItem("krs-detil", row.id),
-    onSuccess: () => {
-      invalidateKrs();
-      toast.success("Mata kuliah dihapus dari KRS.");
-    },
+  const downloadKrs = useMutation({
+    mutationFn: downloadKrsPdf,
+    onSuccess: (filename) => toast.success("Dokumen diunduh: " + filename),
     onError: (error) => toast.error(error.message),
   });
 
+  const removeItem = useMutation({
+    mutationFn: (row) => deleteResourceItem("krs-detil", row.id),
+    onSuccess: async () => {
+      await invalidateKrs();
+      toast.success("Mata kuliah dihapus dari KRS.");
+    },
+    onError: handleKrsError,
+  });
+
+  if (contextQuery.isPending) return <PageSkeleton cards={2} />;
+  if (contextQuery.isError && !contextQuery.data) {
+    return (
+      <Card title="Pengambilan KRS">
+        <p role="alert" className="text-sm text-error">Gagal memuat data KRS. {contextQuery.error.message}</p>
+        <Button size="sm" variant="outline" onClick={() => contextQuery.refetch()}>Coba lagi</Button>
+      </Card>
+    );
+  }
   if (!mahasiswaId) {
     return (
       <Card title="Pengambilan KRS">
@@ -263,6 +292,11 @@ export const PengambilanKrsPage = () => {
   // sehingga kelasnya bisa diambil ulang.
   const registeredRows = registeredKrsRows(krs?.krsDetil);
   const registeredAktif = registeredRows.filter((row) => row.aktif);
+  const krsDitolak =
+    krs &&
+    !(Number(krs.approval_ke) > 0) &&
+    !registeredRows.some((row) => row.status === "pending_pa") &&
+    registeredRows.some((row) => row.status === "rejected");
   const registeredKelasIds = new Set(
     registeredAktif.map((row) => row.kelas_id),
   );
@@ -290,6 +324,7 @@ export const PengambilanKrsPage = () => {
       kode: detail.matakuliah?.kode_matakuliah || "—",
       sks: detail.matakuliah?.jumlah_sks_kurikulum ?? "—",
       cpmk: detail.matakuliah?.cpmk || [],
+      matakuliah: detail.matakuliah,
       kelas,
       taken,
       options: kelas.map((k) =>
@@ -298,7 +333,23 @@ export const PengambilanKrsPage = () => {
     };
   });
 
-  const loading = contextQuery.isPending || catalogQuery.isPending;
+  const previewRow = previewTarget && previewTarget.semesterId === semesterId
+    ? pickRows.find((row) => row.id === previewTarget.detailId)
+    : null;
+  const previewKelas = previewRow?.kelas.find(
+    (kelas) => String(kelas.id) === String(selections[previewRow.id]),
+  );
+  const preview = previewKelas
+    ? { ...previewKelas, matakuliah: previewRow.matakuliah, lintas: previewRow.lintas }
+    : null;
+  const openPreview = (row) => {
+    setPreviewTarget({ detailId: row.id, semesterId });
+    setScheduleView("calendar");
+    scheduleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const loading = Boolean(semesterId) && catalogQuery.isPending;
+  const schedulesRefreshing = krsRefreshing || catalogQuery.isFetching;
+  const schedulesError = contextQuery.isError || catalogQuery.isError;
   const submitPending = addItem.isPending || crossSubmit.isPending;
 
   return (
@@ -327,9 +378,18 @@ export const PengambilanKrsPage = () => {
                 <Badge variant="success" size="sm">
                   KRS sudah disetujui, tidak dapat diubah
                 </Badge>
+              ) : krsDitolak ? (
+                <Badge variant="error" size="sm">
+                  KRS ditolak — periksa alasan dan perbaiki pilihan
+                </Badge>
               ) : null
             }
           >
+            {catalogQuery.isError && (
+              <p role="alert" className="text-sm text-error">
+                Gagal memuat penawaran terbaru. Muat ulang jadwal sebelum mengambil kelas.
+              </p>
+            )}
             {!offering ? (
               <p className="text-sm text-base-content/60">
                 {semester
@@ -348,7 +408,10 @@ export const PengambilanKrsPage = () => {
                       className="min-w-56"
                       options={prodiOptions}
                       value={activeProdiId || ""}
-                      onChange={(e) => setSelectedProdi(e.target.value)}
+                      onChange={(e) => {
+                        setSelectedProdi(e.target.value);
+                        setPreviewTarget(null);
+                      }}
                     />
                     {!isOwnOffer && (
                       <Badge variant="info" size="xs">
@@ -427,14 +490,16 @@ export const PengambilanKrsPage = () => {
                           );
                         }
                         const bentrok = bentrokPerKelas.get(
-                          Number(selections[row.id]),
+                          selections[row.id],
                         );
                         return (
                           <div className="space-y-1">
                             <Select
                               size="sm"
                               placeholder="Pilih kelas"
-                              options={row.options}
+                              // Kelas belum siap tetap dapat dilihat jadwalnya;
+                              // eligibility tetap membatasi aksi Ambil/Ajukan.
+                              options={row.options.map((option) => ({ ...option, disabled: false }))}
                               value={selections[row.id] || ""}
                               onChange={(e) =>
                                 setSelections((prev) => ({
@@ -456,37 +521,21 @@ export const PengambilanKrsPage = () => {
                       header: "Aksi",
                       className: "text-right",
                       cellClassName: "text-right",
-                      render: (row) =>
-                        row.taken ? (
-                          <span className="text-xs text-base-content/50">
-                            Diambil
-                          </span>
-                        ) : (
-                          <Button
-                            size="xs"
-                            disabled={
-                              !selections[row.id] ||
-                              krs?.approval_ke > 0 ||
-                              submitPending ||
-                              !periodOpen
-                            }
-                            isLoading={submitPending}
-                            onClick={() =>
-                              row.lintas
-                                ? crossSubmit.mutate({
-                                    penawaranId: row.id,
-                                    kelasId: selections[row.id],
-                                    options: row.options,
-                                  })
-                                : addItem.mutate({
-                                    kelasId: selections[row.id],
-                                    options: row.options,
-                                  })
-                            }
-                          >
-                            {row.lintas ? "Ajukan" : "Ambil"}
-                          </Button>
-                        ),
+                      render: (row) => (
+                        <KrsClassActions row={row} selection={selections[row.id]}
+                          conflicts={bentrokPerKelas.get(selections[row.id]) || []}
+                          blocked={krs?.approval_ke > 0 || !periodOpen || schedulesRefreshing || schedulesError}
+                          busy={submitPending}
+                          onPreview={() => openPreview(row)}
+                          onTake={() => row.lintas
+                            ? crossSubmit.mutate({
+                                penawaranId: row.id, kelasId: selections[row.id], options: row.options,
+                              })
+                            : addItem.mutate({
+                                kelasId: selections[row.id], options: row.options,
+                              })}
+                        />
+                      ),
                     },
                   ]}
                 />
@@ -494,15 +543,20 @@ export const PengambilanKrsPage = () => {
             )}
           </Card>
 
-          <Card
-            title="Mata Kuliah di KRS Anda"
-            actions={
-              krsRefreshing ? (
-                <span className="text-xs text-base-content/50">
-                  Menyegarkan…
-                </span>
-              ) : null
-            }
+          <KrsSchedulePanel
+            rows={registeredRows}
+            preview={preview}
+            view={scheduleView}
+            onViewChange={setScheduleView}
+            onClearPreview={() => setPreviewTarget(null)}
+            semesterLabel={semester ? semesterAkademikLabel(semester) : ""}
+            refreshing={schedulesRefreshing}
+            error={schedulesError}
+            onRefresh={invalidateKrs}
+            sectionRef={scheduleRef}
+            krs={krs}
+            downloading={downloadKrs.isPending}
+            onDownload={() => downloadKrs.mutate(krs.id)}
           >
             {registeredRows.length === 0 ? (
               <p className="text-sm text-base-content/60">
@@ -564,7 +618,7 @@ export const PengambilanKrsPage = () => {
                 ]}
               />
             )}
-          </Card>
+          </KrsSchedulePanel>
         </>
       )}
 

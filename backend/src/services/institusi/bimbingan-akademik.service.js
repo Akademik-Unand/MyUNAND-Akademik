@@ -27,6 +27,7 @@ const {
   assertUsableScope,
   scopeContainsUnit,
 } = require('../../helpers/organizationScopeGuard');
+const { krsApprovalStatus } = require('../../helpers/krsApproval');
 
 const PA_AKTIF_SQL = "(SELECT ba.mahasiswa_id FROM bimbingan_akademik ba WHERE ba.status = 'aktif')";
 
@@ -444,6 +445,7 @@ const ringkasKrsUntukMahasiswa = async (mahasiswaIds) => {
     hasil.set(krs.mahasiswa_id, {
       id: krs.id,
       approval_ke: krs.approval_ke,
+      status_persetujuan: krsApprovalStatus(krs),
       jumlah_mk: detil.length,
       total_sks: detil.reduce((sum, row) => sum + sksMatakuliah(row), 0),
       cross_pending: detil.filter(

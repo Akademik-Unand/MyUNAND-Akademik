@@ -13,6 +13,14 @@ const list = asyncHandler(async (req, res) => {
   });
 });
 
+const listApprovalSemesters = asyncHandler(async (req, res) => {
+  const data = await krsService.listApprovalSemesters(req.user);
+  return success(res, {
+    message: "Semester persetujuan KRS berhasil diambil",
+    data,
+  });
+});
+
 const getById = asyncHandler(async (req, res) => {
   const data = await krsService.getById(req.params.id);
   return success(res, { message: "Detail KRS berhasil diambil", data });
@@ -36,6 +44,11 @@ const remove = asyncHandler(async (req, res) => {
 const approve = asyncHandler(async (req, res) => {
   const data = await krsService.approve(req.params.id, req.body, req.user);
   return success(res, { message: "KRS berhasil disetujui", data });
+});
+
+const reject = asyncHandler(async (req, res) => {
+  const data = await krsService.reject(req.params.id, req.body, req.user);
+  return success(res, { message: "KRS berhasil ditolak", data });
 });
 
 const updateDetilStatus = asyncHandler(async (req, res) => {
@@ -67,11 +80,13 @@ const context = asyncHandler(async (req, res) => {
 
 module.exports = {
   list,
+  listApprovalSemesters,
   getById,
   create,
   update,
   remove,
   approve,
+  reject,
   updateDetilStatus,
   getByMahasiswa,
   context,

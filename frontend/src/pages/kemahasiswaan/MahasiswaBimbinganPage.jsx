@@ -16,7 +16,9 @@ import { unitLabel } from "../../helpers/bimbinganPa";
 
 const krsStatus = (row) => {
   if (!row.krs) return { label: "Belum isi KRS", variant: "warning" };
-  if (row.krs.approval_ke > 0)
+  if (row.krs.status_persetujuan === "rejected")
+    return { label: "KRS ditolak", variant: "error" };
+  if (row.krs.status_persetujuan === "approved" || row.krs.approval_ke > 0)
     return { label: "KRS disetujui", variant: "success" };
   return { label: "Menunggu persetujuan", variant: "info" };
 };

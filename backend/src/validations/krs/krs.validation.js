@@ -3,6 +3,11 @@
 const Joi = require('joi');
 const { idParam, listQuery } = require('../common');
 
+const downloadQuery = Joi.object({}).unknown(false);
+// `attachAbility` dapat menyuntikkan filter organisasi untuk akun multi-role;
+// endpoint tetap mengabaikannya dan memakai relasi PA aktif sebagai scope.
+const approvalSemestersQuery = listQuery([], []);
+
 const list = listQuery(['approval_ke', 'createdAt'], ['mahasiswa_id', 'semester_id']);
 
 const create = Joi.object({
@@ -23,6 +28,12 @@ const update = Joi.object({
 
 const approve = Joi.object({
   approval_ke: Joi.number().integer().min(0),
+  semester_id: Joi.string().uuid().required(),
+});
+
+const reject = Joi.object({
+  reason: Joi.string().trim().min(3).max(1000).required(),
+  semester_id: Joi.string().uuid().required(),
 });
 
 const detilStatus = Joi.object({
@@ -37,4 +48,16 @@ const mahasiswaIdParam = Joi.object({
   mahasiswaId: Joi.string().uuid().required(),
 });
 
-module.exports = { list, create, update, idParam, approve, detilStatus, detilIdParam, mahasiswaIdParam };
+module.exports = {
+  downloadQuery,
+  approvalSemestersQuery,
+  list,
+  create,
+  update,
+  idParam,
+  approve,
+  reject,
+  detilStatus,
+  detilIdParam,
+  mahasiswaIdParam,
+};

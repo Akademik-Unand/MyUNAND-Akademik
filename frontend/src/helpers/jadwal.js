@@ -38,7 +38,7 @@ export const jadwalBertabrakan = (a, b) =>
  * KRS. Hasilnya dipakai untuk memperingatkan mahasiswa — lengkap dengan nama MK
  * yang bentrok — sebelum menekan Ambil/Ajukan. Backend tetap validasi otoritatif.
  *
- * @returns {Map<number, Array<{ nama, kode, jadwal }>>} id kelas → daftar bentrok
+ * @returns {Map<string, Array<{ nama, kode, jadwal }>>} id kelas → daftar bentrok
  */
 export const deteksiBentrokKelasKrs = (kelasList = [], registeredRows = []) => {
   const peta = new Map();

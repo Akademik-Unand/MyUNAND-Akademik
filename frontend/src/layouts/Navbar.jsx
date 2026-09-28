@@ -119,18 +119,18 @@ export const Navbar = () => {
 
           <ul
             tabIndex={0}
-            className="dropdown-content menu p-2 shadow-xl bg-base-100 rounded-box w-60 border border-base-300 z-50 mt-2"
+            className="dropdown-content menu p-2 shadow-xl bg-base-100 rounded-box w-72 max-w-[calc(100vw-1rem)] border border-base-300 z-50 mt-2"
           >
-            <li className="px-3 py-2 border-b border-base-200 mb-1">
-              <div className="flex flex-col p-0">
-                <p className="font-medium text-sm text-base-content truncate">
+            <li className="group min-w-0 px-3 py-0 border-b border-base-200 mb-1">
+              <div className="flex min-w-0 w-full flex-col items-start rounded-field p-1.5 -mx-2 text-left transition-colors duration-200 hover:bg-base-200 active:bg-neutral active:text-neutral-content">
+                <p className="font-medium text-sm text-base-content truncate group-hover:text-base-content group-active:text-neutral-content">
                   {user?.name}
                 </p>
-                <p className="text-xs text-base-content/60 truncate">
+                <p className="text-xs text-base-content/60 truncate group-hover:text-base-content group-active:text-neutral-content">
                   {user?.email}
                 </p>
-                <div className="flex items-center gap-1 mt-1 text-[11px] text-primary font-medium">
-                  <ShieldCheck size={13} />
+                <div className="flex min-w-0 items-start gap-1 mt-1 text-[11px] text-primary font-medium group-hover:text-base-content group-active:text-neutral-content">
+                  <ShieldCheck size={13} className="group-hover:text-base-content group-active:text-neutral-content" />
                   <span>
                     {(user?.roles || [])
                       .map((role) => roleLabel(role.name))
@@ -138,17 +138,17 @@ export const Navbar = () => {
                   </span>
                 </div>
                 <div
-                  className={`flex items-center gap-1 mt-1 text-[11px] font-medium ${unitInfo.tone === "warning" ? "text-warning" : "text-base-content/70"}`}
+                  className={`flex min-w-0 items-start gap-1 mt-1 text-[11px] font-medium group-hover:text-base-content group-active:text-neutral-content ${unitInfo.tone === "warning" ? "text-warning" : "text-base-content/70"}`}
                 >
-                  <Building2 size={13} />
-                  <span className="truncate">
+                  <Building2 size={13} className="mt-0.5 shrink-0" />
+                  <span className="min-w-0 whitespace-normal break-words">
                     {unitInfo.label}: {unitInfo.value}
                   </span>
                 </div>
               </div>
             </li>
             {isMahasiswaAccount(user) && (
-              <li className="menu-title min-w-0 px-3 py-2">
+              <li className="menu-title min-w-0 whitespace-normal px-3 py-0 text-left">
                 <ProfileAcademicAdvisor compact />
               </li>
             )}

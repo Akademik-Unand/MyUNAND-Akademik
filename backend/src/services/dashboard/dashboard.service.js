@@ -231,10 +231,22 @@ const dosenSummary = async (user) => {
   const adviseeSql = `(SELECT ba.mahasiswa_id FROM bimbingan_akademik ba WHERE ba.dosen_id = ${sequelize.escape(dosenId)} AND ba.status = 'aktif')`;
   const semester = await findActiveSemester();
   const activeSemesterSql = semester ? sequelize.escape(semester.id) : 'NULL';
+  const pendingDecisionSql = `EXISTS (
+         SELECT 1 FROM krs_detil kd
+          WHERE kd.krs_id = k.id
+            AND ((kd.is_cross_enrollment = 0 AND COALESCE(kd.approved, '0') = '0')
+              OR (kd.is_cross_enrollment = 1 AND COALESCE(kd.cross_enrollment_status, 'pending_pa') = 'pending_pa'))
+       )`;
+  const rejectedDecisionSql = `EXISTS (
+         SELECT 1 FROM krs_detil kd
+          WHERE kd.krs_id = k.id
+            AND (kd.approved = '2' OR kd.cross_enrollment_status = 'rejected')
+       )`;
   const [counts] = await sequelize.query(
     `SELECT (SELECT COUNT(*) FROM mahasiswa m WHERE m.id IN ${adviseeSql} AND m.deletedAt IS NULL) AS mahasiswa_bimbingan,
        (SELECT COUNT(DISTINCT k.mahasiswa_id) FROM krs k WHERE k.semester_id = ${activeSemesterSql} AND k.mahasiswa_id IN ${adviseeSql}) AS sudah_isi_krs,
-       (SELECT COUNT(*) FROM krs k WHERE k.approval_ke = 0 AND k.semester_id = ${activeSemesterSql} AND k.mahasiswa_id IN ${adviseeSql}) AS krs_menunggu`,
+       (SELECT COUNT(*) FROM krs k WHERE k.approval_ke = 0 AND ${pendingDecisionSql} AND k.semester_id = ${activeSemesterSql} AND k.mahasiswa_id IN ${adviseeSql}) AS krs_menunggu,
+       (SELECT COUNT(*) FROM krs k WHERE k.approval_ke = 0 AND NOT ${pendingDecisionSql} AND ${rejectedDecisionSql} AND k.semester_id = ${activeSemesterSql} AND k.mahasiswa_id IN ${adviseeSql}) AS krs_ditolak`,
     { type: sequelize.QueryTypes.SELECT },
   );
   const angkatan = await sequelize.query(
@@ -243,10 +255,12 @@ const dosenSummary = async (user) => {
   );
   const periode = semester ? await getPeriod(semester.id, JENIS.KRS) : null;
   const bimbingan = Number(counts?.mahasiswa_bimbingan || 0); const sudahIsi = Number(counts?.sudah_isi_krs || 0);
+  const menunggu = Number(counts?.krs_menunggu || 0);
+  const ditolak = Number(counts?.krs_ditolak || 0);
   return {
     mahasiswa_bimbingan: bimbingan, sudah_isi_krs: sudahIsi, belum_isi_krs: Math.max(bimbingan - sudahIsi, 0),
-    krs_menunggu: Number(counts?.krs_menunggu || 0), angkatan: angkatan.map((row) => ({ ...row, jumlah: Number(row.jumlah) })),
-    status_krs: [{ nama: 'Disetujui/terisi', jumlah: Math.max(sudahIsi - Number(counts?.krs_menunggu || 0), 0) }, { nama: 'Menunggu', jumlah: Number(counts?.krs_menunggu || 0) }, { nama: 'Belum mengisi', jumlah: Math.max(bimbingan - sudahIsi, 0) }],
+    krs_menunggu: menunggu, krs_ditolak: ditolak, angkatan: angkatan.map((row) => ({ ...row, jumlah: Number(row.jumlah) })),
+    status_krs: [{ nama: 'Disetujui/terisi', jumlah: Math.max(sudahIsi - menunggu - ditolak, 0) }, { nama: 'Menunggu', jumlah: menunggu }, { nama: 'Ditolak', jumlah: ditolak }, { nama: 'Belum mengisi', jumlah: Math.max(bimbingan - sudahIsi, 0) }],
     periode,
     semester: semester ? { id: semester.id, tahun: semester.tahun, jenisSemester: semester.jenisSemester } : null,
     sks_maksimal: dosen?.programStudi?.sks_maksimal ?? null,

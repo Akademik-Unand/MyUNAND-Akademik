@@ -11,6 +11,10 @@ const {
   JENIS,
 } = require('../../helpers/academicPeriod');
 const { assertActivePa } = require('../../helpers/activePa');
+const {
+  isPendingKrsDetail,
+  krsApprovalStatus,
+} = require('../../helpers/krsApproval');
 
 /**
  * CPMK (hanya level root) beserta SCP pendukung dan Sub-CPMK-nya. Dipakai supaya
@@ -62,6 +66,12 @@ const LIST_OPTIONS = {
     {
       model: KrsDetil,
       as: 'krsDetil',
+      // `separate: true` membuat Sequelize menjalankan query terpisah untuk
+      // krsDetil setelah KRS induk diambil. Ini mencegah truncation hasMany
+      // saat `subQuery: false` + `limit` diterapkan pada query induk yang
+      // sudah di-JOIN dengan banyak tabel (CPMK × JadwalKelas memperbanyak
+      // baris SQL sehingga LIMIT bisa memotong detil sebelum semua dimuat).
+      separate: true,
       include: [
         {
           model: Kelas,
@@ -89,13 +99,29 @@ const getAdviseeIds = async (dosenId) => {
   return [...new Set(rows.map((row) => row.mahasiswa_id))];
 };
 
+const getActor = (userId) =>
+  User.findByPk(userId, { attributes: ['id', 'mahasiswa_id', 'dosen_id'] });
+
+const requireActorDosen = async (user = {}) => {
+  const actor = user?.id ? await getActor(user.id) : null;
+  if (!actor?.dosen_id) {
+    throw new AppError('Akun tidak terhubung ke data dosen', 403);
+  }
+  return actor;
+};
+
+const toPlainWithApprovalStatus = (row) => {
+  const plain = typeof row?.toJSON === 'function' ? row.toJSON() : row;
+  return { ...plain, status_persetujuan: krsApprovalStatus(plain) };
+};
+
 /**
  * Batasi daftar KRS sesuai peran pemanggil: mahasiswa hanya miliknya, dosen
  * hanya mahasiswa bimbingannya, admin/prodi melihat semua.
  */
 const scopeWhereForUser = async (user) => {
   if (!user?.id) return null;
-  const actor = await User.findByPk(user.id, { attributes: ['id', 'mahasiswa_id', 'dosen_id'] });
+  const actor = await getActor(user.id);
   if (!actor) return null;
   if (actor.mahasiswa_id) return { mahasiswa_id: actor.mahasiswa_id };
   if (actor.dosen_id) {
@@ -107,10 +133,76 @@ const scopeWhereForUser = async (user) => {
 
 const list = async (query, user) => {
   const scope = await scopeWhereForUser(user);
-  return paginate(Krs, query, {
+  const result = await paginate(Krs, query, {
     ...LIST_OPTIONS,
     findOptions: { subQuery: false, distinct: true, where: scope },
   });
+  return { ...result, rows: result.rows.map(toPlainWithApprovalStatus) };
+};
+
+/**
+ * Semester yang memiliki KRS mahasiswa bimbingan dosen login. Sumber ini
+ * sengaja tidak memakai master `/semester`: dosen tidak memerlukan izin master
+ * semester, dan cakupannya harus identik dengan antrean persetujuan KRS.
+ */
+const listApprovalSemesters = async (user = {}) => {
+  const actor = await requireActorDosen(user);
+  const adviseeIds = await getAdviseeIds(actor.dosen_id);
+  if (!adviseeIds.length) return [];
+
+  const rows = await Krs.findAll({
+    where: { mahasiswa_id: { [Op.in]: adviseeIds } },
+    attributes: ['id', 'semester_id', 'approval_ke'],
+    include: [
+      { model: Semester, as: 'semester', include: SEMESTER_INCLUDE },
+      {
+        model: KrsDetil,
+        as: 'krsDetil',
+        attributes: ['approved', 'is_cross_enrollment', 'cross_enrollment_status'],
+      },
+    ],
+  });
+
+  const semesters = new Map();
+  for (const row of rows) {
+    const plain = typeof row?.toJSON === 'function' ? row.toJSON() : row;
+    if (!plain?.semester?.id) continue;
+    const current = semesters.get(plain.semester.id) || {
+      ...plain.semester,
+      pending_count: 0,
+    };
+    if (krsApprovalStatus(plain) === 'pending_pa') current.pending_count += 1;
+    semesters.set(plain.semester.id, current);
+  }
+
+  return [...semesters.values()].sort((left, right) => {
+    if (Boolean(left.is_aktif) !== Boolean(right.is_aktif)) return left.is_aktif ? -1 : 1;
+    if (Boolean(left.pending_count) !== Boolean(right.pending_count)) return left.pending_count ? -1 : 1;
+    if (Number(left.tahun) !== Number(right.tahun)) return Number(right.tahun) - Number(left.tahun);
+    return Number(left.jenisSemester?.urut || 0) - Number(right.jenisSemester?.urut || 0);
+  });
+};
+
+const assertActiveAdvisor = async (krs, user, transaction) => {
+  const actor = await requireActorDosen(user);
+  const assignment = await BimbinganAkademik.findOne({
+    where: {
+      dosen_id: actor.dosen_id,
+      mahasiswa_id: krs.mahasiswa_id,
+      status: 'aktif',
+    },
+    attributes: ['id'],
+    transaction,
+  });
+  if (!assignment) {
+    throw new AppError('KRS bukan milik mahasiswa bimbingan aktif Anda', 403);
+  }
+};
+
+const assertSelectedSemester = (krs, semesterId) => {
+  if (String(krs.semester_id) !== String(semesterId)) {
+    throw new AppError('KRS tidak berada pada semester persetujuan yang dipilih', 409);
+  }
 };
 
 const getById = async (id) => {
@@ -151,7 +243,7 @@ const remove = async (id) => {
   return { id };
 };
 
-const approve = async (id, { approval_ke } = {}, user = {}) => {
+const approve = async (id, { approval_ke, semester_id } = {}, user = {}) => {
   return sequelize.transaction(async (transaction) => {
     const krs = await Krs.findByPk(id, {
       include: [{ model: KrsDetil, as: 'krsDetil' }],
@@ -161,6 +253,9 @@ const approve = async (id, { approval_ke } = {}, user = {}) => {
     if (!krs) {
       throw new AppError('KRS tidak ditemukan', 404);
     }
+
+    await assertActiveAdvisor(krs, user, transaction);
+    assertSelectedSemester(krs, semester_id);
 
     const now = new Date();
     await krs.update({
@@ -203,6 +298,56 @@ const approve = async (id, { approval_ke } = {}, user = {}) => {
     }
 
     logger.info({ krsId: id, approval_ke: krs.approval_ke }, 'KRS approved');
+    return Krs.findByPk(id, { include: LIST_OPTIONS.defaultInclude, transaction });
+  });
+};
+
+const reject = async (id, { reason, semester_id }, user = {}) => {
+  return sequelize.transaction(async (transaction) => {
+    const krs = await Krs.findByPk(id, {
+      include: [{ model: KrsDetil, as: 'krsDetil' }],
+      transaction,
+    });
+    if (!krs) throw new AppError('KRS tidak ditemukan', 404);
+
+    await assertActiveAdvisor(krs, user, transaction);
+    assertSelectedSemester(krs, semester_id);
+    if (!(krs.krsDetil || []).some(isPendingKrsDetail)) {
+      throw new AppError('KRS tidak memiliki mata kuliah yang menunggu keputusan', 409);
+    }
+
+    const now = new Date();
+    const rejection = {
+      approved: '2',
+      rejected_by: user.id,
+      rejected_at: now,
+      rejection_reason: reason,
+    };
+    await krs.update({ jam_selesai: now }, { transaction });
+    await KrsDetil.update(rejection, {
+      where: {
+        krs_id: krs.id,
+        is_cross_enrollment: false,
+        approved: '0',
+      },
+      transaction,
+    });
+    await KrsDetil.update(
+      { ...rejection, cross_enrollment_status: 'rejected' },
+      {
+        where: {
+          krs_id: krs.id,
+          is_cross_enrollment: true,
+          [Op.or]: [
+            { cross_enrollment_status: 'pending_pa' },
+            { cross_enrollment_status: { [Op.is]: null } },
+          ],
+        },
+        transaction,
+      }
+    );
+
+    logger.info({ krsId: id, rejectedBy: user.id }, 'KRS rejected');
     return Krs.findByPk(id, { include: LIST_OPTIONS.defaultInclude, transaction });
   });
 };
@@ -258,7 +403,10 @@ const getContext = async (userId) => {
             as: 'kelas',
             // `jadwalKelas` dibutuhkan klien untuk mendeteksi bentrok jadwal MK
             // yang mau diambil (dan menyebut MK mana yang bentrok).
-            include: [{ model: Matakuliah, as: 'matakuliah' }, { model: JadwalKelas, as: 'jadwalKelas' }],
+            include: [
+              { model: Matakuliah, as: 'matakuliah' },
+              { model: JadwalKelas, as: 'jadwalKelas', include: [{ model: Ruang, as: 'ruang' }] },
+            ],
           }],
         },
       ],
@@ -278,4 +426,17 @@ const getContext = async (userId) => {
   };
 };
 
-module.exports = { list, getById, create, update, remove, approve, updateDetilStatus, getByMahasiswa, getContext };
+module.exports = {
+  list,
+  listApprovalSemesters,
+  getById,
+  create,
+  update,
+  remove,
+  approve,
+  reject,
+  updateDetilStatus,
+  getByMahasiswa,
+  getContext,
+  approvalStatus: krsApprovalStatus,
+};

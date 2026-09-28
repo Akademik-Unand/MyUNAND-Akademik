@@ -9,6 +9,8 @@ const validate = require("../../middleware/validate");
 const krsValidation = require("../../validations/krs/krs.validation");
 const krsController = require("../../controllers/krs/krs.controller");
 
+const krsDocumentController = require("../../controllers/krs/krs-document.controller");
+
 const subject = "Krs";
 
 /** GET /krs */
@@ -30,6 +32,16 @@ router.get(
   krsController.context,
 );
 
+/** GET /krs/approval-semesters — semester yang punya KRS mahasiswa bimbingan. */
+router.get(
+  "/approval-semesters",
+  authenticate,
+  attachAbility,
+  checkPermission("approve", subject),
+  validate({ query: krsValidation.approvalSemestersQuery }),
+  krsController.listApprovalSemesters,
+);
+
 /** POST /krs */
 router.post(
   "/",
@@ -48,6 +60,16 @@ router.patch(
   checkPermission("approve", subject),
   validate({ params: krsValidation.idParam, body: krsValidation.approve }),
   krsController.approve,
+);
+
+/** PATCH /krs/:id/reject */
+router.patch(
+  "/:id/reject",
+  authenticate,
+  attachAbility,
+  checkPermission("approve", subject),
+  validate({ params: krsValidation.idParam, body: krsValidation.reject }),
+  krsController.reject,
 );
 
 /** PATCH /krs/detil/:detilId/status */
@@ -71,6 +93,20 @@ router.get(
   checkPermission("read", subject),
   validate({ params: krsValidation.mahasiswaIdParam }),
   krsController.getByMahasiswa,
+);
+
+/**
+ * GET /api/v1/krs/:id/pdf
+ * Izin krs.read + wajib mahasiswa pemilik KRS. PDF hanya untuk KRS disetujui
+ * dengan semua baris berlaku disetujui; error 403/404/409 tetap JSON.
+ */
+router.get(
+  "/:id/pdf",
+  authenticate,
+  attachAbility,
+  checkPermission("read", subject),
+  validate({ params: krsValidation.idParam, query: krsValidation.downloadQuery }),
+  krsDocumentController.pdf,
 );
 
 /** GET /krs/:id */

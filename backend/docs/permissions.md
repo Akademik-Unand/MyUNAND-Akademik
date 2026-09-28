@@ -60,3 +60,7 @@ Grant diubah lewat `GET /api/v1/roles/matrix` dan `PUT /api/v1/roles/:id/permiss
 User multi-role: `user_roles`. `GET /api/v1/auth/me` mengembalikan `roles[]` dan `permissions[]`.
 
 Jejak aktivitas tulis-saja: `GET /api/v1/activity-logs` (permission `activity-log.read`). Middleware mencatat create/update/delete/restore/login dan aksi khusus; GET tidak dicatat.
+
+## Unduhan PDF KRS mahasiswa
+
+GET /api/v1/krs/:id/pdf memakai krs.read sebagai representasi berkas dari data KRS. Service tetap mensyaratkan mahasiswa_id pada akun dan membatasi query ke pemilik KRS; izin admin/dosen tidak membuka unduhan milik mahasiswa lain pada endpoint ini. Tidak ada permission atau perubahan database baru.

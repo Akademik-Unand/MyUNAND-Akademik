@@ -118,3 +118,20 @@ describe("registeredKrsRows", () => {
     expect(registeredKrsRows(null)).toEqual([]);
   });
 });
+import { krsDocumentAvailability } from "./crossEnrollment";
+const pending = { aktif: true, status: "pending_pa" };
+const approved = { aktif: true, status: "approved" };
+const rejected = { aktif: false, status: "rejected" };
+describe("krsDocumentAvailability", () => {
+  it("meminta persetujuan header", () => {
+    expect(krsDocumentAvailability({ id: "krs", approval_ke: 0 }, [pending]).available).toBe(false);
+    expect(krsDocumentAvailability(null, [])).toMatchObject({ available: false, message: "Belum ada mata kuliah yang dapat diunduh." });
+  });
+  it("memerlukan baris berlaku", () => {
+    expect(krsDocumentAvailability({ id: "krs", approval_ke: 1 }, [rejected]).available).toBe(false);
+  });
+  it("menahan file hingga semua baris aktif disetujui dan mengecualikan penolakan", () => {
+    expect(krsDocumentAvailability({ id: "krs", approval_ke: 1 }, [approved, pending, rejected]).available).toBe(false);
+    expect(krsDocumentAvailability({ id: "krs", approval_ke: 1 }, [approved, rejected])).toMatchObject({ available: true });
+  });
+});

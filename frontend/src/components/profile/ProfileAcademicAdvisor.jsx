@@ -16,7 +16,7 @@ export const ProfileAcademicAdvisor = ({ compact = false }) => {
   let content;
   if (!isLinked || (!isError && data?.status === "unlinked")) {
     content = (
-      <p className="text-base-content/70">
+      <p className="text-base-content/70 group-hover:text-base-content group-active:text-neutral-content">
         Akun belum terhubung ke data mahasiswa.
         {!compact && " Hubungi program studi untuk menghubungkan akun Anda."}
       </p>
@@ -24,7 +24,7 @@ export const ProfileAcademicAdvisor = ({ compact = false }) => {
   } else if (isError) {
     content = (
       <div className="space-y-2">
-        <p className="text-base-content/70">Informasi dosen PA gagal dimuat.</p>
+        <p className="text-base-content/70 group-hover:text-base-content group-active:text-neutral-content">Informasi dosen PA gagal dimuat.</p>
         {!compact && (
           <Button variant="ghost" size="xs" isLoading={isFetching} onClick={() => refetch()}>
             Coba lagi
@@ -42,30 +42,30 @@ export const ProfileAcademicAdvisor = ({ compact = false }) => {
   } else if (data?.status === "assigned" && data.advisor) {
     const advisor = data.advisor;
     content = compact ? (
-      <p className="text-base-content/80">{advisor.nama || "Nama dosen belum tersedia"}</p>
+      <p className="text-base-content/80 group-hover:text-base-content group-active:text-neutral-content">{advisor.nama || "Nama dosen belum tersedia"}</p>
     ) : (
       <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <dt className="text-base-content/60">Nama dosen</dt>
+          <dt className="text-base-content/60 group-hover:text-base-content group-active:text-neutral-content">Nama dosen</dt>
           <dd className="mt-1 font-medium">{advisor.nama || "Nama dosen belum tersedia"}</dd>
         </div>
         <div>
-          <dt className="text-base-content/60">NIP</dt>
+          <dt className="text-base-content/60 group-hover:text-base-content group-active:text-neutral-content">NIP</dt>
           <dd className="mt-1">{advisor.nip || "—"}</dd>
         </div>
         <div>
-          <dt className="text-base-content/60">Program studi dosen</dt>
+          <dt className="text-base-content/60 group-hover:text-base-content group-active:text-neutral-content">Program studi dosen</dt>
           <dd className="mt-1">{advisor.program_studi?.nama || "—"}</dd>
         </div>
         <div>
-          <dt className="text-base-content/60">Tahun akademik penetapan</dt>
+          <dt className="text-base-content/60 group-hover:text-base-content group-active:text-neutral-content">Tahun akademik penetapan</dt>
           <dd className="mt-1">{advisor.tahun_akademik || "—"}</dd>
         </div>
       </dl>
     );
   } else {
     content = (
-      <p className="text-base-content/70">
+      <p className="text-base-content/70 group-hover:text-base-content group-active:text-neutral-content">
         Dosen PA belum ditetapkan.
         {!compact && " Hubungi program studi untuk penetapan dosen pembimbing akademik."}
       </p>
@@ -74,9 +74,9 @@ export const ProfileAcademicAdvisor = ({ compact = false }) => {
 
   if (compact) {
     return (
-      <div className="min-w-0 w-full space-y-1 text-xs font-normal wrap-anywhere">
-        <p className="flex items-center gap-1 font-medium text-base-content/60">
-          <GraduationCap size={14} className="shrink-0" /> Dosen PA
+      <div className="group -mx-2 min-w-0 w-full space-y-1 rounded-field p-1.5 text-left text-xs font-normal wrap-anywhere transition-colors duration-200 hover:bg-base-200 hover:text-base-content active:bg-neutral active:text-neutral-content">
+        <p className="flex items-center gap-1 font-medium text-base-content/60 group-hover:text-base-content group-active:text-neutral-content">
+          <GraduationCap size={14} className="shrink-0 group-hover:text-base-content group-active:text-neutral-content" /> Dosen PA
         </p>
         {content}
       </div>
