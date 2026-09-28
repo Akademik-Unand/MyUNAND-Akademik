@@ -42,6 +42,7 @@ describe('activityLog helper', () => {
   it('infers action and subject from the path', () => {
     expect(inferAction('DELETE', '/api/v1/fakultas/8514ab7d-9f32-4c8f-9dbe-fdf16e2e4fa1')).toBe('delete');
     expect(inferAction('POST', '/api/v1/fakultas/8514ab7d-9f32-4c8f-9dbe-fdf16e2e4fa1/restore')).toBe('restore');
+    expect(inferAction('PATCH', '/api/v1/krs/8514ab7d-9f32-4c8f-9dbe-fdf16e2e4fa1/reject')).toBe('reject');
     expect(inferAction('PUT', '/api/v1/users/8514ab7d-9f32-4c8f-9dbe-fdf16e2e4fa1/roles')).toBe('assign-roles');
     expect(inferSubject('/api/v1/fakultas')).toBe('Fakultas');
     expect(inferSubject('/api/v1/auth/login')).toBe('User');

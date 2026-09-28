@@ -77,3 +77,16 @@ export const registeredKrsRows = (krsDetil) =>
       kode: row.kelas?.matakuliah?.kode_matakuliah || "—",
     };
   });
+
+/** PDF final hanya tersedia untuk KRS berisi baris aktif yang seluruhnya disetujui. */
+export const krsDocumentAvailability = (krs, rows = []) => {
+  const active = rows.filter((row) => row.aktif);
+  if (!active.length) return { available: false, message: "Belum ada mata kuliah yang dapat diunduh." };
+  if (!krs?.id || !(Number(krs.approval_ke) > 0)) {
+    return { available: false, message: "Unduh tersedia setelah KRS disetujui dosen PA." };
+  }
+  if (active.some((row) => row.status !== "approved")) {
+    return { available: false, message: "Menunggu seluruh mata kuliah disetujui dosen PA." };
+  }
+  return { available: true, message: "KRS sudah disetujui dan siap diunduh." };
+};

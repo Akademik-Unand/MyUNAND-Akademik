@@ -31,6 +31,7 @@
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.24.3",
     "nodemon": "^3.1.14",
+    "pdfkit": "0.20.2",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "sequelize": "^6.37.8",

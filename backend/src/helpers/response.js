@@ -55,8 +55,15 @@ const serverError = (res, message = "Internal server error") => {
   return error(res, { message, code: 500 });
 };
 
+/** Respons berkas memakai helper yang sama; error tetap envelope JSON global. */
+const download = (res, { buffer, filename, contentType }) => {
+  res.set("Cache-Control", "private, no-store");
+  return res.attachment(filename).type(contentType).status(200).send(buffer);
+};
+
 module.exports = {
   success,
+  download,
   error,
   notFound,
   unauthorized,

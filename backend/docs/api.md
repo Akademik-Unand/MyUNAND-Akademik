@@ -60,11 +60,27 @@ Master Periode (`jenis` STRING whitelist `cpmk` | `nilai` | `krs`, bukan ENUM My
 - Batas jendela: `tanggal_selesai` periode **tidak boleh melebihi** `semester.tanggal_selesai` (dan tidak boleh lebih awal dari `tanggal_mulai`). Semester yang `tanggal_selesai`-nya masih kosong dilewati — tidak ada batas yang dipakai. Pelanggaran dijawab `422` dengan pesan yang menyebut tanggal batasnya.
 - Mutasi CPMK / sumber penilaian / pemetaan CPMK–SCP butuh periode `cpmk` pada semester `is_aktif`. Mutasi nilai dan `POST /nilai/upload` butuh periode `nilai` pada semester kelas. Pengambilan mata kuliah (KRS reguler maupun lintas prodi) butuh periode `krs` pada semester yang bersangkutan — satu periode untuk seluruh universitas. Baca tetap boleh.
 
+
+
+Unduhan KRS:
+- GET /api/v1/krs/:id/pdf memakai permission krs.read yang sudah ada. Pemanggil wajib terhubung ke mahasiswa, dan header harus miliknya (tautan akun dibaca ulang dari DB, bukan JWT/query).
+- Sukses: application/pdf dengan Content-Disposition attachment, nama KRS_<NIM>_<Semester>_<Tahun>.pdf dan Cache-Control private, no-store. Content-Disposition diekspos untuk unduhan frontend lintas origin.
+- Syarat: approval_ke > 0; ada baris berlaku; semua baris berlaku telah disetujui. Reguler mengikuti approved; lintas mengikuti cross_enrollment_status. Baris ditolak dikecualikan; baris pending menahan seluruh unduhan (409). Periode KRS boleh sudah ditutup.
+- 401: belum login; 403: tanpa izin baca/akun tidak terhubung mahasiswa; 404: KRS tidak ditemukan atau bukan miliknya; 409: keputusan belum lengkap/daftar kosong; 422: ID/query tidak valid. Error menggunakan envelope JSON standar.
+- Identitas, semester, kelas, mata kuliah, dan SKS berasal dari relasi tersimpan, termasuk referensi master yang soft-deleted. Data kosong tidak diganti data rekaan; jika ada SKS kosong, total SKS ikut kosong dan diberi catatan.
+- Nama pemberi persetujuan, tanggal persetujuan terverifikasi, dan tanda tangan tetap kosong dengan catatan. PA aktif, jam_selesai, dan pa_approved_by pada baris lintas tidak dipakai sebagai bukti keputusan seluruh KRS.
+- PDF dibuat saat diminta, tanpa file persisten, tabel, kolom, migrasi, seeder, atau permission baru. PDF merepresentasikan data terkini, bukan snapshot historis atau dokumen bertanda tangan digital.
+
 KRS Reguler (mahasiswa prodi sendiri):
+
+- `GET /api/v1/krs/context` — konteks mahasiswa login dan semester aktif, beserta periode serta seluruh `krs.krsDetil` (tanpa pagination). Tiap `kelas` menyertakan `matakuliah` dan seluruh `jadwalKelas` dengan `hari`, `jam_mulai`, `jam_selesai`, dan relasi `ruang` (bisa null). Dipakai kalender mingguan; pratinjau hanya state frontend, tanpa tabel/endpoint baru. Validasi bentrok tetap dijalankan server pada pengambilan reguler maupun lintas prodi.
+
 - Pintu tunggal pengambilan: mata kuliah hanya bisa diambil jika **penawaran-nya `published`** pada semester yang sama dengan KRS (dicek lewat relasi `kelas → penawaran_matakuliah_detil → penawaran_matakuliah`). MK yang tidak dibuka ⇒ tidak ada kelas yang dapat dipilih ⇒ otomatis tidak tersedia.
 - `POST /api/v1/krs` `{ mahasiswa_id, semester_id }` — buat header KRS; butuh periode `krs` terbuka pada semester tersebut. Jika pemanggil adalah mahasiswa, `mahasiswa_id` dipaksa miliknya sendiri.
 - `POST /api/v1/krs-detil` `{ krs_id, kelas_id }` — daftar satu mata kuliah; butuh periode `krs`, KRS belum disetujui (`approval_ke = 0`), kelas milik penawaran `published` pada semester yang sama, dan kapasitas kelas (`kelas.jumlah_peserta_max`) belum penuh untuk mahasiswa prodi sendiri.
-- `PATCH /api/v1/krs/:id/approve` — persetujuan dosen: `approval_ke` naik, `jam_selesai` di-set, detil **reguler** menjadi `approved: '1'`, dan pengajuan **lintas prodi** yang masih `pending_pa` ikut ditetapkan (`cross_enrollment_status: 'approved'`, `pa_approved_by`, `pa_approved_at`) — pengajuan yang sudah diputuskan sebelumnya tidak ditimpa. Setelah disetujui, detil KRS tidak dapat ditambah/diubah/dihapus lagi.
+- `PATCH /api/v1/krs/:id/approve` `{ semester_id }` — persetujuan dosen: `approval_ke` naik, `jam_selesai` di-set, detil **reguler** menjadi `approved: '1'`, dan pengajuan **lintas prodi** yang masih `pending_pa` ikut ditetapkan (`cross_enrollment_status: 'approved'`, `pa_approved_by`, `pa_approved_at`) — pengajuan yang sudah diputuskan sebelumnya tidak ditimpa. Setelah disetujui, detil KRS tidak dapat ditambah/diubah/dihapus lagi.
+- `PATCH /api/v1/krs/:id/reject` `{ semester_id, reason }` — dosen PA aktif dapat menolak seluruh detil yang masih menunggu. Detil menjadi `approved: '2'`; detil lintas prodi juga menjadi `cross_enrollment_status: 'rejected'`; alasan, pelaku, dan waktu keputusan disimpan pada kolom penolakan yang sudah ada. Baik approve maupun reject menolak (`403`) KRS yang bukan milik mahasiswa bimbingan aktif dosen login dan menolak (`409`) bila `semester_id` tidak sama dengan semester KRS.
+- `GET /api/v1/krs/approval-semesters` — semester yang memiliki KRS mahasiswa bimbingan dosen login, beserta `pending_count`. Endpoint ini memakai permission `krs.approve` dan relasi PA aktif, bukan permission master `semester.read`, sehingga menjadi sumber dropdown halaman Persetujuan KRS.
 - `GET /api/v1/krs` — daftar KRS, otomatis dibatasi: mahasiswa hanya miliknya, dosen hanya mahasiswa bimbingannya (dari `bimbingan_akademik` aktif), admin/prodi melihat semua.
 - `GET /api/v1/krs/mahasiswa/:mahasiswaId` — riwayat KRS seorang mahasiswa.
 

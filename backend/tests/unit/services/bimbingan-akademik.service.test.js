@@ -27,7 +27,7 @@ jest.mock('../../../src/models', () => ({
   Kelas: {},
   Matakuliah: {},
   SemesterProdi: { findAll: jest.fn(), findOne: jest.fn() },
-  Semester: {},
+  Semester: { findOne: jest.fn() },
   JenisSemester: {},
   ProgramStudi: {},
 }));
@@ -42,6 +42,7 @@ const {
   User,
   Krs,
   SemesterProdi,
+  Semester,
 } = require('../../../src/models');
 const { paginate } = require('../../../src/helpers/listQuery');
 const service = require('../../../src/services/institusi/bimbingan-akademik.service');
@@ -253,5 +254,47 @@ describe('summary', () => {
 
     expect(hasil.belum_punya_pa).toBe(0);
     expect(hasil.beban_teratas).toEqual([]);
+  });
+});
+
+describe('listSaya status KRS', () => {
+  it('menampilkan keputusan ditolak secara konsisten setelah seluruh detil pending ditolak', async () => {
+    Dosen.findByPk.mockResolvedValue(DOSEN_SEUNIT);
+    paginate.mockResolvedValue({
+      rows: [{ id: 'ba-1', mahasiswa_id: 'mhs-1', mahasiswa: MAHASISWA }],
+      pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+    });
+    Semester.findOne.mockResolvedValue({
+      id: 'sem-2026-ganjil',
+      tahun: 2026,
+      jenisSemester: { nama: 'Ganjil' },
+    });
+    Krs.findAll.mockResolvedValue([
+      {
+        id: 'krs-1',
+        mahasiswa_id: 'mhs-1',
+        approval_ke: 0,
+        krsDetil: [
+          {
+            approved: '2',
+            is_cross_enrollment: true,
+            cross_enrollment_status: 'rejected',
+            kelas: { matakuliah: { jumlah_sks_kurikulum: 3 } },
+          },
+        ],
+      },
+    ]);
+
+    const result = await service.listSaya({}, {
+      ...DOSEN_ACTOR,
+      user: { ...DOSEN_ACTOR.user, dosen_id: DOSEN_SEUNIT.id },
+    });
+
+    expect(result.rows[0].krs).toMatchObject({
+      id: 'krs-1',
+      status_persetujuan: 'rejected',
+      jumlah_mk: 1,
+      total_sks: 3,
+    });
   });
 });

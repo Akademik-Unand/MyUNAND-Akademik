@@ -109,7 +109,7 @@ describe('dashboard.service periode KRS', () => {
     });
     sequelize.query
       .mockResolvedValueOnce([
-        { mahasiswa_bimbingan: 5, sudah_isi_krs: 3, krs_menunggu: 1 },
+        { mahasiswa_bimbingan: 5, sudah_isi_krs: 3, krs_menunggu: 1, krs_ditolak: 1 },
       ])
       .mockResolvedValueOnce([{ angkatan: 2024, jumlah: 5 }]);
   };
@@ -127,6 +127,15 @@ describe('dashboard.service periode KRS', () => {
       jenisSemester: { nama: 'Genap' },
     });
     expect(result.sks_maksimal).toBe(24);
+    expect(result.krs_menunggu).toBe(1);
+    expect(result.krs_ditolak).toBe(1);
+    expect(result.status_krs).toEqual([
+      { nama: 'Disetujui/terisi', jumlah: 1 },
+      { nama: 'Menunggu', jumlah: 1 },
+      { nama: 'Ditolak', jumlah: 1 },
+      { nama: 'Belum mengisi', jumlah: 2 },
+    ]);
+    expect(sequelize.query.mock.calls[0][0]).toContain("cross_enrollment_status, 'pending_pa'");
     expect(Periode.findOne).toHaveBeenCalledWith(
       expect.objectContaining({ where: { semester_id: 'sem-1', jenis: 'krs' } }),
     );

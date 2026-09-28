@@ -70,6 +70,7 @@ const inferAction = (method, path) => {
   if (clean === "/auth/login") return "login";
   if (clean.endsWith("/restore")) return "restore";
   if (clean.endsWith("/approve")) return "approve";
+  if (clean.endsWith("/reject")) return "reject";
   if (clean.endsWith("/upload")) return "upload";
   if (method === "PUT" && /\/users\/[^/]+\/roles$/.test(clean))
     return "assign-roles";
