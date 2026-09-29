@@ -42,6 +42,10 @@ jobs:
           git checkout -f -B main origin/main
           git reset --hard origin/main
           echo "Deploying commit: $(git rev-parse --short HEAD)"
+          if [[ ! -s "$PROJECT_DIR/tpb.sql" ]]; then
+            echo "ERROR: $PROJECT_DIR/tpb.sql is missing or empty; TPB seeder requires this dump" >&2
+            exit 1
+          fi
 
           "${COMPOSE[@]}" config --quiet
           "${COMPOSE[@]}" build backend frontend
@@ -52,7 +56,9 @@ jobs:
           # npm run db:seed invokes sequelize-cli db:seed:all and re-runs
           # every registered seeder on every deployment.
           echo "===== DATABASE SEEDERS ====="
-          "${COMPOSE[@]}" run --rm --no-deps backend npm run db:seed
+          "${COMPOSE[@]}" run --rm --no-deps \
+            --volume "$PROJECT_DIR/tpb.sql:/tpb.sql:ro" \
+            backend npm run db:seed
 
           echo "===== STARTING SERVICES ====="
           "${COMPOSE[@]}" up --detach --no-build --remove-orphans
