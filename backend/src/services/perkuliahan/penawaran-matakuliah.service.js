@@ -20,7 +20,7 @@ const {
   Krs,
   Mahasiswa,
 } = require("../../models");
-const { paginate } = require("../../helpers/listQuery");
+const { paginate, normalizeListQuery } = require("../../helpers/listQuery");
 const AppError = require("../../helpers/AppError");
 const { restoreRecord } = require("../../helpers/softDelete");
 const { assertJadwalValid } = require("../../helpers/jadwalConflict");
@@ -379,9 +379,10 @@ const transition = (id, status) =>
     return getById(id, transaction);
   });
 const catalog = async (query) => {
-  const programStudiId = query.filter?.program_studi_id;
-  const matakuliahId = query.filter?.matakuliah_id;
-  const semesterId = query.filter?.semester_id;
+  const normalizedQuery = normalizeListQuery(query);
+  const programStudiId = normalizedQuery.filter?.program_studi_id;
+  const matakuliahId = normalizedQuery.filter?.matakuliah_id;
+  const semesterId = normalizedQuery.filter?.semester_id;
   const detailWhere = matakuliahId
     ? { matakuliah_id: matakuliahId }
     : undefined;
@@ -399,7 +400,7 @@ const catalog = async (query) => {
   if (and.length) where[Op.and] = and;
   // `paginate` hanya membaca klausa where dari `findOptions.where`; where
   // top-level akan diabaikan sehingga draft ikut tampil. Selalu taruh di sini.
-  return paginate(PenawaranMatakuliah, query, {
+  return paginate(PenawaranMatakuliah, normalizedQuery, {
     ...options,
     filterableFields: [],
     findOptions: { ...options.findOptions, where },
