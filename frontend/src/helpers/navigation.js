@@ -10,6 +10,7 @@ import { isDosenAccount, isMahasiswaAccount } from "./accountUnit";
 const STUDENT_NAV_PATHS = new Set([
   "/",
   "/krs/pengambilan",
+  "/krs/riwayat",
   "/mahasiswa/katalog-lintas-prodi",
 ]);
 

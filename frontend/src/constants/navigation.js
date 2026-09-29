@@ -112,6 +112,12 @@ export const NAVIGATION_MENU = [
         icon: "ClipboardList",
         permission: { action: "create", subject: "Krs" },
       },
+      {
+        label: "Riwayat KRS",
+        path: "/krs/riwayat",
+        icon: "ScrollText",
+        permission: { action: "read", subject: "Krs" },
+      },
     ],
   },
   {

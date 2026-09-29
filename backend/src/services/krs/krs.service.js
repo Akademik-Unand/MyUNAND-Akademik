@@ -405,7 +405,16 @@ const getContext = async (userId) => {
             // yang mau diambil (dan menyebut MK mana yang bentrok).
             include: [
               { model: Matakuliah, as: 'matakuliah' },
-              { model: JadwalKelas, as: 'jadwalKelas', include: [{ model: Ruang, as: 'ruang' }] },
+              {
+                model: DosenKelas,
+                as: 'dosenKelas',
+                include: [{ model: Dosen, as: 'dosen' }],
+              },
+              {
+                model: JadwalKelas,
+                as: 'jadwalKelas',
+                include: [{ model: Ruang, as: 'ruang' }, { model: Shift, as: 'shift' }],
+              },
             ],
           }],
         },

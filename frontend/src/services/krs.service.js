@@ -7,6 +7,12 @@ export const getKrsByMahasiswa = (mahasiswaId) =>
 /** Konteks KRS mahasiswa login: mahasiswa, semester aktif, dan KRS berjalan. */
 export const getStudentKrsContext = () => apiRequest("/krs/context");
 
+/** Riwayat KRS akun login; endpoint list membatasi mahasiswa ke datanya sendiri. */
+export const getStudentKrsHistory = () =>
+  apiRequest("/krs", {
+    params: { page: 1, limit: 100, sortBy: "createdAt", sortOrder: "desc" },
+  });
+
 /** Semester yang memiliki KRS mahasiswa bimbingan dosen login. */
 export const getKrsApprovalSemesters = () =>
   apiRequest("/krs/approval-semesters");

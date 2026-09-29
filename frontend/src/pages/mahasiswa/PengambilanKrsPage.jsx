@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { AlertTriangle, CalendarClock, Info, ListTree } from "lucide-react";
 import { KrsClassActions } from "../../components/krs/KrsClassActions";
 import { KrsSchedulePanel } from "../../components/krs/KrsSchedulePanel";
+import { KrsScheduleInfo } from "../../components/krs/KrsScheduleInfo";
+import { KrsLecturerInfo } from "../../components/krs/KrsLecturerInfo";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -605,7 +607,22 @@ export const PengambilanKrsPage = () => {
                   {
                     key: "kelas",
                     header: "Kelas",
+                    className: "min-w-20",
                     render: (row) => row.kelas?.nama || "—",
+                  },
+                  {
+                    key: "jadwal",
+                    header: "Jadwal & Ruang",
+                    className: "min-w-52",
+                    cellClassName: "min-w-52",
+                    render: (row) => <KrsScheduleInfo kelas={row.kelas} />,
+                  },
+                  {
+                    key: "pengampu",
+                    header: "Dosen Pengampu",
+                    className: "min-w-44",
+                    cellClassName: "min-w-44",
+                    render: (row) => <KrsLecturerInfo kelas={row.kelas} />,
                   },
                   { key: "approved", header: "Status", render: statusBadge },
                   {

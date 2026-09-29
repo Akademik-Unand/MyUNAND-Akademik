@@ -57,6 +57,7 @@ import { PenawaranSemesterPage } from "../pages/perkuliahan/PenawaranSemesterPag
 import { PenawaranDetailPage } from "../pages/perkuliahan/PenawaranDetailPage";
 import { ShiftPage } from "../pages/perkuliahan/ShiftPage";
 import { PengambilanKrsPage } from "../pages/mahasiswa/PengambilanKrsPage";
+import { RiwayatKrsPage } from "../pages/mahasiswa/RiwayatKrsPage";
 import { PersetujuanKrsPage } from "../pages/perkuliahan/PersetujuanKrsPage";
 import { DosenPaPage } from "../pages/kemahasiswaan/DosenPaPage";
 import { DosenPaDetailPage } from "../pages/kemahasiswaan/DosenPaDetailPage";
@@ -222,6 +223,10 @@ export const router = createBrowserRouter([
           {
             path: "krs/pengambilan",
             element: gate("create", "Krs", <PengambilanKrsPage />),
+          },
+          {
+            path: "krs/riwayat",
+            element: gate("read", "Krs", <RiwayatKrsPage />),
           },
           {
             path: "mahasiswa/katalog-lintas-prodi",
