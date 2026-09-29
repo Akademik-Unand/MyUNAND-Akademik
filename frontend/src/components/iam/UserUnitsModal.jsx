@@ -25,10 +25,25 @@ const toRow = (unit) => ({
   program_studi_id: unit.program_studi_id || "",
 });
 
+const academicUnitSuggestion = (user) => {
+  const profile = user.mahasiswa || user.dosen;
+  const program = profile?.programStudi;
+  if (!profile?.program_studi_id && !program?.id) return null;
+  return {
+    fakultas_id: program?.fakultas_id || "",
+    departemen_id: program?.departemen_id || "",
+    program_studi_id: profile.program_studi_id || program?.id || "",
+  };
+};
+
 const UserUnitsEditor = ({ user, onClose }) => {
   const queryClient = useQueryClient();
   const options = useFilterOptions();
-  const [rows, setRows] = useState(() => (user.units || []).map(toRow));
+  const suggestion = academicUnitSuggestion(user);
+  const [rows, setRows] = useState(() => {
+    if (user.units?.length) return user.units.map(toRow);
+    return [suggestion ? toRow(suggestion) : emptyRow()];
+  });
   const [saving, setSaving] = useState(false);
 
   const updateAt = (index, patch) =>
@@ -36,14 +51,28 @@ const UserUnitsEditor = ({ user, onClose }) => {
       prev.map((row, i) => (i === index ? { ...row, ...patch } : row)),
     );
 
+  const prodiForRow = (row) =>
+    (options.prodiRows || []).find((prodi) => prodi.id === row.program_studi_id);
+
+  const departemenForRow = (row) =>
+    (options.departemenRows || []).find((departemen) =>
+      departemen.id === row.departemen_id || departemen.id === prodiForRow(row)?.departemen_id,
+    );
+
+  const facultyIdForRow = (row) =>
+    row.fakultas_id || prodiForRow(row)?.fakultas_id || departemenForRow(row)?.fakultas_id || "";
+
+  const departemenIdForRow = (row) =>
+    row.departemen_id || prodiForRow(row)?.departemen_id || "";
+
   const departemenOptions = (row) =>
     (options.departemenRows || []).filter(
-      (d) => !row.fakultas_id || d.fakultas_id === row.fakultas_id,
+      (d) => !facultyIdForRow(row) || d.fakultas_id === facultyIdForRow(row),
     );
 
   const prodiOptions = (row) =>
     (options.prodiRows || []).filter(
-      (p) => !row.departemen_id || p.departemen_id === row.departemen_id,
+      (p) => !departemenIdForRow(row) || p.departemen_id === departemenIdForRow(row),
     );
 
   const save = async () => {
@@ -52,11 +81,15 @@ const UserUnitsEditor = ({ user, onClose }) => {
       .filter(
         (row) => row.fakultas_id || row.departemen_id || row.program_studi_id,
       )
-      .map((row) => ({
-        fakultas_id: row.fakultas_id || null,
-        departemen_id: row.departemen_id || null,
-        program_studi_id: row.program_studi_id || null,
-      }));
+      .map((row) => {
+        if (row.program_studi_id) {
+          return { fakultas_id: null, departemen_id: null, program_studi_id: row.program_studi_id };
+        }
+        if (row.departemen_id) {
+          return { fakultas_id: null, departemen_id: row.departemen_id, program_studi_id: null };
+        }
+        return { fakultas_id: row.fakultas_id || null, departemen_id: null, program_studi_id: null };
+      });
     setSaving(true);
     try {
       await assignUserUnits(user.id, units);
@@ -78,6 +111,11 @@ const UserUnitsEditor = ({ user, onClose }) => {
         Setiap baris wajib memilih minimal satu level; pilih yang paling tinggi
         yang relevan (fakultas &gt; departemen &gt; prodi).
       </p>
+      {!user.units?.length && suggestion && (
+        <p className="alert alert-info py-2 text-xs">
+          Unit akses belum ditetapkan. Prodi pada profil akademik ditampilkan sebagai saran; klik Simpan untuk menetapkannya.
+        </p>
+      )}
       {rows.map((row, index) => (
         <div
           key={row.key}
@@ -119,8 +157,8 @@ const UserUnitsEditor = ({ user, onClose }) => {
                 value: d.id,
                 label: d.nama_resmi || d.nama_singkat || d.kode_departemen,
               }))}
-              value={row.departemen_id}
-              disabled={!row.fakultas_id}
+              value={departemenIdForRow(row)}
+              disabled={!facultyIdForRow(row)}
               onChange={(e) =>
                 updateAt(index, {
                   departemen_id: e.target.value,
@@ -137,7 +175,7 @@ const UserUnitsEditor = ({ user, onClose }) => {
                 label: p.nama_singkat || p.kode_prodi,
               }))}
               value={row.program_studi_id}
-              disabled={!row.departemen_id}
+              disabled={!departemenIdForRow(row)}
               onChange={(e) =>
                 updateAt(index, { program_studi_id: e.target.value })
               }

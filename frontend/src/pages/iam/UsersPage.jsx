@@ -14,13 +14,14 @@ import { programStudiLabel } from "../../helpers/academicLabel";
 
 const unitLabel = (unit) => {
   if (!unit) return null;
+  const program = unit.programStudi || unit.program_studi;
   // Prodi memakai nama singkat (sudah memuat jenjang, mis. "S1 SI"); unit lain
   // memakai nama resmi yang sudah memuat kata Fakultas/Departemen.
-  if (unit.programStudi) {
+  if (program) {
     return programStudiLabel(
       {
-        nama_singkat: unit.programStudi.nama_singkat,
-        kode_prodi: unit.programStudi.kode,
+        nama_singkat: program.nama_singkat,
+        kode_prodi: program.kode_prodi || program.kode,
       },
       null,
     );

@@ -44,7 +44,18 @@ jobs:
           echo "Deploying commit: $(git rev-parse --short HEAD)"
 
           "${COMPOSE[@]}" config --quiet
-          "${COMPOSE[@]}" up --detach --build --remove-orphans
+          "${COMPOSE[@]}" build backend frontend
+
+          echo "===== DATABASE MIGRATIONS ====="
+          "${COMPOSE[@]}" run --rm --no-deps backend npm run db:migrate
+
+          # npm run db:seed invokes sequelize-cli db:seed:all and re-runs
+          # every registered seeder on every deployment.
+          echo "===== DATABASE SEEDERS ====="
+          "${COMPOSE[@]}" run --rm --no-deps backend npm run db:seed
+
+          echo "===== STARTING SERVICES ====="
+          "${COMPOSE[@]}" up --detach --no-build --remove-orphans
 
           # Wait up to three minutes for both services to report healthy.
           deadline=$((SECONDS + 180))
