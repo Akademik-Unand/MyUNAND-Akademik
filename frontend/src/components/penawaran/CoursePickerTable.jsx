@@ -9,10 +9,10 @@ export const CoursePickerTable = ({
   courses,
   selected,
   quotas,
-  defaultQuota,
   onToggle,
   onToggleAll,
   onQuotaChange,
+  showCrossEnrollment = false,
 }) => {
   const allSelected =
     courses.length > 0 && courses.every((row) => selected.includes(row.id));
@@ -73,8 +73,38 @@ export const CoursePickerTable = ({
           sortable: true,
         },
         {
+          key: "jumlah_peserta_max_default",
+          header: "Kapasitas Total Awal",
+          render: (row) => (
+            <input
+              type="number"
+              min="0"
+              className="input input-sm w-24"
+              value={quotas[row.id]?.total ?? row.jumlah_peserta_max_default ?? 40}
+              disabled={!selected.includes(row.id)}
+              onChange={(event) => onQuotaChange(row.id, "total", event.target.value)}
+              aria-label={`Kapasitas total awal ${row.nama_resmi}`}
+            />
+          ),
+        },
+        {
+          key: "jumlah_peserta_internal_max_default",
+          header: "Kuota Internal Awal",
+          render: (row) => (
+            <input
+              type="number"
+              min="0"
+              className="input input-sm w-24"
+              value={quotas[row.id]?.internal ?? row.jumlah_peserta_internal_max_default ?? 40}
+              disabled={!selected.includes(row.id)}
+              onChange={(event) => onQuotaChange(row.id, "internal", event.target.value)}
+              aria-label={`Kuota internal awal ${row.nama_resmi}`}
+            />
+          ),
+        },
+        ...(showCrossEnrollment ? [{
           key: "kuota_lintas_prodi",
-          header: "Kapasitas Lintas",
+          header: "Kuota Lintas Awal",
           render: (row) =>
             row.has_prasyarat ? (
               <span className="text-xs font-medium text-base-content/50">
@@ -85,13 +115,13 @@ export const CoursePickerTable = ({
                 type="number"
                 min="0"
                 className="input input-sm w-24"
-                value={quotas[row.id] ?? defaultQuota}
+                value={quotas[row.id]?.external ?? row.kuota_lintas_prodi ?? 0}
                 disabled={!selected.includes(row.id)}
-                onChange={(event) => onQuotaChange(row.id, event.target.value)}
-                aria-label={`Kuota ${row.nama_resmi}`}
+                onChange={(event) => onQuotaChange(row.id, "external", event.target.value)}
+                aria-label={`Kuota lintas awal ${row.nama_resmi}`}
               />
             ),
-        },
+        }] : []),
       ]}
     />
   );

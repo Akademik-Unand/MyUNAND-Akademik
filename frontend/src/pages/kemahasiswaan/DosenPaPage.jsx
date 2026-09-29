@@ -1,16 +1,14 @@
 import { useMemo, useState } from "react";
-import { UserPlus, Users, UserMinus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
-import { FilterBar } from "../../components/common/FilterBar";
 import { DataTable } from "../../components/common/DataTable";
 import { Modal } from "../../components/ui/Modal";
 import { FormActions } from "../../components/common/FormActions";
-import { ConfirmDeleteModal } from "../../components/common/ConfirmDeleteModal";
-import { IconButton } from "../../components/common/IconButton";
 import { Can } from "../../components/auth/Can";
 import { BimbinganSummaryCards } from "../../components/bimbingan/BimbinganSummaryCards";
 import { TetapkanPaForm } from "../../components/bimbingan/TetapkanPaForm";
@@ -22,16 +20,11 @@ import {
 } from "../../hooks/useBimbinganAkademik";
 import { useResourceQuery } from "../../hooks/useResourceQuery";
 import {
-  PA_STATUS_OPTIONS,
-  dosenLabel,
-  mahasiswaLabel,
-  paStatusLabel,
-  paStatusVariant,
   ringkasHasilBulk,
   toggleAllIds,
   toggleId,
-  unitLabel,
 } from "../../helpers/bimbinganPa";
+import { programStudiLabel } from "../../helpers/academicLabel";
 
 const FILTER_KEYS = ["fakultas", "departemen", "prodi"];
 const CANDIDATE_LIMIT = 200;
@@ -51,7 +44,7 @@ const payloadFrom = (values, extra = {}) => ({
 });
 
 export const DosenPaPage = () => {
-  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const academic = useAcademicFilter({ keys: FILTER_KEYS, applyImmediately: true });
   const extraFilter = academic.extraFilter;
   const summaryParams = useMemo(
     () => (extraFilter ? { filter: extraFilter } : undefined),
@@ -64,7 +57,6 @@ export const DosenPaPage = () => {
   const mutations = useBimbinganMutations();
 
   const [formOpen, setFormOpen] = useState(false);
-  const [formMahasiswa, setFormMahasiswa] = useState(null);
   const [formValues, setFormValues] = useState(EMPTY_PA_FORM);
 
   const [bulkOpen, setBulkOpen] = useState(false);
@@ -73,7 +65,6 @@ export const DosenPaPage = () => {
   const [bulkSearch, setBulkSearch] = useState("");
   const [bulkResult, setBulkResult] = useState(null);
 
-  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const candidatesQuery = useResourceQuery("bimbingan-candidates", {
     params: {
@@ -84,18 +75,7 @@ export const DosenPaPage = () => {
   });
 
   const openCreate = () => {
-    setFormMahasiswa(null);
     setFormValues(EMPTY_PA_FORM);
-    setFormOpen(true);
-  };
-
-  const openGanti = (row) => {
-    setFormMahasiswa(row.mahasiswa || null);
-    setFormValues({
-      ...EMPTY_PA_FORM,
-      mahasiswa_id: row.mahasiswa_id,
-      dosen_id: "",
-    });
     setFormOpen(true);
   };
 
@@ -115,7 +95,7 @@ export const DosenPaPage = () => {
   const submitForm = async (event) => {
     event.preventDefault();
     if (mutations.create.isPending) return;
-    const mahasiswaId = formMahasiswa?.id || formValues.mahasiswa_id;
+    const mahasiswaId = formValues.mahasiswa_id;
     if (!mahasiswaId || !formValues.dosen_id) return;
     await mutations.create.mutateAsync(
       payloadFrom(formValues, {
@@ -125,7 +105,6 @@ export const DosenPaPage = () => {
     );
     setFormOpen(false);
     setFormValues(EMPTY_PA_FORM);
-    setFormMahasiswa(null);
   };
 
   const submitBulk = async (event) => {
@@ -149,77 +128,46 @@ export const DosenPaPage = () => {
 
   const columns = [
     {
-      key: "mahasiswa",
-      header: "Mahasiswa",
+      key: "nama",
+      header: "Dosen PA",
       render: (row) => (
         <div className="min-w-0">
           <p className="font-medium text-base-content">
-            {row.mahasiswa?.nama || "—"}
+            {row.nama || "—"}
           </p>
           <p className="text-xs text-base-content/60">
-            {row.mahasiswa?.niu || "—"}
+            {row.nip || "—"} {row.nidn ? `· ${row.nidn}` : ""}
           </p>
         </div>
       ),
     },
     {
       header: "Program Studi",
-      render: (row) => (
-        <span className="text-sm">{unitLabel(row.mahasiswa)}</span>
-      ),
+      render: (row) => programStudiLabel(row.programStudi),
     },
     {
-      header: "Dosen PA",
-      render: (row) => (
-        <div className="min-w-0">
-          <p className="text-sm text-base-content">{row.dosen?.nama || "—"}</p>
-          <p className="text-xs text-base-content/60">{unitLabel(row.dosen)}</p>
-        </div>
-      ),
+      key: "jumlah_mahasiswa",
+      header: "Mahasiswa Bimbingan",
+      render: (row) => row.jumlah_mahasiswa || 0,
     },
     {
-      key: "tahun_akademik",
-      header: "Tahun Akad.",
-      sortable: true,
-      render: (row) => row.tahun_akademik || "—",
+      key: "krs_menunggu",
+      header: "KRS Menunggu",
+      render: (row) => <Badge variant={row.krs_menunggu ? "warning" : "ghost"}>{row.krs_menunggu || 0}</Badge>,
     },
     {
-      key: "status",
-      header: "Status",
-      sortable: true,
-      filter: { type: "select", options: PA_STATUS_OPTIONS },
+      header: "Status Akun",
       render: (row) => (
-        <Badge variant={paStatusVariant(row.status)}>
-          {paStatusLabel(row.status)}
-        </Badge>
+        <span className={`badge badge-sm ${row.status_akun === "aktif" ? "badge-success" : row.status_akun === "nonaktif" ? "badge-ghost" : "badge-warning"}`}>
+          {row.status_akun === "aktif" ? "Aktif" : row.status_akun === "nonaktif" ? "Nonaktif" : "Belum memiliki akun"}
+        </span>
       ),
     },
     {
       header: "Aksi",
       className: "text-right",
       cellClassName: "text-right",
-      render: (row) => (
-        <div className="flex items-center justify-end gap-1">
-          {row.status === "aktif" && (
-            <Can I="update" a="BimbinganAkademik">
-              <IconButton
-                label="Ganti dosen PA"
-                icon={Users}
-                tone="text-primary"
-                onClick={() => openGanti(row)}
-              />
-            </Can>
-          )}
-          <Can I="delete" a="BimbinganAkademik">
-            <IconButton
-              label="Lepas dosen PA"
-              icon={UserMinus}
-              tone="text-error"
-              onClick={() => setDeleteTarget(row)}
-            />
-          </Can>
-        </div>
-      ),
+      render: (row) => <Link className="btn btn-ghost btn-xs" to={`/kemahasiswaan/dosen-pa/${row.id}`}>Lihat Detail</Link>,
     },
   ];
 
@@ -230,7 +178,7 @@ export const DosenPaPage = () => {
     <div className="space-y-4">
       <PageHeader
         title="Kelola Dosen PA"
-        subtitle="Tetapkan pembimbing akademik agar mahasiswa bisa mengambil KRS reguler maupun lintas prodi"
+        subtitle="Pantau Dosen PA, mahasiswa bimbingan, dan pengajuan KRS yang menunggu persetujuan"
         breadcrumbs={[{ label: "Kemahasiswaan" }, { label: "Dosen PA" }]}
         action={
           <Can I="create" a="BimbinganAkademik">
@@ -258,41 +206,32 @@ export const DosenPaPage = () => {
         />
       )}
 
-      <Card title="Filter">
-        <FilterBar
-          fields={academic.fields}
-          onApply={academic.apply}
-          onReset={academic.reset}
-          applyDisabled={!academic.canApply}
-        />
-      </Card>
-
       <Card title="Daftar Bimbingan Akademik">
         <DataTable
-          resource="bimbingan-akademik"
+          resource="dosen-pa"
           tableKey="pa_"
           columns={columns}
           extraFilter={extraFilter}
           dataLocked={academic.locked}
+          toolbarFilters={academic.fields}
+          onApplyToolbarFilters={academic.apply}
+          onResetToolbarFilters={academic.reset}
+          toolbarFiltersDisabled={!academic.canApply}
           rowKey={(row) => row.id}
-          searchPlaceholder="Cari nama/NIU mahasiswa atau nama dosen..."
+          searchPlaceholder="Cari nama, NIP, NIDN, atau email dosen..."
         />
       </Card>
 
       <Modal
         open={formOpen}
         onClose={closeForm}
-        title={formMahasiswa ? "Ganti Dosen PA" : "Tetapkan Dosen PA"}
-        subtitle={
-          formMahasiswa
-            ? "PA sebelumnya otomatis ditutup sebagai selesai"
-            : "Untuk mahasiswa yang belum punya pembimbing akademik"
-        }
+        title="Tetapkan Dosen PA"
+        subtitle="Untuk mahasiswa yang belum memiliki pembimbing akademik"
         closeOnBackdrop={!mutations.create.isPending}
         footer={
           <FormActions
             onCancel={closeForm}
-            submitLabel={formMahasiswa ? "Ganti" : "Tetapkan"}
+            submitLabel="Tetapkan"
             isLoading={mutations.create.isPending}
             onSubmitClick={() =>
               document.getElementById("pa-form")?.requestSubmit()
@@ -304,7 +243,7 @@ export const DosenPaPage = () => {
           <TetapkanPaForm
             values={formValues}
             onChange={setFormValues}
-            mahasiswa={formMahasiswa}
+            mahasiswa={null}
           />
         </form>
       </Modal>
@@ -387,21 +326,6 @@ export const DosenPaPage = () => {
         )}
       </Modal>
 
-      <ConfirmDeleteModal
-        open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={async () => {
-          await mutations.remove.mutateAsync(deleteTarget.id);
-          setDeleteTarget(null);
-        }}
-        isLoading={mutations.remove.isPending}
-        title="Lepas Dosen PA"
-        message={
-          deleteTarget
-            ? `Lepas ${dosenLabel(deleteTarget.dosen)} dari ${mahasiswaLabel(deleteTarget.mahasiswa)}? Selama belum ditetapkan PA baru, mahasiswa ini tidak bisa mengambil KRS.`
-            : ""
-        }
-      />
     </div>
   );
 };

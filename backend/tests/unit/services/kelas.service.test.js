@@ -44,7 +44,7 @@ describe('assertKelasConsistency', () => {
         matakuliah_id: 'm1',
         penawaran_matakuliah_id: 'detil-1',
       })
-    ).resolves.toBeUndefined();
+    ).resolves.toMatchObject({ id: 'detil-1' });
   });
 
   it('menolak saat detail penawaran tidak ditemukan', async () => {

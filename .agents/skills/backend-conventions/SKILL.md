@@ -221,3 +221,15 @@ Setiap kali membuat fitur/endpoint baru, pastikan:
 - [ ] Permission CASL didefinisikan & middleware dipasang
 - [ ] Test ditulis (unit dan/atau integration)
 - [ ] Dokumentasi API diupdate
+
+## Audit lintas lapisan untuk setiap perubahan
+
+Setiap penambahan atau perubahan fitur harus diperiksa secara end-to-end, mencakup database, backend, frontend, authentication, authorization, role, permission, validation, dan testing.
+
+Setiap fitur baru wajib memiliki permission yang sesuai dan permission tersebut harus di-assign kepada role yang membutuhkan. Jangan hanya mengandalkan pembatasan akses dari frontend; backend harus tetap melakukan authorization.
+
+Setelah melakukan refactor, hapus implementasi lama yang benar-benar tidak digunakan setelah memastikan tidak terdapat dependency aktif. Hindari dead code, redundant field, duplicate source of truth, atau struktur database yang sudah tidak memiliki fungsi.
+
+Setiap tombol/action yang tidak dapat digunakan harus memberikan alasan yang jelas kepada user. Prioritaskan root-cause fix dengan menelusuri database → backend → API → frontend sebelum memperbaiki bug.
+
+Jaga implementasi tetap sederhana, konsisten dengan arsitektur project, mudah dipelihara, dan hindari over-engineering.

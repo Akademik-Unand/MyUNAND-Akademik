@@ -9,16 +9,27 @@ const create = Joi.object({
   name: Joi.string().max(255).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
+  role_ids: Joi.array().items(Joi.string().uuid()).min(1).required(),
   dosen_id: Joi.string().uuid().allow(null),
   mahasiswa_id: Joi.string().uuid().allow(null),
+}).custom((value, helpers) => {
+  if (value.dosen_id && value.mahasiswa_id) {
+    return helpers.message('Akun hanya dapat terhubung ke satu profil akademik');
+  }
+  return value;
 });
 
 const update = Joi.object({
-  name: Joi.string().max(255).allow(null),
-  email: Joi.string().email().allow(null),
+  name: Joi.string().max(255),
+  email: Joi.string().email(),
   password: Joi.string().min(6).allow(null, ''),
   dosen_id: Joi.string().uuid().allow(null),
   mahasiswa_id: Joi.string().uuid().allow(null),
+}).custom((value, helpers) => {
+  if (value.dosen_id && value.mahasiswa_id) {
+    return helpers.message('Akun hanya dapat terhubung ke satu profil akademik');
+  }
+  return value;
 });
 
 const assignRoles = Joi.object({

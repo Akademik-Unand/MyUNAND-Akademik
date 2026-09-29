@@ -1,7 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
-import { FilterBar } from "../../components/common/FilterBar";
 import { DataTable } from "../../components/common/DataTable";
 import { PillTabs } from "../../components/ui/PillTabs";
 import { KelasHistoryPanel } from "../../components/kelas/KelasHistoryPanel";
@@ -31,7 +30,7 @@ const columns = buildKelasListColumns({
 export const UploadNilaiPage = () => {
   const [params, setParams] = useSearchParams();
   const tab = params.get("tab") || "kelas";
-  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const academic = useAcademicFilter({ keys: FILTER_KEYS, applyImmediately: true });
   const extraFilter = academic.extraFilter;
   const can = useCan();
 
@@ -42,15 +41,6 @@ export const UploadNilaiPage = () => {
         subtitle="Unggah dan kelola nilai perkuliahan per kelas"
         breadcrumbs={[{ label: "Perkuliahan" }, { label: "Upload Nilai" }]}
       />
-      <Card title="Filter">
-        <FilterBar
-          fields={academic.fields}
-          onApply={academic.apply}
-          onReset={academic.reset}
-          applyDisabled={!academic.canApply}
-        />
-      </Card>
-
       <PillTabs
         items={TABS}
         value={tab}
@@ -69,6 +59,10 @@ export const UploadNilaiPage = () => {
             columns={columns}
             extraFilter={extraFilter}
             dataLocked={academic.locked}
+            toolbarFilters={academic.fields}
+            onApplyToolbarFilters={academic.apply}
+            onResetToolbarFilters={academic.reset}
+            toolbarFiltersDisabled={!academic.canApply}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari kelas atau mata kuliah..."
           />

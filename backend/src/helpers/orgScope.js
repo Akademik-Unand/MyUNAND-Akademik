@@ -101,10 +101,14 @@ const orgFilterForResource = (resource, scope) => {
   return { [mapping.key]: mapping.ids(scope) };
 };
 
+const resourceNameFromBaseUrl = (baseUrl = '') =>
+  String(baseUrl).split('/').filter(Boolean).at(-1) || '';
+
 module.exports = {
   ROLE_LEVELS,
   LEVEL_ORDER,
   collectUnitIds,
   computeOrgScope,
   orgFilterForResource,
+  resourceNameFromBaseUrl,
 };

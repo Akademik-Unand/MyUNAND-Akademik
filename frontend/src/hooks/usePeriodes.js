@@ -9,7 +9,10 @@ export const usePeriodes = (options = {}) =>
 
 export const useCpmkPeriodOpen = () => {
   const query = usePeriodes();
-  return { ...query, open: bolehCpmk(query.data) };
+  const period = query.data?.find(
+    (row) => row.jenis === "cpmk" && row.semester?.is_aktif,
+  ) || null;
+  return { ...query, period, open: bolehCpmk(query.data) };
 };
 
 export const useNilaiPeriodOpen = (kelas) => {

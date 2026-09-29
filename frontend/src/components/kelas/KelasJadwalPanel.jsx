@@ -69,6 +69,8 @@ export const KelasJadwalPanel = ({ kelas }) => {
   });
   const invalidateKelas = () =>
     client.invalidateQueries({ queryKey: ["kelas", kelas?.id] });
+  const invalidateOffering = () =>
+    client.invalidateQueries({ queryKey: ["penawaran-matakuliah"] });
 
   const ruangOptions = ruangRows.map((row) => ({
     value: row.id,
@@ -95,6 +97,7 @@ export const KelasJadwalPanel = ({ kelas }) => {
       dosen_ke: (kelas?.dosenKelas?.length || 0) + 1,
     });
     invalidateKelas();
+    invalidateOffering();
     setDosenId("");
     setAddDosenOpen(false);
   };
@@ -130,6 +133,7 @@ export const KelasJadwalPanel = ({ kelas }) => {
       await jadwalMutations.create.mutateAsync(payload);
     }
     invalidateKelas();
+    invalidateOffering();
     setJadwalModal(null);
   };
 
@@ -141,6 +145,7 @@ export const KelasJadwalPanel = ({ kelas }) => {
       await jadwalMutations.remove.mutateAsync(deleteTarget.id);
     }
     invalidateKelas();
+    invalidateOffering();
     setDeleteTarget(null);
   };
 

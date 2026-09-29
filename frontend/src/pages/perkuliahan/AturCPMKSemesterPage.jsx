@@ -5,6 +5,7 @@ import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { PeriodOperationNotice } from "../../components/common/PeriodOperationNotice";
 import { AturCPMKSemesterForm } from "../../components/mk-semester/AturCPMKSemesterForm";
 import {
   useResourceItem,
@@ -40,7 +41,8 @@ export const AturCPMKSemesterPage = () => {
     );
   }
   const [saving, setSaving] = useState(false);
-  const cpmkOpen = useCpmkPeriodOpen().open;
+  const cpmkPeriod = useCpmkPeriodOpen();
+  const cpmkOpen = cpmkPeriod.open;
   const back = `/perkuliahan/mk-semester/${id}`;
 
   const save = async () => {
@@ -94,8 +96,18 @@ export const AturCPMKSemesterPage = () => {
         ]}
       />
 
+      <PeriodOperationNotice
+        period={cpmkPeriod.period}
+        label="CPMK dan sumber penilaian"
+        isLoading={cpmkPeriod.isPending}
+      />
+
       <Card title={`Sumber penilaian untuk ${mkLabel(mk.data)}`}>
-        <AturCPMKSemesterForm items={items} onChange={setItems} />
+        <AturCPMKSemesterForm
+          items={items}
+          onChange={setItems}
+          disabled={!cpmkOpen || cpmkPeriod.isPending}
+        />
         <div className="mt-6 flex justify-end gap-2">
           <Button
             variant="ghost"

@@ -7,7 +7,7 @@ jest.mock('../../../src/helpers/academicPeriod', () => ({
 jest.mock('../../../src/models', () => ({
   KrsDetil: { count: jest.fn(), create: jest.fn(), findByPk: jest.fn(), findAll: jest.fn() },
   Krs: { findByPk: jest.fn() },
-  Mahasiswa: {},
+  Mahasiswa: { findByPk: jest.fn() },
   ProgramStudi: {},
   Kelas: { findByPk: jest.fn() },
   Matakuliah: {},
@@ -19,7 +19,7 @@ jest.mock('../../../src/models', () => ({
   BimbinganAkademik: { findOne: jest.fn() },
 }));
 
-const { KrsDetil, Krs, Kelas, User, BimbinganAkademik } = require('../../../src/models');
+const { KrsDetil, Krs, Kelas, User, BimbinganAkademik, Mahasiswa } = require('../../../src/models');
 const {
   assertKelasOwnCapacity,
   assertKelasPublishedOffering,
@@ -33,31 +33,31 @@ describe('assertKelasOwnCapacity', () => {
     jest.clearAllMocks();
   });
 
-  it('menolak saat jumlah mahasiswa prodi sendiri sudah memenuhi kapasitas', async () => {
-    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', jumlah_peserta_max: 30 });
+  it('menolak saat jumlah peserta gabungan sudah memenuhi kapasitas total', async () => {
+    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', jumlah_peserta_max: 30, jumlah_peserta_internal_max: 30 });
     KrsDetil.count.mockResolvedValue(30);
 
     await expect(assertKelasOwnCapacity('kelas-1')).rejects.toMatchObject({
       code: 409,
-      message: 'Kapasitas kelas penuh',
+      message: 'Kapasitas total kelas penuh',
     });
     expect(KrsDetil.count).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { kelas_id: 'kelas-1', is_cross_enrollment: false } })
+      expect.objectContaining({ where: expect.objectContaining({ kelas_id: 'kelas-1' }) })
     );
   });
 
   it('mengizinkan saat masih di bawah kapasitas', async () => {
-    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', jumlah_peserta_max: 30 });
+    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', jumlah_peserta_max: 30, jumlah_peserta_internal_max: 30 });
     KrsDetil.count.mockResolvedValue(29);
 
     await expect(assertKelasOwnCapacity('kelas-1')).resolves.toBeUndefined();
   });
 
   it('tidak membatasi saat jumlah_peserta_max kosong', async () => {
-    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', jumlah_peserta_max: null });
+    Kelas.findByPk.mockResolvedValue({ id: 'kelas-1', jumlah_peserta_max: null, jumlah_peserta_internal_max: null });
 
     await expect(assertKelasOwnCapacity('kelas-1')).resolves.toBeUndefined();
-    expect(KrsDetil.count).not.toHaveBeenCalled();
+    expect(KrsDetil.count).toHaveBeenCalledTimes(1);
   });
 
   it('menolak saat kelas tidak ditemukan', async () => {
@@ -78,7 +78,7 @@ describe('assertKelasPublishedOffering', () => {
   const kelasDenganPenawaran = (status) => ({
     id: 'kelas-1',
     semester_id: 'sem-1',
-    penawaranMatakuliah: status ? { penawaran: { status } } : null,
+    penawaranMatakuliah: status ? { penawaran: { status, program_studi_id: 'prodi-1' } } : null,
     jadwalKelas: [{ hari: 'Senin', jam_mulai: '08:00:00', jam_selesai: '09:40:00' }],
     dosenKelas: [{ id: 'dk-1' }],
   });
@@ -172,7 +172,7 @@ describe('create — wajib dosen PA aktif', () => {
       id: 'kelas-1',
       semester_id: 'sem-1',
       jumlah_peserta_max: 30,
-      penawaranMatakuliah: { penawaran: { status: 'published' } },
+      penawaranMatakuliah: { penawaran: { status: 'published', program_studi_id: 'prodi-1' } },
       matakuliah: { kode_matakuliah: 'PTN1105', nama_resmi: 'Bahasa Indonesia' },
       jadwalKelas: [{ hari: 'Senin', jam_mulai: '08:00:00', jam_selesai: '09:40:00' }],
       dosenKelas: [{ id: 'dk-1' }],
@@ -184,6 +184,7 @@ describe('create — wajib dosen PA aktif', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     User.findByPk.mockResolvedValue({ mahasiswa_id: 'mhs-1' });
+    Mahasiswa.findByPk.mockResolvedValue({ program_studi_id: 'prodi-1' });
     Krs.findByPk.mockResolvedValue({
       id: 'krs-1',
       mahasiswa_id: 'mhs-1',
@@ -216,6 +217,22 @@ describe('create — wajib dosen PA aktif', () => {
     expect(KrsDetil.create).toHaveBeenCalled();
   });
 
+  it('menolak kelas prodi lain lewat endpoint KRS reguler', async () => {
+    Kelas.findByPk.mockResolvedValue({
+      id: 'kelas-1',
+      semester_id: 'sem-1',
+      jumlah_peserta_max: 30,
+      penawaranMatakuliah: { penawaran: { status: 'published', program_studi_id: 'prodi-host' } },
+      matakuliah: { kode_matakuliah: 'PTN1105', nama_resmi: 'Bahasa Indonesia' },
+      jadwalKelas: [{ hari: 'Senin', jam_mulai: '08:00:00', jam_selesai: '09:40:00' }],
+      dosenKelas: [{ id: 'dk-1' }],
+    });
+    BimbinganAkademik.findOne.mockResolvedValue({ id: 'pa-1', status: 'aktif' });
+    await expect(create({ krs_id: 'krs-1', kelas_id: 'kelas-1' }, { id: 'user-1' }))
+      .rejects.toMatchObject({ code: 403, message: expect.stringContaining('Cross Enrollment') });
+    expect(KrsDetil.create).not.toHaveBeenCalled();
+  });
+
   it('tidak mensyaratkan PA untuk pemanggil non-mahasiswa (admin/prodi)', async () => {
     User.findByPk.mockResolvedValue({ mahasiswa_id: null });
 
@@ -230,7 +247,7 @@ describe('create — wajib dosen PA aktif', () => {
       id: 'kelas-1',
       semester_id: 'sem-1',
       jumlah_peserta_max: 30,
-      penawaranMatakuliah: { penawaran: { status: 'published' } },
+      penawaranMatakuliah: { penawaran: { status: 'published', program_studi_id: 'prodi-1' } },
       matakuliah: { kode_matakuliah: 'PTN1105', nama_resmi: 'Bahasa Indonesia' },
       jadwalKelas: [{ hari: 'Senin', jam_mulai: '08:00:00', jam_selesai: '09:40:00' }],
       dosenKelas: [{ id: 'dk-1' }],

@@ -11,6 +11,8 @@ export const publishOffering = (id) =>
   apiRequest(`/penawaran-matakuliah/${id}/publish`, { method: "POST" });
 export const closeOffering = (id) =>
   apiRequest(`/penawaran-matakuliah/${id}/close`, { method: "POST" });
+export const reopenOffering = (id) =>
+  apiRequest(`/penawaran-matakuliah/${id}/reopen`, { method: "POST" });
 
 export const submitCrossEnrollment = ({ penawaranId, kelasId }) =>
   apiRequest("/cross-enrollment/enroll", {

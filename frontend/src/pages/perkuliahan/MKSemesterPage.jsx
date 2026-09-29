@@ -5,7 +5,6 @@ import { IconLink } from "../../components/common/IconButton";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
-import { FilterBar } from "../../components/common/FilterBar";
 import { DataTable } from "../../components/common/DataTable";
 import { Can } from "../../components/auth/Can";
 import { useAcademicFilter } from "../../hooks/useAcademicFilter";
@@ -23,6 +22,7 @@ export const MKSemesterPage = () => {
   const academic = useAcademicFilter({
     keys: FILTER_KEYS,
     defaultSemesterToActive: true,
+    applyImmediately: true,
   });
   const extraFilter = academic.extraFilter;
 
@@ -102,15 +102,6 @@ export const MKSemesterPage = () => {
         }
       />
 
-      <Card title="Filter">
-        <FilterBar
-          fields={academic.fields}
-          onApply={academic.apply}
-          onReset={academic.reset}
-          applyDisabled={!academic.canApply}
-        />
-      </Card>
-
       <div className="tabs tabs-box w-fit bg-base-200">
         <button
           type="button"
@@ -136,6 +127,10 @@ export const MKSemesterPage = () => {
             columns={columns}
             extraFilter={extraFilter}
             dataLocked={academic.locked}
+            toolbarFilters={academic.fields}
+            onApplyToolbarFilters={academic.apply}
+            onResetToolbarFilters={academic.reset}
+            toolbarFiltersDisabled={!academic.canApply}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari kode atau nama mata kuliah..."
           />
@@ -149,6 +144,10 @@ export const MKSemesterPage = () => {
             columns={columns}
             extraFilter={{ status: "transkrip", ...(extraFilter || {}) }}
             dataLocked={academic.locked}
+            toolbarFilters={academic.fields}
+            onApplyToolbarFilters={academic.apply}
+            onResetToolbarFilters={academic.reset}
+            toolbarFiltersDisabled={!academic.canApply}
             rowKey={(row) => row.id}
             searchPlaceholder="Cari mata kuliah transkrip..."
           />

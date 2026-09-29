@@ -6,7 +6,6 @@ const {
   Krs,
   KrsDetil,
   Mahasiswa,
-  User,
   BimbinganAkademik,
   ProgramStudi,
   Semester,
@@ -24,6 +23,7 @@ const { assertKrsPeriodForSemester } = require('../../helpers/academicPeriod');
 const { assertActivePa } = require('../../helpers/activePa');
 const { assertJadwalKrsTidakBentrok } = require('../../helpers/jadwalBentrok');
 const { assertKelasKrsReady } = require('../../helpers/kelasKrsEligibility');
+const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
 
 /** Status yang masih dihitung memakai kapasitas kelas & kuota lintas prodi. */
 const ACTIVE_STATUSES = ['pending_pa', 'approved'];
@@ -85,8 +85,7 @@ const getAdviseeIds = async (dosenId) => {
  */
 const scopeWhereForUser = async (user) => {
   if (!user?.id) return null;
-  const actor = await User.findByPk(user.id, { attributes: ['id', 'mahasiswa_id', 'dosen_id'] });
-  if (!actor) return null;
+  const actor = await getUserAcademicIdentity(user.id);
   if (actor.mahasiswa_id) return { '$krs.mahasiswa_id$': actor.mahasiswa_id };
   if (actor.dosen_id) {
     const adviseeIds = await getAdviseeIds(actor.dosen_id);
@@ -107,23 +106,33 @@ const list = async (query, user) => {
   });
 };
 
-/**
- * Kuota lintas prodi adalah jatah tambahan DI LUAR kapasitas kelas
- * (`kelas.jumlah_peserta_max` yang berlaku untuk mahasiswa prodi sendiri).
- * Mahasiswa lintas prodi dihitung terpisah dan dibatasi kuota ini.
- */
-const validateCrossQuota = async ({ detail, target, header, student, transaction }) => {
-  const crossCount = await KrsDetil.count({
-    include: [
-      { model: Krs, as: 'krs', include: [{ model: Mahasiswa, as: 'mahasiswa', where: { program_studi_id: student.program_studi_id } }] },
-      { model: Kelas, as: 'kelas', where: { penawaran_matakuliah_id: detail.id } },
+/** Total peserta dan kuota asal mahasiswa sama-sama dibatasi pada kelas ini. */
+const validateCrossQuota = async ({ kelas, transaction }) => {
+  const active = {
+    [Op.or]: [
+      { is_cross_enrollment: false },
+      { cross_enrollment_status: { [Op.in]: ACTIVE_STATUSES } },
     ],
-    where: { is_cross_enrollment: true, cross_enrollment_status: ACTIVE_STATUSES },
+  };
+  const totalCount = await KrsDetil.count({
+    where: { ...active, kelas_id: kelas.id },
     transaction,
   });
-  const quota = target?.kuota ?? detail.kuota_lintas_prodi ?? header.kuota_lintas_prodi_default;
-  if (quota > 0 && crossCount >= quota) {
-    throw new AppError('Kuota lintas prodi penuh', 409);
+  if (kelas.jumlah_peserta_max > 0 && totalCount >= kelas.jumlah_peserta_max) {
+    throw new AppError('Kapasitas total kelas penuh', 409);
+  }
+
+  const externalCount = await KrsDetil.count({
+    where: {
+      kelas_id: kelas.id,
+      is_cross_enrollment: true,
+      cross_enrollment_status: ACTIVE_STATUSES,
+    },
+    transaction,
+  });
+  const quota = kelas.jumlah_peserta_lintas_prodi_max;
+  if (quota != null && externalCount >= quota) {
+    throw new AppError('Kuota lintas prodi pada kelas ini penuh', 409);
   }
 };
 
@@ -184,6 +193,10 @@ const enroll = (userId, payload) =>
       throw new AppError('Penawaran ini bukan lintas program studi', 422);
     }
 
+    if (header.akses === 'internal') {
+      throw new AppError('Penawaran hanya dibuka untuk mahasiswa prodi penyelenggara', 403);
+    }
+
     if (detail.matakuliah.has_prasyarat) {
       throw new AppError('Mata kuliah berprasyarat tidak dapat diambil lintas prodi', 422);
     }
@@ -234,7 +247,7 @@ const enroll = (userId, payload) =>
     });
     if (duplicate) throw new AppError('Kelas sudah diambil', 409);
 
-    await validateCrossQuota({ detail, target, header, student, transaction });
+    await validateCrossQuota({ kelas, transaction });
     await validateStudentLoad({
       krs,
       kelas,

@@ -13,17 +13,31 @@ export const KelasCapacityForm = ({ values, onChange }) => {
         onChange={set("jumlah_peserta_min")}
       />
       <Input
-        label="Kapasitas maksimum (prodi sendiri)"
+        label="Kapasitas total kelas"
         type="number"
         min="0"
         value={values.jumlah_peserta_max ?? ""}
         onChange={set("jumlah_peserta_max")}
       />
+      <Input
+        label="Kuota maksimum mahasiswa prodi sendiri"
+        type="number"
+        min="0"
+        value={values.jumlah_peserta_internal_max ?? ""}
+        onChange={set("jumlah_peserta_internal_max")}
+      />
+      <Input
+        label="Kuota maksimum lintas prodi"
+        type="number"
+        min="0"
+        value={values.jumlah_peserta_lintas_prodi_max ?? ""}
+        onChange={set("jumlah_peserta_lintas_prodi_max")}
+      />
       <p className="text-xs text-base-content/60 md:col-span-2">
-        Kapasitas maksimum membatasi pendaftaran KRS reguler (mahasiswa prodi
-        sendiri). Kosong atau 0 = tanpa batas. Mahasiswa lintas prodi memakai
-        kuota lintas yang diatur di Penawaran MK — terpisah di luar kapasitas
-        ini.
+        Kapasitas total mencakup mahasiswa internal dan lintas prodi. Masing-masing
+        kuota membatasi kelompoknya; kapasitas total tetap membatasi gabungannya.
+        Kosong berarti tanpa batas kelompok tambahan; kuota kelompok 0 menutup
+        kelompok tersebut. Kapasitas total 0 berarti tanpa batas total.
       </p>
     </div>
   );

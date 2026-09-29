@@ -34,6 +34,13 @@ export const KelasForm = ({
       ...values,
       penawaran_matakuliah_id: detilId,
       matakuliah_id: detail?.matakuliahId || "",
+      jumlah_peserta_max: detail?.jumlahPesertaMaxDefault ?? 40,
+      jumlah_peserta_internal_max:
+        detail?.jumlahPesertaInternalMaxDefault ??
+        detail?.jumlahPesertaMaxDefault ??
+        40,
+      jumlah_peserta_lintas_prodi_max:
+        detail?.kuotaLintasDefault ?? 0,
     });
   };
 
@@ -90,11 +97,25 @@ export const KelasForm = ({
       />
 
       <Input
-        label="Kapasitas maksimum (prodi sendiri)"
+        label="Kapasitas total kelas"
         type="number"
         min="0"
         value={values.jumlah_peserta_max ?? ""}
         onChange={set("jumlah_peserta_max")}
+      />
+      <Input
+        label="Kuota maksimum mahasiswa prodi sendiri"
+        type="number"
+        min="0"
+        value={values.jumlah_peserta_internal_max ?? ""}
+        onChange={set("jumlah_peserta_internal_max")}
+      />
+      <Input
+        label="Kuota maksimum lintas prodi"
+        type="number"
+        min="0"
+        value={values.jumlah_peserta_lintas_prodi_max ?? ""}
+        onChange={set("jumlah_peserta_lintas_prodi_max")}
       />
 
       <div className="md:col-span-2 space-y-1">
@@ -117,8 +138,9 @@ export const KelasForm = ({
         <p className="text-xs text-base-content/60">
           Kelas dibuat untuk mata kuliah yang sudah dibuka di Penawaran MK
           Semester. Buka MK terlebih dahulu bila belum tersedia. Kapasitas
-          maksimum membatasi KRS reguler (prodi sendiri); kosong atau 0 = tanpa
-          batas.
+          maksimum berlaku untuk gabungan semua mahasiswa. Kuota prodi sendiri
+          dan lintas prodi dihitung terpisah di dalam kapasitas total ini. Kuota
+          kelompok 0 menutup kelompok itu; kapasitas total 0 berarti tanpa batas.
         </p>
       </div>
     </div>

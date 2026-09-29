@@ -7,7 +7,6 @@ import { consecutiveRowSpans } from "../../helpers/tableSpans";
 import { DataTablePagination } from "./DataTablePagination";
 import { DataTableToolbar } from "./DataTableToolbar";
 import { DataGate } from "./DataGate";
-import { Select } from "../ui/Select";
 import { Skeleton } from "../ui/Skeleton";
 
 const NO_ROWS = [];
@@ -16,37 +15,6 @@ const NO_FIELDS = [];
 const SortIndicator = ({ active, order }) => {
   if (!active) return <ChevronsUpDown size={13} className="opacity-30" />;
   return order === "desc" ? <ArrowDown size={13} /> : <ArrowUp size={13} />;
-};
-
-const ColumnFilter = ({ column, value, onChange }) => {
-  const config = column.filter;
-  if (!config) return null;
-
-  if (config.type === "select") {
-    const options = config.options.map((option) =>
-      typeof option === "string" ? { value: option, label: option } : option,
-    );
-    return (
-      <Select
-        size="xs"
-        placeholder="Semua"
-        options={options}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    );
-  }
-
-  return (
-    <input
-      type="text"
-      className="input input-xs w-full"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={config.placeholder || "Filter"}
-      aria-label={`Filter ${column.header}`}
-    />
-  );
 };
 
 /**
@@ -71,15 +39,19 @@ export const DataTable = ({
   striped = true,
   emptyText = "Tidak ada data ditemukan.",
   toolbarActions,
+  toolbarFilters = [],
+  onApplyToolbarFilters,
+  onResetToolbarFilters,
+  toolbarFiltersDisabled = false,
   className = "",
   extraFilter,
+  trashed,
   dataLocked,
 }) => {
   const table = useTableParams({
     prefix: tableKey || paramPrefix,
     defaultLimit,
   });
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [hoveredRow, setHoveredRow] = useState(null);
   const wrapRef = useRef(null);
   const [scrollX, setScrollX] = useState(false);
@@ -89,11 +61,14 @@ export const DataTable = ({
   const serverParams = useMemo(
     () => ({
       ...table.query,
+      ...(trashed ? { trashed } : {}),
       filter: { ...table.query.filter, ...extraFilter },
     }),
-    [table.query, extraFilter],
+    [table.query, extraFilter, trashed],
   );
-  const serverQuery = useTableQuery(resource, serverParams);
+  const serverQuery = useTableQuery(resource, serverParams, {
+    enabled: dataLocked !== false,
+  });
 
   const clientResult = useMemo(
     () => applyQuery(sourceRows, table.query, searchableFields),
@@ -107,7 +82,6 @@ export const DataTable = ({
     isServerMode && serverQuery.isFetching && !serverQuery.isPending;
 
   const filterableColumns = columns.filter((column) => column.filter);
-  const hasFilters = filterableColumns.length > 0;
   const start = (meta.page - 1) * meta.limit;
   const groupSpans = useMemo(() => {
     const cache = new Map();
@@ -138,10 +112,26 @@ export const DataTable = ({
 
   if (dataLocked === false) {
     return (
-      <DataGate
-        title="Pilih filter dulu"
-        message="Pilih unit organisasi (fakultas/departemen/prodi) di navbar atau terapkan filter di atas untuk melihat datanya."
-      />
+      <div className="space-y-3">
+        <DataTableToolbar
+          table={table}
+          searchPlaceholder={searchPlaceholder}
+          filterColumns={filterableColumns.map((column) => ({
+            column,
+            value: table.filter[column.key] ?? "",
+            onChange: (value) => table.setFilter(column.key, value),
+          }))}
+          filterControls={toolbarFilters}
+          onApplyFilters={onApplyToolbarFilters}
+          onResetFilters={onResetToolbarFilters}
+          applyDisabled={toolbarFiltersDisabled}
+          actions={toolbarActions}
+        />
+        <DataGate
+          title="Pilih filter dulu"
+          message="Pilih unit organisasi (fakultas/departemen/prodi) di atas untuk melihat datanya."
+        />
+      </div>
     );
   }
 
@@ -150,9 +140,15 @@ export const DataTable = ({
       <DataTableToolbar
         table={table}
         searchPlaceholder={searchPlaceholder}
-        hasFilters={hasFilters}
-        filtersOpen={filtersOpen}
-        onToggleFilters={() => setFiltersOpen((open) => !open)}
+        filterColumns={filterableColumns.map((column) => ({
+          column,
+          value: table.filter[column.key] ?? "",
+          onChange: (value) => table.setFilter(column.key, value),
+        }))}
+        filterControls={toolbarFilters}
+        onApplyFilters={onApplyToolbarFilters}
+        onResetFilters={onResetToolbarFilters}
+        applyDisabled={toolbarFiltersDisabled}
         actions={toolbarActions}
       />
 
@@ -189,19 +185,6 @@ export const DataTable = ({
               })}
             </tr>
 
-            {hasFilters && filtersOpen && (
-              <tr className="bg-base-200/60">
-                {columns.map((column, idx) => (
-                  <th key={idx} className="py-1.5">
-                    <ColumnFilter
-                      column={column}
-                      value={table.filter[column.key] ?? ""}
-                      onChange={(value) => table.setFilter(column.key, value)}
-                    />
-                  </th>
-                ))}
-              </tr>
-            )}
           </thead>
 
           <tbody
@@ -282,6 +265,7 @@ export const DataTable = ({
         meta={meta}
         page={meta.page}
         onPageChange={table.setPage}
+        onLimitChange={table.setLimit}
       />
     </div>
   );

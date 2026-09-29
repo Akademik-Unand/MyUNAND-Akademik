@@ -11,6 +11,8 @@ Auth publik: `POST /api/v1/auth/login` mengembalikan `access_token` (pendek) dan
 Endpoint lain memakai access JWT + CASL.
 
 Administrasi user (`/api/v1/users`) menerapkan scope organisasi pada service untuk list, detail, update, delete/restore, assign role, dan assign unit. Aktor tanpa scope valid ditolak (fail closed); admin unit hanya dapat mengelola target dalam unit dan hierarki role di bawahnya. Seeder akun organisasi memakai `ORG_ACCOUNT_SEED_PASSWORD` (minimal 6 karakter), tidak berjalan di production bila env tidak disediakan, dan menghasilkan dua akun deterministik per fakultas/departemen/prodi (`admin-*` dan `pimpinan-*`; 472 akun pada master canonical 16/67/153).
+
+Relasi akun akademik disimpan sebagai `dosen.user_id` dan `mahasiswa.user_id`, masing-masing nullable, unik, serta memiliki foreign key ke `users.id`. Profil akademik dapat ada tanpa akun; satu akun hanya ditautkan ke satu profil akademik. API tetap menerima dan mengembalikan `dosen_id`/`mahasiswa_id` sebagai ID profil untuk kompatibilitas form.
 Health: `GET /up`.
 
 Redis opsional (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`). Backend tetap boot jika Redis down. Cache JSON: `helpers/cache.js` (`get` / `set` / `del`).
@@ -31,10 +33,12 @@ Dosen PA pada profil mahasiswa:
 
 IAM User (seluruh endpoint memerlukan permission CASL dan dibatasi scope organisasi aktor):
 - `GET /api/v1/users`, `GET /api/v1/users/:id` — admin unit hanya melihat user yang memiliki `user_units` di dalam scope-nya; scope kosong/tidak valid ditolak (fail closed).
-- `POST /api/v1/users` — pembuatan awal user tanpa role/unit hanya untuk admin universitas; role diberikan lewat endpoint khusus.
+- `POST /api/v1/users` ? admin universitas membuat akun bersama `{ name, email, password, role_ids, dosen_id?, mahasiswa_id? }`; role dan tautan profil akademik disimpan atomik. Peran dosen/mahasiswa wajib disertai profil sejenis dan satu akun tidak boleh terhubung ke kedua profil.
 - `PUT /api/v1/users/:id`, `DELETE /api/v1/users/:id`, `POST /api/v1/users/:id/restore` — target wajib berada di scope aktor dan memiliki role lebih rendah; hapus diri sendiri ditolak.
 - `PUT /api/v1/users/:id/roles` `{ role_ids }` — role target wajib lebih rendah dari role tertinggi aktor; perubahan role sendiri ditolak.
 - `PUT /api/v1/users/:id/units` `{ units }` — setiap item wajib memilih tepat satu dari `fakultas_id`, `departemen_id`, atau `program_studi_id`; referensi dan scope aktor divalidasi; perubahan unit sendiri ditolak.
+
+Master Mahasiswa menggunakan CRUD `/api/v1/mahasiswa` dengan permission `mahasiswa.read/create/update/delete/restore`; list mendukung filter organisasi lewat program studi. Endpoint memakai validasi Joi, soft delete, dan pembatasan unit yang sama dengan master akademik lain.
 
 Rekap CP:
 - `GET /api/v1/rekap-cp` — ringkasan tersimpan (`mahasiswa`, `cp`, `nilai_capaian`).
@@ -77,23 +81,25 @@ KRS Reguler (mahasiswa prodi sendiri):
 
 - Pintu tunggal pengambilan: mata kuliah hanya bisa diambil jika **penawaran-nya `published`** pada semester yang sama dengan KRS (dicek lewat relasi `kelas → penawaran_matakuliah_detil → penawaran_matakuliah`). MK yang tidak dibuka ⇒ tidak ada kelas yang dapat dipilih ⇒ otomatis tidak tersedia.
 - `POST /api/v1/krs` `{ mahasiswa_id, semester_id }` — buat header KRS; butuh periode `krs` terbuka pada semester tersebut. Jika pemanggil adalah mahasiswa, `mahasiswa_id` dipaksa miliknya sendiri.
-- `POST /api/v1/krs-detil` `{ krs_id, kelas_id }` — daftar satu mata kuliah; butuh periode `krs`, KRS belum disetujui (`approval_ke = 0`), kelas milik penawaran `published` pada semester yang sama, dan kapasitas kelas (`kelas.jumlah_peserta_max`) belum penuh untuk mahasiswa prodi sendiri.
+- `POST /api/v1/krs-detil` `{ krs_id, kelas_id }` mendaftarkan satu mata kuliah internal; butuh periode KRS terbuka, KRS belum disetujui, kelas dari penawaran published pada semester yang sama, prodi mahasiswa sama dengan prodi penyelenggara, dan kapasitas kelas belum penuh. Mata kuliah prodi lain harus menggunakan Cross Enrollment.
 - `PATCH /api/v1/krs/:id/approve` `{ semester_id }` — persetujuan dosen: `approval_ke` naik, `jam_selesai` di-set, detil **reguler** menjadi `approved: '1'`, dan pengajuan **lintas prodi** yang masih `pending_pa` ikut ditetapkan (`cross_enrollment_status: 'approved'`, `pa_approved_by`, `pa_approved_at`) — pengajuan yang sudah diputuskan sebelumnya tidak ditimpa. Setelah disetujui, detil KRS tidak dapat ditambah/diubah/dihapus lagi.
 - `PATCH /api/v1/krs/:id/reject` `{ semester_id, reason }` — dosen PA aktif dapat menolak seluruh detil yang masih menunggu. Detil menjadi `approved: '2'`; detil lintas prodi juga menjadi `cross_enrollment_status: 'rejected'`; alasan, pelaku, dan waktu keputusan disimpan pada kolom penolakan yang sudah ada. Baik approve maupun reject menolak (`403`) KRS yang bukan milik mahasiswa bimbingan aktif dosen login dan menolak (`409`) bila `semester_id` tidak sama dengan semester KRS.
 - `GET /api/v1/krs/approval-semesters` — semester yang memiliki KRS mahasiswa bimbingan dosen login, beserta `pending_count`. Endpoint ini memakai permission `krs.approve` dan relasi PA aktif, bukan permission master `semester.read`, sehingga menjadi sumber dropdown halaman Persetujuan KRS.
 - `GET /api/v1/krs` — daftar KRS, otomatis dibatasi: mahasiswa hanya miliknya, dosen hanya mahasiswa bimbingannya (dari `bimbingan_akademik` aktif), admin/prodi melihat semua.
 - `GET /api/v1/krs/mahasiswa/:mahasiswaId` — riwayat KRS seorang mahasiswa.
 
-Lintas Program Studi (cross enrollment):
-- Admin prodi penyelenggara membuka penawaran lewat `POST /api/v1/penawaran-matakuliah` (lalu `/:id/publish`, `/:id/close`). Penawaran boleh memuat mata kuliah berprasyarat — larangan berprasyarat hanya berlaku saat **diambil lintas prodi** (dicek saat `enroll`), bukan saat dibuka.
-- `GET /api/v1/penawaran-matakuliah/catalog` — katalog penawaran yang sedang dibuka untuk mahasiswa.
-- `POST /api/v1/cross-enrollment/enroll` `{ penawaran_matakuliah_id, kelas_id }` — `penawaran_matakuliah_id` adalah id baris penawaran per mata kuliah. Status awal `pending_pa`.
+Penawaran Mata Kuliah dan Lintas Program Studi:
+- Admin prodi penyelenggara membuka penawaran lewat `POST /api/v1/penawaran-matakuliah`. Akses default `internal` membuka MK hanya untuk mahasiswa prodi pemilik. `akses: semua` atau `akses: terpilih` mengaktifkan lintas prodi; untuk `terpilih`, kirim satu atau lebih `prodi_tujuan` pada pivot `penawaran_matakuliah_prodi`.
+- `POST /api/v1/penawaran-matakuliah/:id/publish` menolak bila salah satu mata kuliah belum memiliki kelas atau salah satu kelas belum memiliki jadwal lengkap dan dosen pengampu.
+- Lifecycle penawaran: `draft` -> `published` -> `closed`. Penawaran tertutup dapat dikembalikan ke draft lewat `POST /api/v1/penawaran-matakuliah/:id/reopen` (permission `PenawaranMatakuliah.publish`) jika kelasnya belum digunakan dalam KRS; jika sudah digunakan, backend menolak dengan alasan.
+- `GET /api/v1/penawaran-matakuliah/catalog?filter[semester_id]=...&filter[program_studi_id]=...` mengembalikan penawaran published milik prodi mahasiswa, akses semua prodi, atau yang menargetkan prodi mahasiswa. Mahasiswa prodi tujuan tidak perlu menunggu prodi sendiri membuat penawaran.
+- Penawaran boleh memuat mata kuliah berprasyarat; larangan berprasyarat hanya berlaku saat **diambil lintas prodi** (dicek saat `enroll`), bukan saat dibuka.
+- `POST /api/v1/cross-enrollment/enroll` `{ penawaran_matakuliah_id, kelas_id }` menerima id detail mata kuliah dan kelas tujuan. Status awal `pending_pa`.
 - Keputusan PA atas pengajuan diambil bersama persetujuan KRS (permission `krs.approve`); tidak ada endpoint persetujuan lintas prodi terpisah.
-- Pengajuan lintas prodi dikeluarkan dengan **menghapus barisnya**: `DELETE /api/v1/krs-detil/:id`. Tidak ada aksi/status "dibatalkan" terpisah — sama seperti mata kuliah reguler, berlaku selama KRS belum disetujui (`approval_ke = 0`).
-- `GET /api/v1/cross-enrollment` — daftar pengajuan, otomatis dibatasi: mahasiswa hanya miliknya, dosen hanya mahasiswa bimbingannya.
-- Validasi enroll: penawaran `published` + periode `krs` pada semester penawaran, bukan prodi sendiri, rentang semester, MK tanpa prasyarat, punya dosen PA, kuota lintas prodi, batas SKS, dan bentrok jadwal. Jendela tanggal penawaran tidak dipakai lagi — selama periode KRS terbuka dan penawaran `published`, mata kuliah dapat diambil.
-- Kapasitas dua pot terpisah: `kelas.jumlah_peserta_max` membatasi mahasiswa prodi sendiri (dicek pada `POST /krs-detil`), sedangkan `kuota_lintas_prodi` (default header, override per MK/prodi tujuan) adalah jatah tambahan di luar kapasitas kelas untuk mahasiswa lintas prodi (dicek saat `enroll`).
-
+- Pengajuan lintas prodi dikeluarkan dengan **menghapus barisnya**: `DELETE /api/v1/krs-detil/:id`. Tidak ada aksi/status "dibatalkan" terpisah; berlaku selama KRS belum disetujui (`approval_ke = 0`).
+- `GET /api/v1/cross-enrollment` mengembalikan daftar pengajuan, otomatis dibatasi: mahasiswa hanya miliknya, dosen hanya mahasiswa bimbingannya.
+- Validasi enroll: penawaran `published` + periode `krs` pada semester penawaran, bukan prodi sendiri, target prodi, rentang semester, MK tanpa prasyarat, dosen PA aktif, kuota lintas prodi, batas SKS, dan jadwal tidak bentrok. Jendela tanggal penawaran tidak dipakai lagi.
+- Batas aktual diterapkan per kelas: `kelas.jumlah_peserta_max` adalah kapasitas gabungan mahasiswa internal dan lintas prodi; `kelas.jumlah_peserta_internal_max` dan `kelas.jumlah_peserta_lintas_prodi_max` adalah batas per kelompok. Kapasitas total tetap membatasi gabungan peserta, meskipun jumlah dua batas kelompok lebih besar. Nilai kelompok `NULL` berarti tanpa batas terpisah, sedangkan 0 berarti tidak menerima peserta dari kelompok itu. `penawaran_matakuliah_detil.jumlah_peserta_max_default`, `jumlah_peserta_internal_max_default`, dan `kuota_lintas_prodi` menjadi nilai awal untuk kelas baru; pengelola dapat mengubah nilai aktual per kelas. Nilai awal total/internal adalah 40 dan lintas adalah 0 (tutup sampai diaktifkan). Migration 051 memindahkan nilai default lama ke detail, 053 menggabungkan kuota tujuan lama, dan 054 memindahkan batas aktual ke kelas.
 Bimbingan Akademik (Dosen PA):
 - `GET /api/v1/bimbingan-akademik` — daftar bimbingan. Filter unit (`fakultas_id`/`departemen_id`/`program_studi_id`) diterjemahkan lewat program studi **mahasiswa** bimbingan, jadi admin prodi hanya melihat bimbingannya. `search` menjangkau `tahun_akademik`, nama/NIU mahasiswa, dan nama dosen.
 - `GET /api/v1/bimbingan-akademik/candidates` — mahasiswa yang **belum punya PA aktif** (calon yang terblokir ambil KRS), ikut dibatasi scope unit; filter `program_studi_id` dan `angkatan`.
@@ -103,7 +109,7 @@ Bimbingan Akademik (Dosen PA):
 - `PUT /api/v1/bimbingan-akademik/:id`, `DELETE /api/v1/bimbingan-akademik/:id` — ganti/lepas PA. Operasi tulis hanya boleh menyentuh mahasiswa di dalam scope unit aktor (`403` bila di luar).
 
 Kelas:
-- `GET|POST /api/v1/kelas`, `GET|PUT|DELETE /:id`, `POST /:id/restore` — `create` menerima `{ semester_id, program_studi_id, matakuliah_id, penawaran_matakuliah_id, nama, jumlah_peserta_min, jumlah_peserta_max }`. `penawaran_matakuliah_id` mengikat kelas ke detail penawaran (opsional tapi disarankan) — service memvalidasi konsistensi: detail penawaran harus cocok dengan MK dan semester/prodi yang dipilih, serta MK harus milik prodi semester tersebut.
+- `GET|POST /api/v1/kelas`, `GET|PUT|DELETE /:id`, `POST /:id/restore` — `create` menerima `{ semester_id, program_studi_id, matakuliah_id, penawaran_matakuliah_id, nama, jumlah_peserta_min, jumlah_peserta_max, jumlah_peserta_internal_max, jumlah_peserta_lintas_prodi_max }`. `penawaran_matakuliah_id` mengikat kelas ke detail penawaran (opsional tapi disarankan) — service memvalidasi konsistensi: detail penawaran harus cocok dengan MK dan semester/prodi yang dipilih, serta MK harus milik prodi semester tersebut. Nilai batas kelompok tidak boleh melampaui kapasitas total jika totalnya terbatas.
 - Kelas list/detail menyertakan `jumlah_peserta` dan `progress_upload_nilai` (`Ada`/`Belum`).
 - Nama kelas unik **per mata kuliah per semester** (`uq_kelas_semester_prodi_mk_nama` = `semester_id` + `program_studi_id` + `matakuliah_id` + `nama`) — bukan global. Mata kuliah berbeda pada semester & prodi yang sama boleh memakai nama yang sama (mis. "Pemrograman A" dan "Desain A"), dan MK yang sama di semester lain bebas memakai nama itu lagi (2026 "Pemrograman A", 2027 juga boleh). Bentrok hanya berarti nama itu sudah dipakai MK yang sama di semester & prodi yang sama, dan dijawab `422` dengan pesan yang menyebut MK-nya — bukan pesan unik mentah dari MySQL.
 - Dosen pengampu diatur per kelas lewat `dosen-kelas` (`{ dosen_id, kelas_id, dosen_ke }`) — bukan dari mata kuliah.

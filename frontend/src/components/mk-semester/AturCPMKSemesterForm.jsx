@@ -15,7 +15,7 @@ const newSumber = () => ({
   isNew: true,
 });
 
-export const AturCPMKSemesterForm = ({ items, onChange }) => {
+export const AturCPMKSemesterForm = ({ items, onChange, disabled = false }) => {
   const updateCpmk = (cpmkId, patch) => {
     onChange(
       items.map((item) => (item.id === cpmkId ? { ...item, ...patch } : item)),
@@ -64,6 +64,7 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                     <Input
                       label={`Sumber penilaian #${idx + 1}`}
                       value={row.nama_sumber_penilaian || ""}
+                      disabled={disabled}
                       onChange={(e) =>
                         updateSumber(cpmk.id, row.id, {
                           nama_sumber_penilaian: e.target.value,
@@ -77,6 +78,7 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                       max={MAX_MK_BOBOT}
                       step="0.1"
                       value={row.bobot ?? 0}
+                      disabled={disabled}
                       onChange={(e) =>
                         updateSumber(cpmk.id, row.id, {
                           bobot: Number(e.target.value),
@@ -87,6 +89,7 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                       label="Hapus sumber penilaian"
                       icon={Trash2}
                       tone="text-error"
+                      disabled={disabled}
                       onClick={() =>
                         updateCpmk(cpmk.id, {
                           sumberPenilaian: (cpmk.sumberPenilaian || []).filter(
@@ -106,6 +109,7 @@ export const AturCPMKSemesterForm = ({ items, onChange }) => {
                   variant="ghost"
                   size="xs"
                   className="gap-1"
+                  disabled={disabled}
                   onClick={() =>
                     updateCpmk(cpmk.id, {
                       sumberPenilaian: [

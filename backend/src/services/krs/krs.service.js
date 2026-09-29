@@ -11,6 +11,7 @@ const {
   JENIS,
 } = require('../../helpers/academicPeriod');
 const { assertActivePa } = require('../../helpers/activePa');
+const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
 const {
   isPendingKrsDetail,
   krsApprovalStatus,
@@ -99,8 +100,7 @@ const getAdviseeIds = async (dosenId) => {
   return [...new Set(rows.map((row) => row.mahasiswa_id))];
 };
 
-const getActor = (userId) =>
-  User.findByPk(userId, { attributes: ['id', 'mahasiswa_id', 'dosen_id'] });
+const getActor = async (userId) => ({ id: userId, ...await getUserAcademicIdentity(userId) });
 
 const requireActorDosen = async (user = {}) => {
   const actor = user?.id ? await getActor(user.id) : null;
@@ -217,8 +217,8 @@ const create = async (payload, user) => {
   // Mahasiswa hanya boleh membuat KRS untuk dirinya sendiri.
   const resolved = { ...payload };
   if (user?.id) {
-    const actor = await User.findByPk(user.id, { attributes: ['mahasiswa_id'] });
-    if (actor?.mahasiswa_id) {
+    const actor = await getUserAcademicIdentity(user.id);
+    if (actor.mahasiswa_id) {
       resolved.mahasiswa_id = actor.mahasiswa_id;
       // KRS reguler maupun lintas prodi disetujui dosen PA, jadi PA aktif
       // wajib ada sebelum mahasiswa mulai menyusun KRS.

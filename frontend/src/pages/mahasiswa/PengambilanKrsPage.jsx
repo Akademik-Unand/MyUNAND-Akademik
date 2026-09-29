@@ -30,6 +30,7 @@ import {
   isEligibleKelasSelection,
   kelasKrsOption,
 } from "../../helpers/kelasKrsEligibility";
+import { activeOfferingProgramId } from "../../helpers/courseOffering";
 import {
   approvalStatusLabel,
   registeredKrsRows,
@@ -132,11 +133,13 @@ export const PengambilanKrsPage = () => {
       };
   const periodOpen = isKrsPeriodOpen(periode);
 
-  // Satu kali ambil semua penawaran published di semester aktif (prodi sendiri + lintas),
-  // lalu filter prodi dilakukan di klien.
+  // Ambil penawaran semester aktif yang internal untuk prodi mahasiswa atau
+  // terbuka bagi prodi ini sebagai target lintas.
   const catalogQuery = useResourceQuery("katalog-lintas-prodi", {
-    params: semesterId ? { filter: { semester_id: semesterId } } : undefined,
-    enabled: Boolean(semesterId),
+    params: semesterId && prodiId
+      ? { filter: { semester_id: semesterId, program_studi_id: prodiId } }
+      : undefined,
+    enabled: Boolean(semesterId && prodiId),
     refetchOnWindowFocus: true,
   });
   const offerings = catalogQuery.data || [];
@@ -159,9 +162,7 @@ export const PengambilanKrsPage = () => {
   const hasCrossProdi = prodiOptions.some((opt) => opt.value !== prodiId);
 
   const [selectedProdi, setSelectedProdi] = useState(null);
-  const activeProdiId = prodiOptions.some((opt) => opt.value === selectedProdi)
-    ? selectedProdi
-    : prodiId;
+  const activeProdiId = activeOfferingProgramId(offerings, selectedProdi, prodiId);
 
   const offering = offerings.find(
     (row) =>
@@ -525,6 +526,15 @@ export const PengambilanKrsPage = () => {
                         <KrsClassActions row={row} selection={selections[row.id]}
                           conflicts={bentrokPerKelas.get(selections[row.id]) || []}
                           blocked={krs?.approval_ke > 0 || !periodOpen || schedulesRefreshing || schedulesError}
+                          blockReason={krs?.approval_ke > 0
+                            ? "KRS sudah disetujui dan tidak dapat diubah."
+                            : !periodOpen
+                              ? periodNotice?.message || "Periode pengambilan KRS sedang ditutup."
+                              : schedulesError
+                                ? "Data jadwal gagal dimuat. Muat ulang sebelum mengambil kelas."
+                                : schedulesRefreshing
+                                  ? "Data KRS sedang diperbarui."
+                                  : null}
                           busy={submitPending}
                           onPreview={() => openPreview(row)}
                           onTake={() => row.lintas

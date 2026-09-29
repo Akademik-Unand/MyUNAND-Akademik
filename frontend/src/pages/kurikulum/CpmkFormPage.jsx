@@ -11,6 +11,7 @@ import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { FormActions } from "../../components/common/FormActions";
 import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { PeriodOperationNotice } from "../../components/common/PeriodOperationNotice";
 import { CpmkForm } from "../../components/kurikulum/CpmkForm";
 import { BulkCpmkFields } from "../../components/kurikulum/BulkCpmkFields";
 import { useResourceMutations } from "../../hooks/useResourceMutations";
@@ -71,7 +72,8 @@ export const CpmkFormPage = () => {
   const hasChildren = Boolean(existing.data?.subCpmk?.length);
   const scpRequired = isChild || (isEdit && !isChild && !hasChildren);
   const showScp = isChild || (isEdit && !isChild && !hasChildren);
-  const cpmkOpen = useCpmkPeriodOpen().open;
+  const cpmkPeriod = useCpmkPeriodOpen();
+  const cpmkOpen = cpmkPeriod.open;
 
   // Muat nilai awal form edit begitu detail CPMK tersedia (guard biar hanya sekali).
   if (isEdit && existing.data && existing.data.id !== syncedEditId) {
@@ -159,10 +161,19 @@ export const CpmkFormPage = () => {
           { label: isEdit ? "Ubah" : "Tambah" },
         ]}
       />
+      <PeriodOperationNotice
+        period={cpmkPeriod.period}
+        label="CPMK"
+        isLoading={cpmkPeriod.isPending}
+      />
       <Card title="Form">
-        {!cpmkOpen ? (
+        {cpmkPeriod.isPending ? (
           <p className="text-sm text-base-content/70">
-            Di luar periode CPMK. Form tidak tersedia.
+            Memeriksa periode CPMK sebelum membuka form.
+          </p>
+        ) : !cpmkOpen ? (
+          <p className="text-sm text-base-content/70">
+            Form CPMK hanya dapat disimpan selama periode CPMK dibuka.
           </p>
         ) : (
           <form onSubmit={isRootCreate ? submitBulk : handleSubmit}>

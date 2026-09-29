@@ -65,7 +65,7 @@ describe("current student's academic advisor", () => {
   });
 
   it("handles a student record that has been soft-deleted", async () => {
-    User.findByPk.mockResolvedValue({ mahasiswa_id: "m1", mahasiswa: null, roles: [] });
+    User.findByPk.mockResolvedValue({ mahasiswa: null, roles: [{ name: "mahasiswa" }] });
     await expect(getAcademicAdvisor("u1")).resolves.toEqual({
       status: "unlinked", advisor: null,
     });

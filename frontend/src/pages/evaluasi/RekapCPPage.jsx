@@ -26,7 +26,7 @@ const TABS = [
 export const RekapCPPage = () => {
   const [params, setParams] = useSearchParams();
   const tab = params.get("tab") || "rekap";
-  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const academic = useAcademicFilter({ keys: FILTER_KEYS, applyImmediately: true });
   const [extraApplied, setExtraApplied] = useState({});
 
   const hasAcademicFilter = Boolean(academic.extraFilter?.semester_id);
@@ -47,7 +47,7 @@ export const RekapCPPage = () => {
         breadcrumbs={[{ label: "Perkuliahan" }, { label: "Rekap Nilai CP" }]}
       />
 
-      <Card title="Filter">
+      {academic.fields.length > 0 && <Card title="Filter">
         <FilterBar
           fields={academic.fields}
           onApply={academic.apply}
@@ -57,7 +57,7 @@ export const RekapCPPage = () => {
           }}
           applyDisabled={!academic.canApply}
         />
-      </Card>
+      </Card>}
 
       <Card title="Filter Data">
         <RekapCpExtraFilters

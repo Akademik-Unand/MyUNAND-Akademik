@@ -8,11 +8,15 @@ module.exports = (sequelize) => {
         foreignKey: "program_studi_id",
         as: "programStudi",
       });
+      Dosen.belongsTo(models.User, { foreignKey: "user_id", as: "user" });
       Dosen.hasMany(models.DosenKelas, {
         foreignKey: "dosen_id",
         as: "dosenKelas",
       });
-      Dosen.hasOne(models.User, { foreignKey: "dosen_id", as: "user" });
+      Dosen.hasMany(models.BimbinganAkademik, {
+        foreignKey: "dosen_id",
+        as: "bimbinganAkademik",
+      });
     }
   }
   Dosen.init(
@@ -24,6 +28,7 @@ module.exports = (sequelize) => {
       },
       nip: { type: DataTypes.STRING(18), allowNull: false, unique: true },
       program_studi_id: { type: DataTypes.UUID, allowNull: true },
+      user_id: { type: DataTypes.UUID, allowNull: true, unique: true },
       nama: { type: DataTypes.STRING(255), allowNull: true },
       nidn: { type: DataTypes.STRING(10), allowNull: true },
       nip_lama: { type: DataTypes.STRING(20), allowNull: true },

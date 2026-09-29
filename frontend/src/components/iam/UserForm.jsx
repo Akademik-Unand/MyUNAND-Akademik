@@ -1,6 +1,7 @@
 import { Input } from "../ui/Input";
 import { roleLabel } from "../../constants/roles";
 import { useResourceQuery } from "../../hooks/useResourceQuery";
+import { ResourceSelect } from "../common/ResourceSelect";
 
 export const UserForm = ({ values, onChange }) => {
   const { data: roles = [] } = useResourceQuery("roles");
@@ -15,6 +16,7 @@ export const UserForm = ({ values, onChange }) => {
       : [...selected, id];
     onChange({ ...values, roleIds: next });
   };
+  const roleNames = new Set(roles.filter((role) => selected.includes(role.id)).map((role) => role.name));
 
   return (
     <div className="space-y-3">
@@ -59,6 +61,26 @@ export const UserForm = ({ values, onChange }) => {
           ))}
         </div>
       </fieldset>
+      {roleNames.has("dosen") && (
+        <ResourceSelect
+          resource="dosen"
+          label="Data Dosen *"
+          value={values.dosen_id || ""}
+          onChange={(event) => onChange({ ...values, dosen_id: event.target.value, mahasiswa_id: "" })}
+          getLabel={(row) => `${row.nama || "Dosen"} — ${row.nip}`}
+          required
+        />
+      )}
+      {roleNames.has("mahasiswa") && (
+        <ResourceSelect
+          resource="mahasiswa"
+          label="Data Mahasiswa *"
+          value={values.mahasiswa_id || ""}
+          onChange={(event) => onChange({ ...values, mahasiswa_id: event.target.value, dosen_id: "" })}
+          getLabel={(row) => `${row.nama} — ${row.niu}`}
+          required
+        />
+      )}
     </div>
   );
 };

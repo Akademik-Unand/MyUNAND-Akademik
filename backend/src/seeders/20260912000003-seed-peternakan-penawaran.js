@@ -116,7 +116,6 @@ module.exports = {
             program_studi_id: prodiId,
             status: "draft",
             akses: "semua",
-            kuota_lintas_prodi_default: 0,
             tanggal_mulai: aktif.tanggal_mulai,
             tanggal_selesai: aktif.tanggal_selesai,
           }),

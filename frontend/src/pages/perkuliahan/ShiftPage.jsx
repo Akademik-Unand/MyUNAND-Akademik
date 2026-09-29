@@ -1,13 +1,11 @@
 import { MasterListPage } from "../../components/master/MasterListPage";
 import { ShiftForm } from "../../components/master/ShiftForm";
-import { FilterBar } from "../../components/common/FilterBar";
-import { Card } from "../../components/ui/Card";
 import { useAcademicFilter } from "../../hooks/useAcademicFilter";
 
 const formatJam = (value) => (value ? String(value).slice(0, 5) : "");
 
 export const ShiftPage = () => {
-  const academic = useAcademicFilter({ keys: ["fakultas"] });
+  const academic = useAcademicFilter({ keys: ["fakultas"], applyImmediately: true });
 
   return (
     <MasterListPage
@@ -26,16 +24,10 @@ export const ShiftPage = () => {
       }
       extraFilter={academic.extraFilter}
       dataLocked={academic.locked}
-      beforeTable={
-        <Card title="Filter Shift">
-          <FilterBar
-            fields={academic.fields}
-            onApply={academic.apply}
-            onReset={academic.reset}
-            applyDisabled={!academic.canApply}
-          />
-        </Card>
-      }
+      toolbarFilters={academic.fields}
+      onApplyToolbarFilters={academic.apply}
+      onResetToolbarFilters={academic.reset}
+      toolbarFiltersDisabled={!academic.canApply}
       rowKey={(row) => row.id}
       searchPlaceholder="Cari shift..."
       columns={[

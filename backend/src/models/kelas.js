@@ -48,6 +48,8 @@ module.exports = (sequelize) => {
       nama: { type: DataTypes.STRING(10), allowNull: false },
       jumlah_peserta_min: { type: DataTypes.SMALLINT, defaultValue: 0 },
       jumlah_peserta_max: { type: DataTypes.SMALLINT, defaultValue: 0 },
+      jumlah_peserta_internal_max: { type: DataTypes.SMALLINT, allowNull: true },
+      jumlah_peserta_lintas_prodi_max: { type: DataTypes.SMALLINT, allowNull: true },
     },
     {
       sequelize,

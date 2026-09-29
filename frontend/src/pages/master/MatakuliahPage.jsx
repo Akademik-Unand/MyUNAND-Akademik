@@ -1,8 +1,7 @@
 import { MasterListPage } from "../../components/master/MasterListPage";
 import { MatakuliahForm } from "../../components/master/MatakuliahForm";
-import { FilterBar } from "../../components/common/FilterBar";
-import { Card } from "../../components/ui/Card";
 import { useAcademicFilter } from "../../hooks/useAcademicFilter";
+import { useFilterOptions } from "../../hooks/useFilterOptions";
 import { programStudiLabel } from "../../helpers/academicLabel";
 
 const emptyForm = {
@@ -24,7 +23,9 @@ const emptyForm = {
 export const MatakuliahPage = () => {
   const academic = useAcademicFilter({
     keys: ["fakultas", "departemen", "prodi"],
+    applyImmediately: true,
   });
+  const { prodi: prodiOptions } = useFilterOptions();
 
   return (
     <MasterListPage
@@ -39,22 +40,17 @@ export const MatakuliahPage = () => {
       createDefaults={{ program_studi_id: academic.applied.prodiId || "" }}
       extraFilter={academic.extraFilter}
       dataLocked={academic.locked}
-      beforeTable={
-        <Card title="Filter Mata Kuliah">
-          <FilterBar
-            fields={academic.fields}
-            onApply={academic.apply}
-            onReset={academic.reset}
-            applyDisabled={!academic.canApply}
-          />
-        </Card>
-      }
+      toolbarFilters={academic.fields}
+      onApplyToolbarFilters={academic.apply}
+      onResetToolbarFilters={academic.reset}
+      toolbarFiltersDisabled={!academic.canApply}
       rowKey={(row) => row.id}
       columns={[
         {
           key: "program_studi_id",
           header: "Program Studi",
           sortable: true,
+          filter: { type: "select", options: prodiOptions },
           render: (row) => programStudiLabel(row.programStudi),
         },
         { key: "kode_matakuliah", header: "Kode", sortable: true },

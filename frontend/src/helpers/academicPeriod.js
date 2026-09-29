@@ -25,6 +25,36 @@ export const isPeriodeOpen = (row, today = todayDateOnly()) => {
   return row.tanggal_mulai <= today && today <= row.tanggal_selesai;
 };
 
+export const periodeOperasiNotice = (periode, label, today = todayDateOnly()) => {
+  const mulaiValue = periode?.tanggal_mulai;
+  const selesaiValue = periode?.tanggal_selesai;
+  if (!mulaiValue || !selesaiValue) {
+    return {
+      title: `Periode ${label} belum diatur`,
+      message: `Tanggal periode ${label} untuk semester terkait belum diatur. Atur periode agar aksi ini tersedia.`,
+      variant: "warning",
+    };
+  }
+  if (mulaiValue <= today && today <= selesaiValue) return null;
+
+  const mulai = formatTanggalId(mulaiValue);
+  const selesai = formatTanggalId(selesaiValue);
+
+  if (today < mulaiValue) {
+    return {
+      title: `Periode ${label} belum dimulai`,
+      message: `Periode ${label} dijadwalkan ${mulai} sampai ${selesai}. Aksi tersedia mulai ${mulai}.`,
+      variant: "info",
+    };
+  }
+
+  return {
+    title: `Periode ${label} sudah berakhir`,
+    message: `Periode ${label} berakhir pada ${selesai}. Aksi ini tidak dapat dilakukan di luar periode.`,
+    variant: "error",
+  };
+};
+
 export const findPeriode = (periodes, semesterId, jenis) =>
   (periodes || []).find(
     (row) => row.semester_id === semesterId && row.jenis === jenis,

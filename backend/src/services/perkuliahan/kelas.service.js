@@ -86,8 +86,8 @@ const LIST_OPTIONS = {
   findOptions: { subQuery: false, attributes: extraAttributes },
 };
 
-const loadKelas = (id) =>
-  Kelas.findByPk(id, { include: findInclude, attributes: extraAttributes });
+const loadKelas = (id, transaction) =>
+  Kelas.findByPk(id, { include: findInclude, attributes: extraAttributes, transaction });
 
 const list = (query) => paginate(Kelas, query, LIST_OPTIONS);
 
@@ -106,8 +106,9 @@ const getById = async (id) => {
  */
 const assertKelasConsistency = async (payload, transaction) => {
   const { semester_id, program_studi_id, matakuliah_id, penawaran_matakuliah_id } = payload;
+  let detil = null;
   if (penawaran_matakuliah_id) {
-    const detil = await PenawaranMatakuliahDetil.findByPk(penawaran_matakuliah_id, {
+    detil = await PenawaranMatakuliahDetil.findByPk(penawaran_matakuliah_id, {
       include: [{ model: PenawaranMatakuliah, as: 'penawaran' }],
       transaction,
     });
@@ -128,6 +129,17 @@ const assertKelasConsistency = async (payload, transaction) => {
     if (mk.program_studi_id !== program_studi_id) {
       throw new AppError('Mata kuliah tidak dimiliki program studi tersebut', 422);
     }
+  }
+  return detil;
+};
+
+const assertQuotaDoesNotExceedTotal = (payload) => {
+  const total = Number(payload.jumlah_peserta_max || 0);
+  if (!total) return;
+  for (const field of ["jumlah_peserta_internal_max", "jumlah_peserta_lintas_prodi_max"]) {
+    const value = payload[field];
+    if (value != null && Number(value) > total)
+      throw new AppError("Kuota internal dan lintas tidak boleh melebihi kapasitas total kelas", 422);
   }
 };
 
@@ -199,15 +211,28 @@ const assertNamaKelasUnik = async (payload, { excludeId, transaction } = {}) => 
 };
 
 const create = async (payload) => {
-  await assertKelasConsistency(payload);
-  await assertNamaKelasUnik(payload);
-  const item = await Kelas.create(payload);
-  return loadKelas(item.id);
+  return sequelize.transaction(async (transaction) => {
+    const detil = await assertKelasConsistency(payload, transaction);
+    await assertNamaKelasUnik(payload, { transaction });
+    const defaults = {
+      jumlah_peserta_max: detil?.jumlah_peserta_max_default ?? 40,
+      jumlah_peserta_internal_max:
+        detil?.jumlah_peserta_internal_max_default ??
+        detil?.jumlah_peserta_max_default ??
+        40,
+      jumlah_peserta_lintas_prodi_max: detil?.kuota_lintas_prodi ?? 0,
+    };
+    const next = { ...defaults, ...payload };
+    assertQuotaDoesNotExceedTotal(next);
+    const item = await Kelas.create(next, { transaction });
+    return loadKelas(item.id, transaction);
+  });
 };
 
 const update = async (id, payload) => {
   const item = await getById(id);
   const merged = { ...item.toJSON(), ...payload };
+  assertQuotaDoesNotExceedTotal(merged);
   await assertKelasConsistency(merged);
   await assertNamaKelasUnik(merged, { excludeId: item.id });
   await item.update(payload);

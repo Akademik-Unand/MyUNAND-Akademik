@@ -8,10 +8,9 @@ const { defineAbility } = require("../policies/defineAbility");
 const {
   computeOrgScope,
   orgFilterForResource,
+  resourceNameFromBaseUrl,
 } = require("../helpers/orgScope");
 const asyncHandler = require("./asyncHandler");
-
-const resourceName = (req) => String(req.baseUrl || "").split("/")[2] || "";
 
 const attachAbility = asyncHandler(async (req, res, next) => {
   if (!req.user) {
@@ -27,7 +26,7 @@ const attachAbility = asyncHandler(async (req, res, next) => {
 
   const scope = computeOrgScope(user);
   req.orgScope = scope;
-  const orgFilter = orgFilterForResource(resourceName(req), scope);
+  const orgFilter = orgFilterForResource(resourceNameFromBaseUrl(req.baseUrl), scope);
   if (orgFilter) {
     const existing =
       req.query.filter &&

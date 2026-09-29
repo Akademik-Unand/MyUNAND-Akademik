@@ -22,7 +22,6 @@ module.exports = (sequelize) => {
       },
       penawaran_matakuliah_id: { type: DataTypes.UUID, allowNull: false },
       program_studi_id: { type: DataTypes.UUID, allowNull: false },
-      kuota: DataTypes.INTEGER,
     },
     {
       sequelize,

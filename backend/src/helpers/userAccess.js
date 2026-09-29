@@ -19,12 +19,26 @@ const ACCESS_INCLUDE = [
   {
     model: Dosen,
     as: "dosen",
-    include: [{ model: ProgramStudi, as: "programStudi" }],
+    include: [{
+      model: ProgramStudi,
+      as: "programStudi",
+      include: [
+        { model: Fakultas, as: "fakultas", paranoid: false },
+        { model: Departemen, as: "departemen", paranoid: false },
+      ],
+    }],
   },
   {
     model: Mahasiswa,
     as: "mahasiswa",
-    include: [{ model: ProgramStudi, as: "programStudi" }],
+    include: [{
+      model: ProgramStudi,
+      as: "programStudi",
+      include: [
+        { model: Fakultas, as: "fakultas", paranoid: false },
+        { model: Departemen, as: "departemen", paranoid: false },
+      ],
+    }],
   },
   {
     model: Role,
@@ -121,6 +135,8 @@ const toAccessPayload = (user) => {
               nama_singkat: user.dosen.programStudi.nama_singkat || null,
               fakultas_id: user.dosen.programStudi.fakultas_id || null,
               departemen_id: user.dosen.programStudi.departemen_id || null,
+              fakultas: user.dosen.programStudi.fakultas?.nama_resmi || user.dosen.programStudi.fakultas?.nama_singkat || null,
+              departemen: user.dosen.programStudi.departemen?.nama_resmi || user.dosen.programStudi.departemen?.nama_singkat || null,
             }
           : null,
       }
@@ -140,6 +156,8 @@ const toAccessPayload = (user) => {
               nama_singkat: user.mahasiswa.programStudi.nama_singkat || null,
               fakultas_id: user.mahasiswa.programStudi.fakultas_id || null,
               departemen_id: user.mahasiswa.programStudi.departemen_id || null,
+              fakultas: user.mahasiswa.programStudi.fakultas?.nama_resmi || user.mahasiswa.programStudi.fakultas?.nama_singkat || null,
+              departemen: user.mahasiswa.programStudi.departemen?.nama_resmi || user.mahasiswa.programStudi.departemen?.nama_singkat || null,
             }
           : null,
       }
@@ -152,8 +170,8 @@ const toAccessPayload = (user) => {
     role_label: primary ? roleLabel(primary) : null,
     roles,
     permissions: collectPermissions(user),
-    dosen_id: user.dosen_id,
-    mahasiswa_id: user.mahasiswa_id,
+    dosen_id: user.dosen?.id || null,
+    mahasiswa_id: user.mahasiswa?.id || null,
     dosen,
     mahasiswa,
     units,

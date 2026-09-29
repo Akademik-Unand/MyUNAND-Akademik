@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validasiPeriode } from "./academicPeriod";
+import { periodeOperasiNotice, validasiPeriode } from "./academicPeriod";
 
 const semester = { tahun: 2026, tanggal_selesai: "2026-10-10" };
 
@@ -44,6 +44,35 @@ describe("validasiPeriode", () => {
     expect(validasiPeriode({ tanggal_mulai: "", tanggal_selesai: "" }, null)).toBeNull();
     expect(
       validasiPeriode({ tanggal_mulai: "2026-09-01", tanggal_selesai: "" }, undefined),
+    ).toBeNull();
+  });
+});
+
+describe("periodeOperasiNotice", () => {
+  it("menjelaskan bila periode belum diatur", () => {
+    expect(periodeOperasiNotice(null, "KRS", "2026-09-01")).toMatchObject({
+      title: "Periode KRS belum diatur",
+      variant: "warning",
+    });
+  });
+
+  it("menampilkan rentang periode yang belum dimulai", () => {
+    expect(
+      periodeOperasiNotice(
+        { tanggal_mulai: "2026-09-10", tanggal_selesai: "2026-09-20" },
+        "CPMK",
+        "2026-09-01",
+      ),
+    ).toMatchObject({ title: "Periode CPMK belum dimulai", variant: "info" });
+  });
+
+  it("tidak memberi peringatan saat periode sedang dibuka", () => {
+    expect(
+      periodeOperasiNotice(
+        { tanggal_mulai: "2026-09-01", tanggal_selesai: "2026-09-20" },
+        "KRS",
+        "2026-09-10",
+      ),
     ).toBeNull();
   });
 });

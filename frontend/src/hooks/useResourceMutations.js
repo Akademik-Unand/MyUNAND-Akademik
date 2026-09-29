@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import {
   createResourceItem,
   deleteResourceItem,
+  restoreResourceItem,
   updateResourceItem,
 } from "../services/api";
 
@@ -46,5 +47,14 @@ export const useResourceMutations = (resource, labels = {}) => {
     onError: (err) => toast.error(err.message || "Gagal menghapus data."),
   });
 
-  return { create, update, remove, invalidate };
+  const restore = useMutation({
+    mutationFn: (id) => restoreResourceItem(resource, id),
+    onSuccess: () => {
+      invalidate();
+      toast.success(labels.restore || "Data berhasil dipulihkan.");
+    },
+    onError: (err) => toast.error(err.message || "Gagal memulihkan data."),
+  });
+
+  return { create, update, remove, restore, invalidate };
 };

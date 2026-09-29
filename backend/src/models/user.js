@@ -4,11 +4,8 @@ const { Model, DataTypes } = require("sequelize");
 module.exports = (sequelize) => {
   class User extends Model {
     static associate(models) {
-      User.belongsTo(models.Dosen, { foreignKey: "dosen_id", as: "dosen" });
-      User.belongsTo(models.Mahasiswa, {
-        foreignKey: "mahasiswa_id",
-        as: "mahasiswa",
-      });
+      User.hasOne(models.Dosen, { foreignKey: "user_id", as: "dosen" });
+      User.hasOne(models.Mahasiswa, { foreignKey: "user_id", as: "mahasiswa" });
       User.belongsToMany(models.Role, {
         through: models.UserRole,
         foreignKey: "user_id",
@@ -37,8 +34,6 @@ module.exports = (sequelize) => {
         allowNull: true,
         defaultValue: null,
       },
-      dosen_id: { type: DataTypes.UUID, allowNull: true },
-      mahasiswa_id: { type: DataTypes.UUID, allowNull: true },
       remember_token: { type: DataTypes.STRING(100), allowNull: true },
     },
     {

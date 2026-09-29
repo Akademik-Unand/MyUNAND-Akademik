@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
-import { FilterBar } from "../../components/common/FilterBar";
 import { DataTable } from "../../components/common/DataTable";
 import { Modal } from "../../components/ui/Modal";
 import { FormActions } from "../../components/common/FormActions";
@@ -39,10 +40,18 @@ const EMPTY_KELAS_FORM = {
   nama: "",
   jumlah_peserta_min: "",
   jumlah_peserta_max: "",
+  jumlah_peserta_internal_max: "",
+  jumlah_peserta_lintas_prodi_max: 0,
 };
 
 export const KelasPage = () => {
-  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const contextDetailId = searchParams.get("detailId") || "";
+  const contextSemesterId = searchParams.get("semesterId") || "";
+  const returnTo = searchParams.get("returnTo") || "";
+  const academic = useAcademicFilter({ keys: FILTER_KEYS, applyImmediately: true });
   const extraFilter = academic.extraFilter;
   const mutations = useResourceMutations("kelas", {
     create: "Kelas berhasil ditambahkan.",
@@ -57,10 +66,12 @@ export const KelasPage = () => {
     jumlah_peserta_max: "",
   });
   const [formOpen, setFormOpen] = useState(false);
+  const [contextPrefilled, setContextPrefilled] = useState("");
   const [formValues, setFormValues] = useState(EMPTY_KELAS_FORM);
 
   // Penawaran untuk form tambah kelas: semester terpilih + prodi dari konteks navbar.
-  const semesterId = formValues.semester_id || activeSemester?.id || "";
+  const semesterId =
+    contextSemesterId || formValues.semester_id || activeSemester?.id || "";
   const offeringQuery = useResourceQuery("penawaran-matakuliah", {
     params:
       org.prodiId && semesterId
@@ -78,11 +89,37 @@ export const KelasPage = () => {
     value: detail.id,
     label: `${detail.matakuliah?.kode_matakuliah || ""} — ${detail.matakuliah?.nama_resmi || "Mata kuliah"}`,
     matakuliahId: detail.matakuliah_id,
+    jumlahPesertaMaxDefault: detail.jumlah_peserta_max_default ?? 40,
+    jumlahPesertaInternalMaxDefault:
+      detail.jumlah_peserta_internal_max_default ?? detail.jumlah_peserta_max_default ?? 40,
+    kuotaLintasDefault: detail.kuota_lintas_prodi ?? 0,
   }));
   const semesterOptions = semesterRows.map((row) => ({
     value: row.id,
     label: `${semesterAkademikLabel(row)}${row.is_aktif ? " (Aktif)" : ""}`,
   }));
+
+  if (contextDetailId && offering && contextPrefilled !== contextDetailId) {
+    const detail = offering.matakuliahDitawarkan?.find(
+      (row) => row.id === contextDetailId,
+    );
+    if (detail) {
+      setContextPrefilled(contextDetailId);
+      setFormValues({
+        ...EMPTY_KELAS_FORM,
+        semester_id: contextSemesterId || offering.semester_id,
+        matakuliah_id: detail.matakuliah_id,
+        penawaran_matakuliah_id: detail.id,
+        jumlah_peserta_max: detail.jumlah_peserta_max_default ?? 40,
+        jumlah_peserta_internal_max:
+          detail.jumlah_peserta_internal_max_default ??
+          detail.jumlah_peserta_max_default ??
+          40,
+        jumlah_peserta_lintas_prodi_max: detail.kuota_lintas_prodi ?? 0,
+      });
+      setFormOpen(true);
+    }
+  }
 
   // Nama kelas yang sudah dipakai pada MK × semester × prodi terpilih — satu
   // nama hanya boleh sekali, jadi dicek di klien agar tidak perlu bolak-balik
@@ -109,6 +146,8 @@ export const KelasPage = () => {
     setCapacityValues({
       jumlah_peserta_min: row.jumlah_peserta_min ?? "",
       jumlah_peserta_max: row.jumlah_peserta_max ?? "",
+      jumlah_peserta_internal_max: row.jumlah_peserta_internal_max ?? "",
+      jumlah_peserta_lintas_prodi_max: row.jumlah_peserta_lintas_prodi_max ?? "",
     });
     setCapacityTarget(row);
   };
@@ -124,6 +163,8 @@ export const KelasPage = () => {
       payload: {
         jumlah_peserta_min: toNumberOrNull(capacityValues.jumlah_peserta_min),
         jumlah_peserta_max: toNumberOrNull(capacityValues.jumlah_peserta_max),
+        jumlah_peserta_internal_max: toNumberOrNull(capacityValues.jumlah_peserta_internal_max),
+        jumlah_peserta_lintas_prodi_max: toNumberOrNull(capacityValues.jumlah_peserta_lintas_prodi_max),
       },
     });
     setCapacityTarget(null);
@@ -138,7 +179,7 @@ export const KelasPage = () => {
       );
       return;
     }
-    await mutations.create.mutateAsync({
+    const created = await mutations.create.mutateAsync({
       semester_id: semesterId,
       program_studi_id: org.prodiId,
       matakuliah_id: formValues.matakuliah_id,
@@ -146,9 +187,18 @@ export const KelasPage = () => {
       nama: formValues.nama,
       jumlah_peserta_min: toNumberOrNull(formValues.jumlah_peserta_min),
       jumlah_peserta_max: toNumberOrNull(formValues.jumlah_peserta_max),
+      jumlah_peserta_internal_max: toNumberOrNull(formValues.jumlah_peserta_internal_max),
+      jumlah_peserta_lintas_prodi_max: toNumberOrNull(formValues.jumlah_peserta_lintas_prodi_max),
     });
+    await queryClient.invalidateQueries({ queryKey: ["penawaran-matakuliah"] });
     setFormValues(EMPTY_KELAS_FORM);
     setFormOpen(false);
+    if (returnTo && created?.id) {
+      const next = new URLSearchParams({ hub: "jadwal", returnTo });
+      navigate(`/perkuliahan/kelas/${created.id}?${next.toString()}`);
+    } else if (returnTo) {
+      navigate(returnTo);
+    }
   };
 
   const columns = buildKelasListColumns({
@@ -188,20 +238,16 @@ export const KelasPage = () => {
           </Can>
         }
       />
-      <Card title="Filter">
-        <FilterBar
-          fields={academic.fields}
-          onApply={academic.apply}
-          onReset={academic.reset}
-          applyDisabled={!academic.canApply}
-        />
-      </Card>
       <Card title="Daftar Kelas">
         <DataTable
           resource="kelas"
           columns={columns}
           extraFilter={extraFilter}
           dataLocked={academic.locked}
+          toolbarFilters={academic.fields}
+          onApplyToolbarFilters={academic.apply}
+          onResetToolbarFilters={academic.reset}
+          toolbarFiltersDisabled={!academic.canApply}
           rowKey={(row) => row.id}
           searchPlaceholder="Cari kelas atau mata kuliah..."
         />

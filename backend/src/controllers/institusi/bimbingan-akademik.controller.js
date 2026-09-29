@@ -26,6 +26,26 @@ const list = asyncHandler(async (req, res) => {
   });
 });
 
+const listDosenPa = asyncHandler(async (req, res) => {
+  const { rows, pagination } = await bimbinganAkademikService.listDosenPa(
+    req.query,
+    actor(req),
+  );
+  return success(res, {
+    message: "Daftar Dosen PA berhasil diambil",
+    data: rows,
+    pagination,
+  });
+});
+
+const getDosenPaById = asyncHandler(async (req, res) => {
+  const data = await bimbinganAkademikService.getDosenPaById(
+    req.params.id,
+    actor(req),
+  );
+  return success(res, { message: "Detail Dosen PA berhasil diambil", data });
+});
+
 /** GET /bimbingan-akademik/candidates — mahasiswa yang belum punya dosen PA. */
 const listCandidates = asyncHandler(async (req, res) => {
   const { rows, pagination } = await bimbinganAkademikService.listCandidates(
@@ -107,6 +127,8 @@ const remove = asyncHandler(async (req, res) => {
 
 module.exports = {
   list,
+  listDosenPa,
+  getDosenPaById,
   listCandidates,
   listSaya,
   summary,

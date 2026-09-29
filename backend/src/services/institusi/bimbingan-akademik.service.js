@@ -7,7 +7,6 @@ const {
   Dosen,
   Mahasiswa,
   ProgramStudi,
-  User,
   Krs,
   KrsDetil,
   Kelas,
@@ -28,6 +27,8 @@ const {
   scopeContainsUnit,
 } = require('../../helpers/organizationScopeGuard');
 const { krsApprovalStatus } = require('../../helpers/krsApproval');
+const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
+const { programStudiWithOrganization, accountWithRoles } = require('../../helpers/academicProfileIncludes');
 
 const PA_AKTIF_SQL = "(SELECT ba.mahasiswa_id FROM bimbingan_akademik ba WHERE ba.status = 'aktif')";
 
@@ -53,6 +54,20 @@ const LIST_OPTIONS = {
   findOptions: { subQuery: false },
 };
 
+const DOSEN_PA_LIST_OPTIONS = {
+  searchFields: ['nip', 'nama', '$user.email$'],
+  sortableFields: ['nip', 'nama', 'createdAt'],
+  filterableFields: ['id', 'program_studi_id'],
+  virtualFilters: orgFiltersOnProgramStudiId(sequelize),
+  defaultInclude: () => [programStudiWithOrganization(), accountWithRoles()],
+  findOptions: {
+    subQuery: false,
+    where: {
+      id: { [Op.in]: sequelize.literal("(SELECT dosen_id FROM bimbingan_akademik WHERE status = 'aktif')") },
+    },
+  },
+};
+
 /** Kandidat PA = mahasiswa yang belum punya dosen PA aktif. */
 const CANDIDATE_LIST_OPTIONS = {
   searchFields: ['nama', 'niu'],
@@ -75,8 +90,8 @@ const MANAGE_LEVELS = new Set(['fakultas', 'departemen', 'prodi']);
 const actorDosenId = async (user) => {
   if (!user?.id) return null;
   if (user.dosen_id) return user.dosen_id;
-  const row = await User.findByPk(user.id, { attributes: ['dosen_id'] });
-  return row?.dosen_id || null;
+  const identity = await getUserAcademicIdentity(user.id);
+  return identity.dosen_id;
 };
 
 /** Data dosen aktor (null bila akunnya tidak terhubung ke data dosen). */
@@ -130,11 +145,86 @@ const assertDalamUnit = (mahasiswa, context) => {
 
 const list = async (query, actor = {}) => {
   const dosen = await resolveDosenActor(actor);
-  if (!dosen) return paginate(BimbinganAkademik, query, LIST_OPTIONS);
-  return paginate(BimbinganAkademik, query, {
+  const result = await paginate(BimbinganAkademik, query, dosen ? {
     ...LIST_OPTIONS,
     findOptions: { ...LIST_OPTIONS.findOptions, where: { dosen_id: dosen.id } },
+  } : LIST_OPTIONS);
+  const records = result.rows.map(toPlain);
+  const { krs, semester } = await ringkasKrsUntukMahasiswa(
+    records.map((row) => row.mahasiswa_id),
+  );
+  return {
+    ...result,
+    rows: records.map((row) => ({
+      ...row,
+      semester: semester ? { id: semester.id, tahun: semester.tahun, jenisSemester: semester.jenisSemester } : null,
+      krs: krs.get(row.mahasiswa_id) || null,
+    })),
+  };
+};
+
+/** Daftar profil Dosen yang memiliki mahasiswa bimbingan aktif, dengan ringkasan beban. */
+const listDosenPa = async (query = {}, actor = {}) => {
+  const dosenActor = await resolveDosenActor(actor);
+  if (actor.access && actor.orgScope?.level == null && !dosenActor) {
+    throw new AppError('Akun Anda tidak memiliki scope untuk melihat daftar Dosen PA', 403);
+  }
+  const findOptions = { ...DOSEN_PA_LIST_OPTIONS.findOptions };
+  if (dosenActor) {
+    findOptions.where = {
+      [Op.and]: [findOptions.where, { id: dosenActor.id }],
+    };
+  }
+  const { rows, pagination } = await paginate(Dosen, query, {
+    ...DOSEN_PA_LIST_OPTIONS,
+    findOptions,
   });
+  const ids = rows.map((row) => row.id);
+  if (!ids.length) return { rows: [], pagination };
+
+  const summaryRows = await sequelize.query(
+    `SELECT ba.dosen_id,
+            COUNT(DISTINCT ba.mahasiswa_id) AS jumlah_mahasiswa,
+            COUNT(DISTINCT CASE
+              WHEN k.approval_ke = 0 AND (
+                (COALESCE(kd.is_cross_enrollment, 0) = 1 AND COALESCE(kd.cross_enrollment_status, 'pending_pa') NOT IN ('approved', 'rejected')) OR
+                (COALESCE(kd.is_cross_enrollment, 0) <> 1 AND COALESCE(kd.approved, 0) NOT IN (1, 2))
+              ) THEN k.id END) AS krs_menunggu
+       FROM bimbingan_akademik ba
+       LEFT JOIN krs k ON k.mahasiswa_id = ba.mahasiswa_id
+         AND k.semester_id = (SELECT s.id FROM semester s WHERE s.is_aktif = 1 ORDER BY s.tahun DESC LIMIT 1)
+       LEFT JOIN krs_detil kd ON kd.krs_id = k.id
+      WHERE ba.status = 'aktif' AND ba.dosen_id IN (:dosenIds)
+      GROUP BY ba.dosen_id`,
+    {
+      replacements: { dosenIds: ids },
+      type: sequelize.QueryTypes.SELECT,
+    },
+  );
+  const byDosen = new Map(summaryRows.map((row) => [row.dosen_id, row]));
+  return {
+    rows: rows.map((row) => {
+      const plain = toPlain(row);
+      const summary = byDosen.get(row.id) || {};
+      return {
+        ...plain,
+        jumlah_mahasiswa: Number(summary.jumlah_mahasiswa || 0),
+        krs_menunggu: Number(summary.krs_menunggu || 0),
+        status_akun: plain.user ? (plain.user.deletedAt ? 'nonaktif' : 'aktif') : 'belum_ada',
+      };
+    }),
+    pagination,
+  };
+};
+
+/** Detail satu Dosen PA; ownership checks follow the same user/profile relation as listSaya. */
+const getDosenPaById = async (id, actor = {}) => {
+  const { rows } = await listDosenPa({ page: 1, limit: 1, filter: { id } }, actor);
+  const row = rows[0];
+  if (!row || row.id !== id) {
+    throw new AppError('Dosen PA tidak ditemukan atau berada di luar scope Anda', 404);
+  }
+  return row;
 };
 
 /**
@@ -268,8 +358,8 @@ const update = (id, payload, context) =>
 const remove = async (id, context) => {
   const item = await getById(id);
   assertDalamUnit(item.mahasiswa, context);
-  await item.destroy();
-  return { id };
+  await item.update({ status: 'selesai' });
+  return { id, status: 'selesai' };
 };
 
 /**
@@ -507,6 +597,8 @@ const listSaya = async (query, actor = {}) => {
 
 module.exports = {
   list,
+  listDosenPa,
+  getDosenPaById,
   listCandidates,
   listSaya,
   getById,

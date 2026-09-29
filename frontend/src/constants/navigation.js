@@ -163,6 +163,12 @@ export const NAVIGATION_MENU = [
         permission: { action: "read", subject: "Dosen" },
       },
       {
+        label: "Mahasiswa",
+        path: "/master/mahasiswa",
+        icon: "GraduationCap",
+        permission: { action: "read", subject: "Mahasiswa" },
+      },
+      {
         label: "Jenjang Akademik",
         path: "/master/jenjang-akademik",
         icon: "TrendingUp",

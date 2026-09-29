@@ -1,12 +1,17 @@
 'use strict';
 
-const { deterministicUuid, parseSqlValue, splitSqlList, parseInsertStatement, parseSqlDump, academicYearStart, academicSemesterYear, aggregateGrades, mapSourceToActualIds } = require('../../../src/helpers/tpbSqlImport');
+const { deterministicUuid, normalizeDosenNip, parseSqlValue, splitSqlList, parseInsertStatement, parseSqlDump, academicYearStart, academicSemesterYear, aggregateGrades, mapSourceToActualIds } = require('../../../src/helpers/tpbSqlImport');
 
 describe('TPB SQL import helper', () => {
   test('creates stable, namespaced UUID v5 values', () => {
     expect(deterministicUuid('users', 12)).toBe(deterministicUuid('users', 12));
     expect(deterministicUuid('users', 12)).not.toBe(deterministicUuid('dosen', 12));
     expect(deterministicUuid('users', 12)).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  });
+
+  test('matches source NIPs to the 18-character Dosen column width', () => {
+    expect(normalizeDosenNip("'110199704202405101")).toBe("'11019970420240510");
+    expect(normalizeDosenNip('196309041989031002')).toBe('196309041989031002');
   });
 
   test.each([['NULL', null], ['-12.50', -12.5], ["'O\\'Brien'", "O'Brien"], ["'baris\\nbaru'", 'baris\nbaru']])('parses SQL scalar %s', (input, expected) => {

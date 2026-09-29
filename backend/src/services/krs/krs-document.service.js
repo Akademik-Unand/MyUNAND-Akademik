@@ -1,17 +1,18 @@
 "use strict";
 
 const {
-  User, Krs, KrsDetil, Mahasiswa, ProgramStudi, Fakultas, Universitas,
+  Krs, KrsDetil, Mahasiswa, ProgramStudi, Fakultas, Universitas,
   Semester, JenisSemester, Kelas, Matakuliah, JadwalKelas, Ruang, DosenKelas, Dosen,
 } = require("../../models");
 const AppError = require("../../helpers/AppError");
 const { buildKrsDocumentData, krsDocumentFilename } = require("../../helpers/krsDocument");
 const { renderKrsPdf } = require("../../documents/krsPdf");
+const { getUserAcademicIdentity } = require("../../helpers/userAcademicProfile");
 
 /** Selalu baca tautan mahasiswa akun saat ini; jangan percaya mahasiswa_id dari JWT/query. */
 const downloadOwnKrs = async (id, userId) => {
-  const actor = await User.findByPk(userId, { attributes: ["id", "mahasiswa_id"] });
-  if (!actor?.mahasiswa_id) throw new AppError("Unduhan KRS hanya tersedia untuk akun yang terhubung ke mahasiswa.", 403);
+  const actor = await getUserAcademicIdentity(userId);
+  if (!actor.mahasiswa_id) throw new AppError("Unduhan KRS hanya tersedia untuk akun yang terhubung ke mahasiswa.", 403);
   const krs = await Krs.findOne({
     where: { id, mahasiswa_id: actor.mahasiswa_id },
     include: [

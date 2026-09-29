@@ -5,7 +5,6 @@ import { IconButton, IconLink } from "../../components/common/IconButton";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
-import { FilterBar } from "../../components/common/FilterBar";
 import { DataTable } from "../../components/common/DataTable";
 import { ConfirmDeleteModal } from "../../components/common/ConfirmDeleteModal";
 import { Can } from "../../components/auth/Can";
@@ -18,6 +17,7 @@ export const LaporanCPPage = () => {
   });
   const academic = useAcademicFilter({
     keys: ["fakultas", "departemen", "prodi"],
+    applyImmediately: true,
   });
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -92,20 +92,16 @@ export const LaporanCPPage = () => {
           </Can>
         }
       />
-      <Card title="Filter Laporan">
-        <FilterBar
-          fields={academic.fields}
-          onApply={academic.apply}
-          onReset={academic.reset}
-          applyDisabled={!academic.canApply}
-        />
-      </Card>
       <Card title="Daftar Laporan">
         <DataTable
           resource="laporan-cp"
           columns={columns}
           extraFilter={academic.extraFilter}
           dataLocked={academic.locked}
+          toolbarFilters={academic.fields}
+          onApplyToolbarFilters={academic.apply}
+          onResetToolbarFilters={academic.reset}
+          toolbarFiltersDisabled={!academic.canApply}
           rowKey={(row) => row.id}
           searchPlaceholder="Cari nama laporan atau pembuat..."
         />

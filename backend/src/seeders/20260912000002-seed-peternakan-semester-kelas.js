@@ -1,6 +1,7 @@
 "use strict";
 
 const { randomUUID } = require("crypto");
+const { ensureAcademicAccounts, removeSeedAcademicAccounts } = require("../helpers/seedAcademicAccounts");
 
 const row = (now, extra) => ({
   id: randomUUID(),
@@ -396,6 +397,12 @@ module.exports = {
       );
     }
     await chunkInsert(queryInterface, "dosen", dosenInserts);
+    const seededDosen = await allRows(
+      queryInterface,
+      "SELECT id, nip, nama FROM dosen WHERE nip IN (:nips) AND deletedAt IS NULL",
+      { nips: [...DOSEN_PTN, ...DOSEN_NTP].map((item) => item.nip) },
+    );
+    await ensureAcademicAccounts(queryInterface, "dosen", seededDosen, now);
 
     const ruangIds = (
       await allRows(queryInterface, "SELECT id FROM ruang")
@@ -534,6 +541,7 @@ module.exports = {
     ];
     const allKodes = [...ptnKodes, ...ntpKodes];
     const nips = [...DOSEN_PTN, ...DOSEN_NTP].map((item) => item.nip);
+    await removeSeedAcademicAccounts(queryInterface, "dosen", nips);
 
     await queryInterface.sequelize.query(
       `DELETE dj FROM dosen_jadwal dj

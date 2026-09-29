@@ -49,6 +49,7 @@ const adminFakultas = {
     "departemen.read",
     "program-studi.read",
     "dosen.read",
+    "mahasiswa.read",
     "matakuliah.read",
     "kurikulum.read",
     "cp.read",
@@ -115,6 +116,7 @@ const SEMUA_MENU_PERMISSIONS = [
   "departemen.read",
   "program-studi.read",
   "dosen.read",
+  "mahasiswa.read",
   "jenjang-akademik.read",
   "jenis-semester.read",
   "semester.read",
@@ -167,6 +169,7 @@ const MENU_ADMIN_DEPARTEMEN = [
   "/kemahasiswaan/dosen-pa",
   "/master/prodi",
   "/master/dosen",
+  "/master/mahasiswa",
 ];
 
 /** Admin prodi tidak mengelola master Program Studi (termasuk kuota SKS-nya). */
@@ -328,6 +331,7 @@ describe("filterNavigation", () => {
       "/master/departemen",
       "/master/prodi",
       "/master/dosen",
+      "/master/mahasiswa",
     ]);
   });
 

@@ -9,7 +9,6 @@ import { DataTable } from "../../components/common/DataTable";
 import { ConfirmDeleteModal } from "../../components/common/ConfirmDeleteModal";
 import { Drawer } from "../../components/ui/Drawer";
 import { DetailList } from "../../components/common/DetailList";
-import { FilterBar } from "../../components/common/FilterBar";
 import { Can } from "../../components/auth/Can";
 import { useResourceMutations } from "../../hooks/useResourceMutations";
 import { useAcademicFilter } from "../../hooks/useAcademicFilter";
@@ -21,7 +20,7 @@ export const KurikulumDataPage = () => {
   const mutations = useResourceMutations("kurikulum", {
     remove: "Kurikulum berhasil dihapus.",
   });
-  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const academic = useAcademicFilter({ keys: FILTER_KEYS, applyImmediately: true });
   const extraFilter = academic.extraFilter;
   const [detail, setDetail] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -74,23 +73,7 @@ export const KurikulumDataPage = () => {
         breadcrumbs={[{ label: "Kurikulum & MK" }, { label: "Data Kurikulum" }]}
       />
 
-      <Card title="Filter">
-        <FilterBar
-          fields={academic.fields}
-          onApply={academic.apply}
-          onReset={academic.reset}
-          applyDisabled={!academic.canApply}
-        />
-      </Card>
-
-      {!extraFilter && (
-        <p className="text-sm text-base-content/60">
-          Pilih fakultas, departemen, lalu prodi, kemudian klik Terapkan.
-        </p>
-      )}
-
-      {extraFilter && (
-        <Card
+      <Card
           title="Kurikulum"
           actions={
             academic.applied.prodiId ? (
@@ -110,11 +93,15 @@ export const KurikulumDataPage = () => {
             resource="kurikulum"
             columns={columns}
             rowKey={(row) => row.id}
-            extraFilter={extraFilter}
-            searchPlaceholder="Cari nama kurikulum atau tahun..."
-          />
-        </Card>
-      )}
+          extraFilter={extraFilter}
+          dataLocked={academic.locked}
+          toolbarFilters={academic.fields}
+          onApplyToolbarFilters={academic.apply}
+          onResetToolbarFilters={academic.reset}
+          toolbarFiltersDisabled={!academic.canApply}
+          searchPlaceholder="Cari nama kurikulum atau tahun..."
+        />
+      </Card>
 
       <Drawer
         open={Boolean(detail)}

@@ -17,14 +17,16 @@ import {
   coursesForProgram,
 } from "../../helpers/courseOffering";
 import { useOrgContext } from "../../hooks/useOrgContext";
+import { usePeriodes } from "../../hooks/usePeriodes";
+import { findPeriode, isPeriodeOpen, JENIS_PERIODE } from "../../helpers/academicPeriod";
+import { PeriodOperationNotice } from "../../components/common/PeriodOperationNotice";
 
 const initialSettings = {
   fakultas_id: "",
   departemen_id: "",
   program_studi_id: "",
   semester_id: "",
-  kuota_lintas_prodi: 0,
-  akses: "semua",
+  akses: "internal",
   prodi_tujuan: [],
 };
 
@@ -32,6 +34,7 @@ export const PenawaranSemesterPage = () => {
   const can = useCan();
   const org = useOrgContext();
   const { semesterRows = [] } = useFilterOptions();
+  const periodesQuery = usePeriodes();
   const activeSemester = semesterRows.find((row) => row.is_aktif);
   const [settings, setSettings] = useState(initialSettings);
   const [selected, setSelected] = useState([]);
@@ -60,6 +63,8 @@ export const PenawaranSemesterPage = () => {
 
   // Default semester = semester aktif (is_aktif) selama belum dipilih manual.
   const semesterId = settings.semester_id || activeSemester?.id || "";
+  const krsPeriod = findPeriode(periodesQuery.data, semesterId, JENIS_PERIODE.KRS);
+  const krsPeriodOpen = isPeriodeOpen(krsPeriod);
   const courses = useResourceQuery("matakuliah", {
     params: settings.program_studi_id
       ? { filter: { program_studi_id: settings.program_studi_id } }
@@ -71,7 +76,8 @@ export const PenawaranSemesterPage = () => {
     remove: "Penawaran berhasil dihapus.",
   });
   const [deleteTarget, setDeleteTarget] = useState(null);
-  // Penawaran cukup dikenali dari (semester, prodi) — tidak ada pivot lagi.
+  // Satu header dipakai per semester dan prodi penyelenggara; target prodi dan
+  // mata kuliah disimpan pada tabel relasinya masing-masing.
   const offeringKeyReady = Boolean(settings.program_studi_id && semesterId);
   const existingQuery = useResourceQuery("penawaran-matakuliah", {
     params: offeringKeyReady
@@ -100,11 +106,27 @@ export const PenawaranSemesterPage = () => {
     setSelected(openedRows.map((row) => row.matakuliah_id));
     setCourseQuotas(
       Object.fromEntries(
-        openedRows
-          .filter((row) => row.kuota_lintas_prodi != null)
-          .map((row) => [row.matakuliah_id, row.kuota_lintas_prodi]),
+        openedRows.map((row) => [row.matakuliah_id, {
+          total: row.jumlah_peserta_max_default ?? 40,
+          internal: row.jumlah_peserta_internal_max_default ?? row.jumlah_peserta_max_default ?? 40,
+          external: row.kuota_lintas_prodi ?? 0,
+        }]),
       ),
     );
+  }
+  const existingSettingsSignature = existing
+    ? `${existing.id}:${existing.akses}:${(existing.prodiTujuan || []).map((row) => row.program_studi_id).sort().join(",")}`
+    : "none";
+  const [prevSettingsSignature, setPrevSettingsSignature] = useState(null);
+  if (prevSettingsSignature !== existingSettingsSignature) {
+    setPrevSettingsSignature(existingSettingsSignature);
+    if (existing) {
+      setSettings((current) => ({
+        ...current,
+        akses: existing.akses || "semua",
+        prodi_tujuan: (existing.prodiTujuan || []).map((row) => row.program_studi_id),
+      }));
+    }
   }
   const availableCourses = useMemo(
     () => coursesForProgram(courses.data, settings.program_studi_id),
@@ -114,11 +136,17 @@ export const PenawaranSemesterPage = () => {
   const changeSettings = (next) => {
     const academicChanged =
       next.program_studi_id !== settings.program_studi_id ||
-      next.semester_id !== settings.semester_id;
+      next.semester_id !== semesterId;
     if (academicChanged) {
       setSelected([]);
       setCourseQuotas({});
+      setSettings({ ...next, akses: "internal", prodi_tujuan: [] });
+      return;
     }
+    if (next.akses === "internal")
+      setCourseQuotas((current) => Object.fromEntries(
+        Object.entries(current).map(([id, quotas]) => [id, { ...quotas, external: 0 }]),
+      ));
     setSettings(next);
   };
   const toggle = (id) =>
@@ -129,8 +157,19 @@ export const PenawaranSemesterPage = () => {
     );
   const toggleAll = (checked) =>
     setSelected(checked ? availableCourses.map((row) => row.id) : []);
-  const setQuota = (id, value) =>
-    setCourseQuotas((current) => ({ ...current, [id]: value }));
+  const setQuota = (id, field, value) =>
+    setCourseQuotas((current) => ({
+      ...current,
+      [id]: { ...(current[id] || {}), [field]: value },
+    }));
+  const crossEnrollmentEnabled = settings.akses !== "internal";
+  const quotasValid = selected.every((id) => {
+    const values = courseQuotas[id] || {};
+    const total = Number(values.total ?? 40);
+    const internal = Number(values.internal ?? total);
+    const external = crossEnrollmentEnabled ? Number(values.external ?? 0) : 0;
+    return total <= 0 || (internal <= total && external <= total);
+  });
   const save = async () => {
     const payloadSettings = {
       ...settings,
@@ -143,18 +182,19 @@ export const PenawaranSemesterPage = () => {
       courseQuotas,
       availableCourses,
     );
-    if (existing) {
-      await mutations.sync.mutateAsync({ id: existing.id, payload });
-    } else {
-      await mutations.save.mutateAsync(payload);
-    }
+    await mutations.save.mutateAsync({ id: existing?.id, payload });
     setSelected([]);
     setCourseQuotas({});
   };
-  const valid = offeringKeyReady && selected.length > 0 && canEditExisting;
+  const valid =
+    offeringKeyReady &&
+    selected.length > 0 &&
+    canEditExisting &&
+    quotasValid &&
+    (settings.akses !== "terpilih" || settings.prodi_tujuan.length > 0);
   const actionLabel = existing
-    ? `Perbarui ${selected.length} Mata Kuliah`
-    : `Buka ${selected.length} Mata Kuliah`;
+    ? `Simpan Perubahan Draft (${selected.length} MK)`
+    : `Simpan Draft Penawaran (${selected.length} MK)`;
 
   return (
     <div className="space-y-4">
@@ -165,6 +205,11 @@ export const PenawaranSemesterPage = () => {
           { label: "Perkuliahan" },
           { label: "Penawaran MK Semester" },
         ]}
+      />
+      <PeriodOperationNotice
+        period={krsPeriod}
+        label="publikasi penawaran pada KRS"
+        isLoading={periodesQuery.isPending}
       />
       <Card title="Pengaturan Penawaran">
         <OfferingSettings
@@ -190,12 +235,30 @@ export const PenawaranSemesterPage = () => {
         }
       >
         <p className="mb-3 text-sm text-base-content/60">
-          Kapasitas lintas prodi adalah jatah tambahan di luar kapasitas kelas
-          (untuk mahasiswa prodi sendiri). Nilai di pengaturan menjadi default
-          untuk semua mata kuliah terpilih dan dapat dioverride satu per satu
-          pada kolom Kapasitas Lintas. Mata kuliah berprasyarat tidak dapat
-          diberi kapasitas lintas (selalu 0).
+          Mata kuliah disimpan sebagai draft penawaran untuk prodi penyelenggara.
+          Centang opsi lintas prodi hanya jika mahasiswa prodi lain juga boleh mengambilnya;
+          total dan kuota setiap kelas menjadi batas aktual; nilai di sini hanya nilai awal.
         </p>
+        <p className="mb-3 text-xs text-base-content/60">
+          Penawaran dapat disiapkan sebagai draft lebih awal. Mahasiswa baru
+          melihat dan dapat mengambil mata kuliah setelah penawaran dipublikasikan
+          pada periode KRS yang sesuai.
+        </p>
+        {!valid && (
+          <p className="mb-3 text-sm text-warning" role="status">
+            {!settings.program_studi_id
+              ? "Pilih program studi penyelenggara terlebih dahulu."
+              : !semesterId
+                ? "Pilih semester terlebih dahulu."
+                : settings.akses === "terpilih" && !settings.prodi_tujuan.length
+                  ? "Pilih minimal satu program studi tujuan untuk akses lintas."
+                : !selected.length
+                    ? "Pilih minimal satu mata kuliah untuk ditawarkan."
+                    : !quotasValid
+                      ? "Kuota internal dan lintas tidak boleh melebihi kapasitas awal kelas."
+                    : "Penawaran ini perlu dibuka kembali sebagai draft sebelum dapat diedit."}
+          </p>
+        )}
         {existing && existing.status !== "draft" && (
           <p className="mb-3 rounded-box bg-base-200/60 px-3 py-2 text-sm text-base-content/70">
             Penawaran semester ini sudah berstatus{" "}
@@ -208,11 +271,18 @@ export const PenawaranSemesterPage = () => {
           courses={availableCourses}
           selected={selected}
           quotas={courseQuotas}
-          defaultQuota={settings.kuota_lintas_prodi}
           onToggle={toggle}
           onToggleAll={toggleAll}
           onQuotaChange={setQuota}
+          showCrossEnrollment={crossEnrollmentEnabled}
         />
+        {crossEnrollmentEnabled && (
+          <p className="mt-2 text-xs text-base-content/60">
+            Nilai lintas 0 menutup kursi lintas pada kelas baru. Kapasitas total
+            berlaku untuk gabungan mahasiswa internal dan lintas; kelas dapat
+            menyesuaikan batasnya sendiri.
+          </p>
+        )}
       </Card>
       <Card title="Mata Kuliah yang Sudah Dibuka">
         <OpenedOfferingsTable
@@ -225,6 +295,9 @@ export const PenawaranSemesterPage = () => {
               : undefined
           }
           canPublish={can("publish", "PenawaranMatakuliah")}
+          periodOpen={krsPeriodOpen}
+          periodLoading={periodesQuery.isPending}
+          periodNotice={periodesQuery.isPending ? null : !krsPeriodOpen ? "Publikasi menunggu periode KRS semester ini dibuka." : null}
           canClose={can("close", "PenawaranMatakuliah")}
           canDelete={can("delete", "PenawaranMatakuliah")}
           onDelete={setDeleteTarget}

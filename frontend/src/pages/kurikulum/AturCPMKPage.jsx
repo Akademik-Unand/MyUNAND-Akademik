@@ -13,6 +13,7 @@ import {
 import { useResourceMutations } from "../../hooks/useResourceMutations";
 import { useConfirmDelete } from "../../hooks/useConfirmDelete";
 import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { PeriodOperationNotice } from "../../components/common/PeriodOperationNotice";
 import { Can } from "../../components/auth/Can";
 import { useCpmkPeriodOpen } from "../../hooks/usePeriodes";
 
@@ -33,7 +34,8 @@ export const AturCPMKPage = () => {
     remove: "CPMK berhasil dihapus.",
   });
   const del = useConfirmDelete();
-  const cpmkOpen = useCpmkPeriodOpen().open;
+  const cpmkPeriod = useCpmkPeriodOpen();
+  const cpmkOpen = cpmkPeriod.open;
   const data = (query.data ?? []).filter((item) => item.matakuliah_id === id);
   const { roots, childrenByParent } = useMemo(() => {
     const byId = new Map(data.map((item) => [item.id, item]));
@@ -74,6 +76,13 @@ export const AturCPMKPage = () => {
                 </Button>
               </Link>
             </Can>
+            <Can I="update" a="Cpmk">
+              <Link to={`/perkuliahan/mk-semester/${id}/atur`}>
+                <Button variant="secondary" size="sm">
+                  {cpmkOpen ? "Atur Sumber Penilaian" : "Lihat Sumber Penilaian"}
+                </Button>
+              </Link>
+            </Can>
             {cpmkOpen && (
               <Can I="create" a="Cpmk">
                 <Link to={`/kurikulum/cpmk/${id}/baru${suffix}`}>
@@ -85,6 +94,12 @@ export const AturCPMKPage = () => {
             )}
           </div>
         }
+      />
+
+      <PeriodOperationNotice
+        period={cpmkPeriod.period}
+        label="CPMK"
+        isLoading={cpmkPeriod.isPending}
       />
 
       <Card>

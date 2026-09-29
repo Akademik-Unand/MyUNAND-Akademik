@@ -22,7 +22,7 @@ import { useAcademicFilter } from "../../hooks/useAcademicFilter";
 const FILTER_KEYS = ["fakultas", "departemen", "prodi", "kurikulum"];
 
 export const CPKurikulumPage = () => {
-  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const academic = useAcademicFilter({ keys: FILTER_KEYS, applyImmediately: true });
   const kurikulumId = academic.applied.kurikulumId;
   const extraFilter = academic.extraFilter;
   const query = useResourceQuery("kurikulum-cp", {
@@ -126,14 +126,14 @@ export const CPKurikulumPage = () => {
         }
       />
 
-      <Card title="Filter">
+      {academic.fields.length > 0 && <Card title="Filter">
         <FilterBar
           fields={academic.fields}
           onApply={academic.apply}
           onReset={academic.reset}
           applyDisabled={!academic.canApply}
         />
-      </Card>
+      </Card>}
 
       <div className="space-y-4">
         {extraFilter && query.isPending && (

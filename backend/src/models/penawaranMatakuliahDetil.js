@@ -26,6 +26,8 @@ module.exports = (sequelize) => {
       },
       penawaran_matakuliah_id: { type: DataTypes.UUID, allowNull: false },
       matakuliah_id: { type: DataTypes.UUID, allowNull: false },
+      jumlah_peserta_max_default: { type: DataTypes.SMALLINT, allowNull: false, defaultValue: 40 },
+      jumlah_peserta_internal_max_default: { type: DataTypes.SMALLINT, allowNull: false, defaultValue: 40 },
       kuota_lintas_prodi: DataTypes.INTEGER,
       minimal_semester: DataTypes.TINYINT,
       maksimal_semester: DataTypes.TINYINT,

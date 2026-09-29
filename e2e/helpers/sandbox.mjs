@@ -16,6 +16,16 @@ const plusDays = (days) => {
 };
 const now = () => new Date();
 
+/** Mencegah fixture E2E menghapus data pada database aplikasi/dev. */
+async function assertIsolatedE2eDatabase(conn) {
+  const current = await queryOne(conn, "SELECT DATABASE() AS name");
+  if (!/^myunand_kurikulum_e2e(?:_|$)/i.test(current?.name || "")) {
+    throw new Error(
+      `Fixture E2E ditolak untuk database '${current?.name || "unknown"}'. Gunakan schema bernama myunand_kurikulum_e2e_*.`,
+    );
+  }
+}
+
 /** Konteks sandbox: semester aktif, prodi Peternakan, jenis Genap. */
 export async function getSandboxContext(conn) {
   const semester = await queryOne(
@@ -124,9 +134,9 @@ async function createOfferingRow(
     conn,
     `INSERT INTO penawaran_matakuliah
        (id, semester_id, program_studi_id, status, akses, tanggal_mulai,
-        tanggal_selesai, kuota_lintas_prodi_default, minimal_semester_default,
+        tanggal_selesai, minimal_semester_default,
         maksimal_semester_default, published_at, closed_at, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, 'semua', ?, ?, 0, NULL, NULL, NULL, NULL, ?, ?)`,
+     VALUES (?, ?, ?, ?, 'semua', ?, ?, NULL, NULL, NULL, NULL, ?, ?)`,
     [
       id,
       semesterId,
@@ -184,6 +194,61 @@ export async function ensureProbeKelas(conn, { semesterId, prodiId }, mkId) {
       [id, semesterId, prodiId, mkId, now(), now()],
     );
     kelas = { id };
+  }
+
+  const dosen = await queryOne(
+    conn,
+    "SELECT id FROM dosen WHERE nip = ? AND deletedAt IS NULL LIMIT 1",
+    [DOSEN_PTN_NIP],
+  );
+  if (!dosen)
+    throw new Error(`Dosen sandbox ${DOSEN_PTN_NIP} tidak ditemukan.`);
+  let dosenKelas = await queryOne(
+    conn,
+    "SELECT id FROM dosen_kelas WHERE kelas_id = ? AND dosen_id = ? LIMIT 1",
+    [kelas.id, dosen.id],
+  );
+  if (!dosenKelas) {
+    dosenKelas = { id: randomUUID() };
+    await query(
+      conn,
+      `INSERT INTO dosen_kelas (id, dosen_id, kelas_id, dosen_ke, createdAt, updatedAt)
+       VALUES (?, ?, ?, 1, ?, ?)`,
+      [dosenKelas.id, dosen.id, kelas.id, now(), now()],
+    );
+  }
+
+  let jadwal = await queryOne(
+    conn,
+    "SELECT id FROM jadwal_kelas WHERE kelas_id = ? LIMIT 1",
+    [kelas.id],
+  );
+  if (!jadwal) {
+    jadwal = { id: randomUUID() };
+    const ruang = await queryOne(
+      conn,
+      "SELECT id FROM ruang WHERE deletedAt IS NULL ORDER BY kode LIMIT 1",
+    );
+    await query(
+      conn,
+      `INSERT INTO jadwal_kelas
+         (id, kelas_id, ruang_id, hari, jam_mulai, jam_selesai, createdAt, updatedAt, shift_id)
+       VALUES (?, ?, ?, 'Senin', '08:00:00', '09:40:00', ?, ?, NULL)`,
+      [jadwal.id, kelas.id, ruang?.id || null, now(), now()],
+    );
+  }
+  const dosenJadwal = await queryOne(
+    conn,
+    "SELECT id FROM dosen_jadwal WHERE dosen_kelas_id = ? AND jadwal_kelas_id = ? LIMIT 1",
+    [dosenKelas.id, jadwal.id],
+  );
+  if (!dosenJadwal) {
+    await query(
+      conn,
+      `INSERT INTO dosen_jadwal (id, dosen_kelas_id, jadwal_kelas_id, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?)`,
+      [randomUUID(), dosenKelas.id, jadwal.id, now(), now()],
+    );
   }
   return kelas;
 }
@@ -260,20 +325,23 @@ async function upsertUser(conn, mahasiswaId) {
     await query(
       conn,
       `UPDATE users SET name = ?, password = ?, role = 'mahasiswa',
-        mahasiswa_id = ?, email_verified_at = ?, updatedAt = ?, deletedAt = NULL
+        email_verified_at = ?, updatedAt = ?, deletedAt = NULL
        WHERE id = ?`,
-      [name, passHash, mahasiswaId, now(), now(), row.id],
+      [name, passHash, now(), now(), row.id],
     );
+    await query(conn, "UPDATE mahasiswa SET user_id = NULL WHERE user_id = ? AND id <> ?", [row.id, mahasiswaId]);
+    await query(conn, "UPDATE mahasiswa SET user_id = ? WHERE id = ?", [row.id, mahasiswaId]);
     return row.id;
   }
   const id = randomUUID();
   await query(
     conn,
     `INSERT INTO users (id, name, email, email_verified_at, password, role,
-       dosen_id, mahasiswa_id, remember_token, createdAt, updatedAt, deletedAt)
-     VALUES (?, ?, ?, ?, ?, 'mahasiswa', NULL, ?, NULL, ?, ?, NULL)`,
-    [id, name, email, now(), passHash, mahasiswaId, now(), now()],
+       remember_token, createdAt, updatedAt, deletedAt)
+     VALUES (?, ?, ?, ?, ?, 'mahasiswa', NULL, ?, ?, NULL)`,
+    [id, name, email, now(), passHash, now(), now()],
   );
+  await query(conn, "UPDATE mahasiswa SET user_id = ? WHERE id = ?", [id, mahasiswaId]);
   return id;
 }
 
@@ -310,6 +378,7 @@ async function ensurePa(conn, mahasiswaId, { ctx }) {
  * bersih dari KRS lama.
  */
 export async function resetSandbox(conn) {
+  await assertIsolatedE2eDatabase(conn);
   const ctx = await getSandboxContext(conn);
   await destroyOfferings(conn, {
     prodiId: ctx.prodiId,
@@ -355,6 +424,7 @@ export async function resetSandbox(conn) {
  * penawaran.spec.
  */
 export async function ensurePublishedProbeOffering(conn) {
+  await assertIsolatedE2eDatabase(conn);
   const ctx = await getSandboxContext(conn);
   const probeMk = await queryOne(
     conn,

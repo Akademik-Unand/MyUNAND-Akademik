@@ -3,9 +3,11 @@ import { toast } from "sonner";
 import {
   closeOffering,
   publishOffering,
+  reopenOffering,
   saveBulkOfferings,
   syncOfferingCourses,
 } from "../services/crossEnrollment.service";
+import { updateResourceItem } from "../services/api";
 
 export const useBulkOfferings = () => {
   const client = useQueryClient();
@@ -14,7 +16,10 @@ export const useBulkOfferings = () => {
     client.invalidateQueries({ queryKey: ["penawaran-matakuliah"] });
   };
   const save = useMutation({
-    mutationFn: saveBulkOfferings,
+    mutationFn: ({ id, payload }) =>
+      id
+        ? updateResourceItem("penawaran-matakuliah", id, payload)
+        : saveBulkOfferings(payload),
     onSuccess: () => {
       invalidate();
       toast.success("Mata kuliah berhasil dibuka dalam satu periode.");
@@ -31,7 +36,11 @@ export const useBulkOfferings = () => {
   });
   const status = useMutation({
     mutationFn: ({ id, action }) =>
-      action === "publish" ? publishOffering(id) : closeOffering(id),
+      action === "publish"
+        ? publishOffering(id)
+        : action === "reopen"
+          ? reopenOffering(id)
+          : closeOffering(id),
     onSuccess: () => {
       invalidate();
       toast.success("Status penawaran diperbarui.");

@@ -11,6 +11,16 @@ export const coursesForProgram = (courses, programId) =>
       )
     : [];
 
+export const activeOfferingProgramId = (offerings, selectedId, ownProgramId) => {
+  const availableIds = new Set((offerings || []).map((row) => row.program_studi_id));
+  if (selectedId && availableIds.has(selectedId)) return selectedId;
+  if (ownProgramId && availableIds.has(ownProgramId)) return ownProgramId;
+  return (
+    (offerings || []).find((row) => row.program_studi_id !== ownProgramId)
+      ?.program_studi_id || ownProgramId || null
+  );
+};
+
 export const buildBulkOfferingPayload = (
   settings,
   courseIds,
@@ -18,21 +28,38 @@ export const buildBulkOfferingPayload = (
   courses = [],
 ) => {
   const byId = new Map((courses || []).map((course) => [course.id, course]));
+  const akses = settings.akses || "internal";
   return {
     semester_id: settings.semester_id,
     program_studi_id: settings.program_studi_id,
-    kuota_lintas_prodi_default: Number(settings.kuota_lintas_prodi || 0),
-    akses: settings.akses,
-    prodi_tujuan: settings.akses === "terpilih" ? settings.prodi_tujuan : [],
+    akses,
+    prodi_tujuan:
+      akses === "terpilih"
+        ? (settings.prodi_tujuan || []).map((program_studi_id) => ({ program_studi_id }))
+        : [],
     matakuliah: [...new Set(courseIds)].map((matakuliah_id) => {
       const course = byId.get(matakuliah_id);
-      const kuota_lintas_prodi = course?.has_prasyarat
+      const values = courseQuotas[matakuliah_id];
+      const legacyExternal = typeof values === "string" || typeof values === "number";
+      const total = Number(
+        values?.total ?? course?.jumlah_peserta_max_default ?? 40,
+      );
+      const internal = Number(
+        values?.internal ??
+          course?.jumlah_peserta_internal_max_default ??
+          total,
+      );
+      const kuota_lintas_prodi = akses === "internal" || course?.has_prasyarat
         ? 0
-        : courseQuotas[matakuliah_id] === "" ||
-            courseQuotas[matakuliah_id] == null
-          ? Number(settings.kuota_lintas_prodi || 0)
-          : Number(courseQuotas[matakuliah_id]);
-      return { matakuliah_id, kuota_lintas_prodi };
+        : legacyExternal
+          ? Number(values)
+          : Number(values?.external ?? course?.kuota_lintas_prodi ?? 0);
+      return {
+        matakuliah_id,
+        jumlah_peserta_max_default: total,
+        jumlah_peserta_internal_max_default: internal,
+        kuota_lintas_prodi,
+      };
     }),
   };
 };

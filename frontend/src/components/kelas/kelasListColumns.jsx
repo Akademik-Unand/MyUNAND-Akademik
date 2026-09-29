@@ -54,8 +54,18 @@ export const buildKelasListColumns = ({
     },
     {
       key: "jumlah_peserta_max",
-      header: "Kapasitas",
+      header: "Kapasitas Total",
       render: (row) => row.jumlah_peserta_max || "—",
+    },
+    {
+      key: "jumlah_peserta_internal_max",
+      header: "Kuota Internal",
+      render: (row) => row.jumlah_peserta_internal_max ?? "Tanpa batas",
+    },
+    {
+      key: "jumlah_peserta_lintas_prodi_max",
+      header: "Kuota Lintas",
+      render: (row) => row.jumlah_peserta_lintas_prodi_max ?? "Tanpa batas",
     },
   ];
 

@@ -129,10 +129,15 @@ export const useAcademicFilter = ({
         org.setContext(pickGlobal(applyAcademicField(global, key, value)));
         return;
       }
-      setDraftLocal((prev) => {
-        const next = applyAcademicField({ ...global, ...prev }, key, value);
-        return { kurikulumId: next.kurikulumId, semesterId: next.semesterId };
-      });
+      const next = applyAcademicField({ ...global, ...draftLocal }, key, value);
+      const nextLocal = {
+        kurikulumId: next.kurikulumId,
+        semesterId: next.semesterId,
+      };
+      setDraftLocal(nextLocal);
+      // Filter toolbar tidak memiliki tombol submit: setiap pilihan langsung
+      // menjadi filter aktif dan memicu query tabel.
+      setAppliedLocal(nextLocal);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- global/org identity tidak stabil
     [
@@ -140,6 +145,7 @@ export const useAcademicFilter = ({
       global.departemenId,
       global.prodiId,
       keys,
+      draftLocal,
       org.setContext,
     ],
   );

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Eye, ListTree } from 'lucide-react';
@@ -8,7 +9,6 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { DataTable } from '../../components/common/DataTable';
-import { FilterBar } from '../../components/common/FilterBar';
 import { IconButton } from '../../components/common/IconButton';
 import { CpmkOutline } from '../../components/cpmk/CpmkOutline';
 import { RejectKrsModal } from '../../components/krs/RejectKrsModal';
@@ -66,6 +66,7 @@ const HEADER_STATUS = {
 };
 
 export const PersetujuanKrsPage = () => {
+  const [searchParams] = useSearchParams();
   const client = useQueryClient();
   const [detailTarget, setDetailTarget] = useState(null);
   const [cpmkTarget, setCpmkTarget] = useState(null);
@@ -83,9 +84,12 @@ export const PersetujuanKrsPage = () => {
   const [draftSemester, setDraftSemester] = useState('');
   const [appliedSemester, setAppliedSemester] = useState('');
   const effectiveSemester = appliedSemester || defaultSemester?.id || '';
-  const extraFilter = effectiveSemester
-    ? { semester_id: effectiveSemester }
-    : undefined;
+  const extraFilter = {
+    ...(effectiveSemester ? { semester_id: effectiveSemester } : {}),
+    ...(searchParams.get('mahasiswa_id')
+      ? { mahasiswa_id: searchParams.get('mahasiswa_id') }
+      : {}),
+  };
 
   const semesterField = {
     name: 'semester_id',
@@ -100,7 +104,11 @@ export const PersetujuanKrsPage = () => {
       label: `${semesterAkademikLabel(row)}${row.is_aktif ? ' (Aktif)' : ''}${row.pending_count ? ` · ${row.pending_count} menunggu` : ''}`,
     })),
     value: draftSemester || defaultSemester?.id || '',
-    onChange: (e) => setDraftSemester(e.target.value),
+    onChange: (e) => {
+      const semesterId = e.target.value;
+      setDraftSemester(semesterId);
+      setAppliedSemester(semesterId);
+    },
     disabled: semesterQuery.isPending || semesterQuery.isError,
   };
 
@@ -237,22 +245,11 @@ export const PersetujuanKrsPage = () => {
         subtitle="Setujui KRS mahasiswa bimbingan Anda — pengajuan mata kuliah lintas prodi ikut diputuskan di sini"
         breadcrumbs={[{ label: 'Perkuliahan' }, { label: 'Persetujuan KRS' }]}
       />
-      <Card title="Filter KRS">
-        <FilterBar
-          fields={[semesterField]}
-          onApply={() => setAppliedSemester(draftSemester)}
-          onReset={() => {
-            setDraftSemester('');
-            setAppliedSemester('');
-          }}
-          applyDisabled={!draftSemester}
-        />
-        {semesterQuery.isError && (
-          <p role="alert" className="mt-2 text-sm text-error">
-            Gagal memuat semester persetujuan. {semesterQuery.error.message}
-          </p>
-        )}
-      </Card>
+      {semesterQuery.isError && (
+        <p role="alert" className="text-sm text-error">
+          Gagal memuat semester persetujuan. {semesterQuery.error.message}
+        </p>
+      )}
       <Card title="Daftar KRS">
         <DataTable
           resource="krs"
@@ -262,6 +259,11 @@ export const PersetujuanKrsPage = () => {
           columns={columns}
           extraFilter={extraFilter}
           dataLocked={Boolean(effectiveSemester)}
+          toolbarFilters={[semesterField]}
+          onResetToolbarFilters={() => {
+            setDraftSemester('');
+            setAppliedSemester('');
+          }}
           emptyText="Tidak ada KRS mahasiswa bimbingan pada semester ini."
         />
       </Card>

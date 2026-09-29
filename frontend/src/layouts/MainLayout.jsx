@@ -19,7 +19,7 @@ export const MainLayout = () => {
       <div className="flex flex-col flex-1 min-w-0">
         <Navbar />
 
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="mx-auto w-full max-w-none flex-1 p-4 md:p-6 lg:p-8 2xl:max-w-[1800px]">
           <Outlet />
         </main>
 

@@ -50,6 +50,7 @@ import { RoleMatrixPage } from "../pages/iam/RoleMatrixPage";
 import { ActivityLogsPage } from "../pages/iam/ActivityLogsPage";
 import { MatakuliahPage } from "../pages/master/MatakuliahPage";
 import { DosenPage } from "../pages/master/DosenPage";
+import { MahasiswaPage } from "../pages/master/MahasiswaPage";
 import { GedungPage } from "../pages/master/GedungPage";
 import { RuangPage } from "../pages/master/RuangPage";
 import { PenawaranSemesterPage } from "../pages/perkuliahan/PenawaranSemesterPage";
@@ -58,6 +59,7 @@ import { ShiftPage } from "../pages/perkuliahan/ShiftPage";
 import { PengambilanKrsPage } from "../pages/mahasiswa/PengambilanKrsPage";
 import { PersetujuanKrsPage } from "../pages/perkuliahan/PersetujuanKrsPage";
 import { DosenPaPage } from "../pages/kemahasiswaan/DosenPaPage";
+import { DosenPaDetailPage } from "../pages/kemahasiswaan/DosenPaDetailPage";
 import { MahasiswaBimbinganPage } from "../pages/kemahasiswaan/MahasiswaBimbinganPage";
 
 export const router = createBrowserRouter([
@@ -98,6 +100,10 @@ export const router = createBrowserRouter([
           {
             path: "master/dosen",
             element: gate("read", "Dosen", <DosenPage />),
+          },
+          {
+            path: "master/mahasiswa",
+            element: gate("read", "Mahasiswa", <MahasiswaPage />),
           },
           {
             path: "master/matakuliah",
@@ -325,6 +331,10 @@ export const router = createBrowserRouter([
               ],
               <DosenPaPage />,
             ),
+          },
+          {
+            path: "kemahasiswaan/dosen-pa/:dosenId",
+            element: gate("read", "BimbinganAkademik", <DosenPaDetailPage />),
           },
           {
             path: "pengaturan/pengguna",

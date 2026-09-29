@@ -78,6 +78,8 @@ describe('userAccess', () => {
         nama_singkat: 'S1 SI',
         fakultas_id: null,
         departemen_id: null,
+        fakultas: null,
+        departemen: null,
       },
     });
   });
@@ -98,6 +100,8 @@ describe('userAccess', () => {
           nama_singkat: 'S1 Teknik Pertanian dan Biosistem',
           fakultas_id: 'f1',
           departemen_id: 'dp1',
+          fakultas: null,
+          departemen: null,
         },
       },
     });
@@ -114,6 +118,8 @@ describe('userAccess', () => {
         nama_singkat: 'S1 Teknik Pertanian dan Biosistem',
         fakultas_id: 'f1',
         departemen_id: 'dp1',
+        fakultas: null,
+        departemen: null,
       },
     });
   });

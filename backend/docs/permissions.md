@@ -13,7 +13,7 @@ Aksi khusus: `approve`, `upload`, `restore`, `assign-roles`, `sync-permissions`,
 - semester: jenis-semester, semester, semester-prodi, periode
 - kurikulum: kurikulum, sifat-matakuliah, tipe-matakuliah, matakuliah, matakuliah-kurikulum
 - obe: cp, scp, cpmk, sumber-penilaian, cpmk-scp
-- perkuliahan: gedung, ruang, shift, kelas, dosen-kelas, jadwal-kelas, dosen-jadwal, penawaran-matakuliah (+ publish, close, catalog, schedule, sync)
+- perkuliahan: gedung, ruang, shift, kelas, dosen-kelas, jadwal-kelas, dosen-jadwal, penawaran-matakuliah (+ publish; termasuk membuka kembali draft, close, catalog, schedule, sync)
 - krs: krs, krs-detil, cross-enrollment (+ `krs.approve`, enroll). Persetujuan pengajuan lintas prodi memakai `krs.approve` — tidak ada aksi terpisah.
 - nilai: nilai (+ `nilai.upload`)
 - evaluasi: history-upload-nilai, evaluasi-cpmk, jenis-dokumen-evaluasi, dokumen-evaluasi

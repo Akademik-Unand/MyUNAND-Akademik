@@ -15,7 +15,7 @@ const FILTER_KEYS = ["fakultas", "departemen", "prodi", "kurikulum"];
 
 export const MKTranskripAturPage = () => {
   const navigate = useNavigate();
-  const academic = useAcademicFilter({ keys: FILTER_KEYS });
+  const academic = useAcademicFilter({ keys: FILTER_KEYS, applyImmediately: true });
   const extraFilter = academic.extraFilter;
   const query = useResourceQuery("mk-transkrip", {
     params: extraFilter ? { filter: extraFilter } : {},
@@ -74,7 +74,7 @@ export const MKTranskripAturPage = () => {
         ]}
       />
 
-      <Card title="Filter">
+      {academic.fields.length > 0 && <Card title="Filter">
         <FilterBar
           fields={academic.fields}
           onApply={() => {
@@ -87,7 +87,7 @@ export const MKTranskripAturPage = () => {
           }}
           applyDisabled={!academic.canApply}
         />
-      </Card>
+      </Card>}
 
       <Card title="Daftar Mata Kuliah">
         {!extraFilter && (

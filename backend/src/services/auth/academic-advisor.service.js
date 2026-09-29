@@ -8,20 +8,21 @@ const AppError = require("../../helpers/AppError");
 /** Read the current account's advisor; student identity never comes from the client. */
 const getAcademicAdvisor = async (userId) => {
   const user = await User.findByPk(userId, {
-    attributes: ["id", "mahasiswa_id"],
+    attributes: ["id"],
     include: [
       { association: "mahasiswa", attributes: ["id"] },
       { association: "roles", attributes: ["name"], through: { attributes: [] } },
     ],
   });
   if (!user) throw new AppError("User tidak ditemukan", 401);
-  const isStudent = Boolean(user.mahasiswa_id) ||
+  const mahasiswaId = user.mahasiswa?.id || null;
+  const isStudent = Boolean(mahasiswaId) ||
     (user.roles || []).some((role) => role.name === ROLE_NAMES.MAHASISWA);
   if (!isStudent) throw new AppError("Informasi dosen PA hanya tersedia untuk mahasiswa", 403);
-  if (!user.mahasiswa_id || !user.mahasiswa)
+  if (!mahasiswaId)
     return { status: "unlinked", advisor: null };
 
-  const assignment = await getActivePa(user.mahasiswa_id);
+  const assignment = await getActivePa(mahasiswaId);
   if (!assignment) return { status: "unassigned", advisor: null };
 
   // Paranoid lookup also prevents a deleted lecturer from being displayed as active.

@@ -258,6 +258,26 @@ module.exports = {
 
       const sourceLecturers = (s.dosen || []).filter((r) => r.nip != null);
       const sourceStudents = (s.mahasiswa || []).filter((r) => r.nim != null);
+      const sourceAccountById = by((s.users || []).filter((r) => r.email), "id");
+      const invalidAcademicAccounts = [
+        ...sourceLecturers
+          .filter((profile) => {
+            const account = sourceAccountById.get(String(profile.userId));
+            return !account || roleName(account.role) !== "dosen";
+          })
+          .map((profile) => `dosen ${profile.nip} → user ${profile.userId}`),
+        ...sourceStudents
+          .filter((profile) => {
+            const account = sourceAccountById.get(String(profile.userId));
+            return !account || roleName(account.role) !== "mahasiswa";
+          })
+          .map((profile) => `mahasiswa ${profile.nim} → user ${profile.userId}`),
+      ];
+      if (invalidAcademicAccounts.length) {
+        throw new Error(
+          `TPB academic account mapping is incomplete or has mismatched roles: ${invalidAcademicAccounts.slice(0, 10).join(", ")}`,
+        );
+      }
       await insert(
         queryInterface,
         "dosen",
@@ -286,8 +306,8 @@ module.exports = {
       const lecturerMap = actualMap(
         sourceLecturers,
         await select(queryInterface, "SELECT id, nip FROM dosen", {}, t),
-        (r) => r.nip,
-        (r) => r.nip,
+        (r) => H.normalizeDosenNip(r.nip),
+        (r) => H.normalizeDosenNip(r.nip),
       );
       const studentMap = actualMap(
         sourceStudents,
@@ -314,7 +334,9 @@ module.exports = {
         );
       const lecturerByUser = by(sourceLecturers, "userId");
       const studentByUser = by(sourceStudents, "userId");
-      const resetHash = await bcrypt.hash("RESET", 10);
+      // SQL dump hanya memiliki hash lama tanpa alur reset password aplikasi.
+      // Akun hasil seeder memakai kredensial lokal standar yang dipakai demo.
+      const defaultPasswordHash = await bcrypt.hash("12345678", 10);
       await insert(
         queryInterface,
         "users",
@@ -323,13 +345,8 @@ module.exports = {
           name: r.name,
           email: r.email,
           email_verified_at: r.email_verified_at,
-          password: resetHash,
+          password: defaultPasswordHash,
           role: roleName(r.role),
-          dosen_id:
-            lecturerMap.get(String(lecturerByUser.get(String(r.id))?.id)) ||
-            null,
-          mahasiswa_id:
-            studentMap.get(String(studentByUser.get(String(r.id))?.id)) || null,
           remember_token: null,
           ...stamp(r),
         })),
@@ -341,6 +358,16 @@ module.exports = {
         (r) => r.email.toLowerCase(),
         (r) => r.email.toLowerCase(),
       );
+      for (const sourceUser of sourceUsers) {
+        const userId = userMap.get(String(sourceUser.id));
+        if (!userId) continue;
+        const sourceDosen = lecturerByUser.get(String(sourceUser.id));
+        const dosenId = sourceDosen && lecturerMap.get(String(sourceDosen.id));
+        const sourceMahasiswa = studentByUser.get(String(sourceUser.id));
+        const mahasiswaId = sourceMahasiswa && studentMap.get(String(sourceMahasiswa.id));
+        if (dosenId) await queryInterface.bulkUpdate("dosen", { user_id: userId }, { id: dosenId }, { transaction: t });
+        if (mahasiswaId) await queryInterface.bulkUpdate("mahasiswa", { user_id: userId }, { id: mahasiswaId }, { transaction: t });
+      }
       await insert(
         queryInterface,
         "user_roles",

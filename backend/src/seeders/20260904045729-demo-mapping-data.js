@@ -2,6 +2,7 @@
 
 const { randomUUID } = require("crypto");
 const catalog = require("./data/demoMappingCatalog");
+const { ensureAcademicAccounts, removeSeedAcademicAccounts } = require("../helpers/seedAcademicAccounts");
 
 const row = (now, extra) => ({
   id: randomUUID(),
@@ -452,6 +453,12 @@ module.exports = {
       );
     }
     await chunkInsert(queryInterface, "dosen", dosenInserts);
+    const dosenAccounts = await allRows(
+      queryInterface,
+      "SELECT id, nip, nama FROM dosen WHERE program_studi_id IN (:ids) AND deletedAt IS NULL",
+      { ids: [prodiSi, prodiMat] },
+    );
+    await ensureAcademicAccounts(queryInterface, "dosen", dosenAccounts, now);
     const dosenSiIds = catalog.DOSEN_SI.map(
       (item) => dosenByNip[item.nip],
     ).filter(Boolean);
@@ -480,6 +487,12 @@ module.exports = {
       mhsByNiu[item.niu] = item.id;
     });
     await chunkInsert(queryInterface, "mahasiswa", mhsInserts);
+    const mahasiswaAccounts = await allRows(
+      queryInterface,
+      "SELECT id, niu, nama FROM mahasiswa WHERE program_studi_id IN (:ids) AND deletedAt IS NULL",
+      { ids: [prodiSi, prodiMat] },
+    );
+    await ensureAcademicAccounts(queryInterface, "mahasiswa", mahasiswaAccounts, now);
 
     const bimbinganExisting = new Set(
       (
@@ -814,6 +827,16 @@ module.exports = {
     const niuLike = ["22572%", "23572%", "22442%"];
     const nips = [...catalog.DOSEN_SI, ...catalog.DOSEN_MAT].map(
       (item) => item.nip,
+    );
+    await removeSeedAcademicAccounts(queryInterface, "dosen", nips);
+    const seededStudents = await allRows(
+      queryInterface,
+      `SELECT niu FROM mahasiswa WHERE ${niuLike.map((pattern) => `niu LIKE '${pattern}'`).join(" OR ")}`,
+    );
+    await removeSeedAcademicAccounts(
+      queryInterface,
+      "mahasiswa",
+      seededStudents.map((item) => item.niu),
     );
     const mkKodes = [...catalog.SI_MATAKULIAH, ...catalog.MAT_MATAKULIAH].map(
       (item) => item.kode,

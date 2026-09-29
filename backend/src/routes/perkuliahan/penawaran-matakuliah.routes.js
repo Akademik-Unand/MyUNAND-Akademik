@@ -43,6 +43,12 @@ router.post(
   c.close,
 );
 router.post(
+  "/:id/reopen",
+  ...guard("publish"),
+  validate({ params: v.idParam }),
+  c.reopen,
+);
+router.post(
   "/:id/restore",
   ...guard("restore"),
   validate({ params: v.idParam }),

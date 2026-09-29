@@ -1,7 +1,7 @@
 'use strict';
 
 const { Op } = require('sequelize');
-const { buildListQuery, RESERVED_PARAMS } = require('../../../src/helpers/listQuery');
+const { buildListQuery, paginate, RESERVED_PARAMS } = require('../../../src/helpers/listQuery');
 
 const createModel = () => ({
   rawAttributes: {
@@ -105,5 +105,36 @@ describe('buildListQuery', () => {
       { universitas_id: 'f1' },
       { kode_fakultas: 's1' },
     ]);
+  });
+
+  it('treats ENUM filters as exact values without stringifying the Sequelize type', () => {
+    const enumType = { key: 'ENUM', toString: () => { throw new Error('enum type was stringified'); } };
+    const result = buildListQuery(
+      { rawAttributes: { status: { type: enumType } } },
+      { filter: { status: 'aktif' } },
+      { filterableFields: ['status'] },
+    );
+
+    expect(result.where.status).toBe('aktif');
+  });
+});
+
+describe('paginate include factory', () => {
+  it('creates a fresh Sequelize include tree for every query', async () => {
+    const includeFactory = jest.fn(() => [{ as: 'profile', include: [{ as: 'programStudi' }] }]);
+    const Model = {
+      rawAttributes: {},
+      options: { paranoid: false },
+      findAndCountAll: jest.fn().mockResolvedValue({ count: 0, rows: [] }),
+    };
+
+    await paginate(Model, { trashed: 'only' }, { defaultInclude: includeFactory });
+    await paginate(Model, { trashed: 'only' }, { defaultInclude: includeFactory });
+
+    const first = Model.findAndCountAll.mock.calls[0][0].include;
+    const second = Model.findAndCountAll.mock.calls[1][0].include;
+    expect(first).not.toBe(second);
+    expect(first[0]).not.toBe(second[0]);
+    expect(first[0].include[0]).not.toBe(second[0].include[0]);
   });
 });

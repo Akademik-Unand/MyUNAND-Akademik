@@ -15,10 +15,13 @@ const RESERVED_PARAMS = [
 ];
 
 const isTextType = (attribute) => {
-  const type = String(attribute?.type ?? "").toLowerCase();
-  return (
-    type.includes("char") || type.includes("text") || type.includes("string")
-  );
+  const type = attribute?.type;
+  // Jangan stringify tipe Sequelize: pada dialect MySQL, ENUM.toString()
+  // memerlukan dialect yang hanya tersedia ketika SQL dibuat.
+  const typeKey = typeof type === "string"
+    ? type
+    : type?.key || type?.constructor?.key || "";
+  return ["CHAR", "STRING", "TEXT"].includes(String(typeKey).toUpperCase());
 };
 
 /** Express 5 parser sederhana menyimpan `filter[field]=x` sebagai kunci literal. */
@@ -140,7 +143,9 @@ const paginate = async (Model, query, options = {}) => {
   delete findOptions.where;
   const { count, rows } = await Model.findAndCountAll({
     where: scopedWhere ? { [Op.and]: [where, scopedWhere] } : where,
-    include: options.defaultInclude || [],
+    include: typeof options.defaultInclude === "function"
+      ? options.defaultInclude()
+      : options.defaultInclude || [],
     order,
     limit,
     offset,

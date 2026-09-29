@@ -9,19 +9,20 @@ const logger = require('../../utils/logger');
 const { expiresAtFrom } = require('../../helpers/jwtExpiry');
 const { hashRefreshToken, createRefreshTokenValue } = require('../../helpers/refreshToken');
 const { findUserWithAccess, getUserAccessById, toAccessPayload } = require('../../helpers/userAccess');
+const { linkUserAcademicProfile } = require('../../helpers/userAcademicProfile');
 
 const REFRESH_FALLBACK_MS = 7 * 24 * 60 * 60 * 1000;
 
-const generateAccessToken = (user, roles = []) =>
+const generateAccessToken = (user, payload) =>
   jwt.sign(
     {
       id: user.id,
       email: user.email,
-      role: roles[0]?.name || null,
-      roles: roles.map((role) => role.name),
+      role: payload.roles[0]?.name || null,
+      roles: payload.roles.map((role) => role.name),
       name: user.name,
-      dosen_id: user.dosen_id,
-      mahasiswa_id: user.mahasiswa_id,
+      dosen_id: payload.dosen_id,
+      mahasiswa_id: payload.mahasiswa_id,
       typ: 'access',
     },
     jwtConfig.secret,
@@ -45,7 +46,7 @@ const issueSession = async (user, { transaction } = {}) => {
   const payload = toAccessPayload(user);
   const refreshToken = await persistRefreshToken(user.id, transaction);
   return {
-    access_token: generateAccessToken(user, payload.roles),
+    access_token: generateAccessToken(user, payload),
     refresh_token: refreshToken,
     token_type: 'Bearer',
     expires_in: jwtConfig.expiresIn,
@@ -75,13 +76,20 @@ const register = async (payload) => {
     throw new AppError('Validation failed', 422, [{ field: 'email', message: 'Email sudah terdaftar' }]);
   }
 
-  const user = await User.create({
-    name: payload.name,
-    email: payload.email,
-    password: await bcrypt.hash(payload.password, 10),
-    role: payload.role || null,
-    dosen_id: payload.dosen_id || null,
-    mahasiswa_id: payload.mahasiswa_id || null,
+  const user = await sequelize.transaction(async (transaction) => {
+    const created = await User.create({
+      name: payload.name,
+      email: payload.email,
+      password: await bcrypt.hash(payload.password, 10),
+      role: payload.role || null,
+    }, { transaction });
+    await linkUserAcademicProfile({
+      userId: created.id,
+      dosenId: payload.dosen_id || null,
+      mahasiswaId: payload.mahasiswa_id || null,
+      transaction,
+    });
+    return created;
   });
 
   logger.info({ userId: user.id, email: user.email }, 'User registered');

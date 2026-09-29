@@ -13,6 +13,8 @@ const {
   isUniversityActor,
 } = require('../../helpers/organizationScopeGuard');
 const { orgFiltersOnUserId } = require('../../helpers/academicFilters');
+const { linkUserAcademicProfile } = require('../../helpers/userAcademicProfile');
+const { programStudiWithOrganization } = require('../../helpers/academicProfileIncludes');
 
 const UNIT_INCLUDE = [
   { model: Fakultas, as: 'fakultas' },
@@ -25,9 +27,9 @@ const LIST_OPTIONS = {
   sortableFields: ['name', 'email', 'role', 'createdAt'],
   filterableFields: ['email', 'role'],
   virtualFilters: orgFiltersOnUserId(sequelize),
-  defaultInclude: [
-    { model: Dosen, as: 'dosen' },
-    { model: Mahasiswa, as: 'mahasiswa' },
+  defaultInclude: () => [
+    { model: Dosen, as: 'dosen', include: [programStudiWithOrganization()] },
+    { model: Mahasiswa, as: 'mahasiswa', include: [programStudiWithOrganization()] },
     { model: Role, as: 'roles', through: { attributes: [] } },
   ],
   findOptions: { attributes: { exclude: ['password', 'remember_token'] } },
@@ -79,6 +81,10 @@ const list = async (query, context) => {
   if (ids) options.findOptions.where = { id: { [Op.in]: ids.length ? ids : [null] } };
   const { rows, pagination } = await paginate(User, scopedQuery, options);
   const rowIds = rows.map((row) => row.id);
+  for (const row of rows) {
+    row.setDataValue('dosen_id', row.dosen?.id || null);
+    row.setDataValue('mahasiswa_id', row.mahasiswa?.id || null);
+  }
   if (rowIds.length) {
     const units = await UserUnit.findAll({ where: { user_id: rowIds }, include: UNIT_INCLUDE });
     const byUser = new Map();
@@ -100,20 +106,65 @@ const create = async (payload, context) => {
   if (!isUniversityActor(context.access, context.orgScope)) {
     throw new AppError('User scoped harus dibuat lalu diberi role dan unit oleh admin universitas', 403);
   }
-  if (await User.findOne({ where: { email: payload.email } })) {
-    throw new AppError('Validation failed', 422, [{ field: 'email', message: 'Email sudah terdaftar' }]);
+  const { role_ids: roleIds, ...userPayload } = payload;
+  const dosenId = userPayload.dosen_id || null;
+  const mahasiswaId = userPayload.mahasiswa_id || null;
+  if (dosenId && mahasiswaId) {
+    throw new AppError('Akun hanya dapat terhubung ke satu profil akademik', 422);
   }
-  const user = await User.create({ ...payload, role: payload.role || null, password: await bcrypt.hash(payload.password, 10) });
-  return getById(user.id, context);
+  delete userPayload.dosen_id;
+  delete userPayload.mahasiswa_id;
+  const userId = await sequelize.transaction(async (transaction) => {
+    if (await User.findOne({ where: { email: payload.email }, transaction })) {
+      throw new AppError('Validation failed', 422, [{ field: 'email', message: 'Email sudah terdaftar' }]);
+    }
+    const uniqueIds = [...new Set(roleIds || [])];
+    const roles = await Role.findAll({ where: { id: uniqueIds }, transaction });
+    if (!uniqueIds.length || roles.length !== uniqueIds.length) {
+      throw new AppError('Pilih setidaknya satu peran yang valid', 422);
+    }
+    assertRoleHierarchy(context.access, roles);
+    const roleNames = new Set(roles.map((role) => role.name));
+    if (roleNames.has('dosen') && !dosenId) {
+      throw new AppError('Akun dengan peran dosen wajib ditautkan ke data dosen', 422);
+    }
+    if (roleNames.has('mahasiswa') && !mahasiswaId) {
+      throw new AppError('Akun dengan peran mahasiswa wajib ditautkan ke data mahasiswa', 422);
+    }
+    const primaryRole = roles.slice().sort((a, b) => a.name.localeCompare(b.name))[0];
+    const user = await User.create({
+      ...userPayload,
+      role: primaryRole.name,
+      password: await bcrypt.hash(payload.password, 10),
+    }, { transaction });
+    await linkUserAcademicProfile({ userId: user.id, dosenId, mahasiswaId, transaction });
+    await UserRole.bulkCreate(uniqueIds.map((roleId) => ({ user_id: user.id, role_id: roleId })), { transaction });
+    return user.id;
+  });
+  return getById(userId, context);
 };
 
 const update = async (id, payload, context) => {
   const item = await getScopedAccess(id, context);
   const nextPayload = { ...payload };
   delete nextPayload.role;
+  const hasAcademicLink = Object.prototype.hasOwnProperty.call(nextPayload, 'dosen_id') ||
+    Object.prototype.hasOwnProperty.call(nextPayload, 'mahasiswa_id');
+  const nextDosenId = Object.prototype.hasOwnProperty.call(nextPayload, 'dosen_id') ? nextPayload.dosen_id : item.dosen?.id || null;
+  const nextMahasiswaId = Object.prototype.hasOwnProperty.call(nextPayload, 'mahasiswa_id') ? nextPayload.mahasiswa_id : item.mahasiswa?.id || null;
+  if (nextDosenId && nextMahasiswaId) {
+    throw new AppError('Akun hanya dapat terhubung ke satu profil akademik', 422);
+  }
+  delete nextPayload.dosen_id;
+  delete nextPayload.mahasiswa_id;
   if (nextPayload.password) nextPayload.password = await bcrypt.hash(nextPayload.password, 10);
   else delete nextPayload.password;
-  await item.update(nextPayload);
+  await sequelize.transaction(async (transaction) => {
+    await item.update(nextPayload, { transaction });
+    if (hasAcademicLink) {
+      await linkUserAcademicProfile({ userId: item.id, dosenId: nextDosenId, mahasiswaId: nextMahasiswaId, transaction });
+    }
+  });
   return getById(id, context);
 };
 

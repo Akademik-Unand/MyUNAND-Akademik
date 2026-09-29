@@ -8,8 +8,12 @@ module.exports = (sequelize) => {
         foreignKey: "program_studi_id",
         as: "programStudi",
       });
+      Mahasiswa.belongsTo(models.User, { foreignKey: "user_id", as: "user" });
       Mahasiswa.hasMany(models.Krs, { foreignKey: "mahasiswa_id", as: "krs" });
-      Mahasiswa.hasOne(models.User, { foreignKey: "mahasiswa_id", as: "user" });
+      Mahasiswa.hasMany(models.BimbinganAkademik, {
+        foreignKey: "mahasiswa_id",
+        as: "bimbinganAkademik",
+      });
     }
   }
   Mahasiswa.init(
@@ -20,6 +24,7 @@ module.exports = (sequelize) => {
         primaryKey: true,
       },
       niu: { type: DataTypes.STRING(20), allowNull: false, unique: true },
+      user_id: { type: DataTypes.UUID, allowNull: true, unique: true },
       nama: { type: DataTypes.STRING(255), allowNull: false },
       angkatan: { type: DataTypes.SMALLINT, defaultValue: 0 },
       program_studi_id: { type: DataTypes.UUID, allowNull: true },

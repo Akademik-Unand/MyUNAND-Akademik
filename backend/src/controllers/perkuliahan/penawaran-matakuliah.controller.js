@@ -55,6 +55,10 @@ module.exports = {
     "Penawaran berhasil dipublikasikan",
   ),
   close: action((r) => s.close(r.params.id), "Penawaran berhasil ditutup"),
+  reopen: action(
+    (r) => s.reopen(r.params.id),
+    "Penawaran dibuka kembali sebagai draft untuk diedit",
+  ),
   createSchedule: action(
     (r) => s.createSchedule(r.params.id, r.params.classId, r.body),
     "Jadwal berhasil dibuat",

@@ -11,6 +11,26 @@ const bimbinganAkademikController = require("../../controllers/institusi/bimbing
 
 const subject = "BimbinganAkademik";
 
+/** GET /bimbingan-akademik/dosen-pa */
+router.get(
+  "/dosen-pa",
+  authenticate,
+  attachAbility,
+  checkPermission("read", subject),
+  validate({ query: bimbinganAkademikValidation.list }),
+  bimbinganAkademikController.listDosenPa,
+);
+
+/** GET /bimbingan-akademik/dosen-pa/:id */
+router.get(
+  "/dosen-pa/:id",
+  authenticate,
+  attachAbility,
+  checkPermission("read", subject),
+  validate({ params: bimbinganAkademikValidation.idParam }),
+  bimbinganAkademikController.getDosenPaById,
+);
+
 /** GET /bimbingan-akademik */
 router.get(
   "/",

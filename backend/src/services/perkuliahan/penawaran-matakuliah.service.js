@@ -24,6 +24,7 @@ const { paginate } = require("../../helpers/listQuery");
 const AppError = require("../../helpers/AppError");
 const { restoreRecord } = require("../../helpers/softDelete");
 const { assertJadwalValid } = require("../../helpers/jadwalConflict");
+const { assertKrsPeriodForSemester } = require("../../helpers/academicPeriod");
 
 const cpmkInclude = {
   model: Cpmk,
@@ -168,8 +169,13 @@ const validateCourses = async (programStudiId, courses, transaction) => {
     );
   const byId = new Map(rows.map((row) => [row.id, row]));
   for (const course of courses) {
+    const total = Number(course.jumlah_peserta_max_default ?? 40);
+    const internal = Number(course.jumlah_peserta_internal_max_default ?? total);
+    const cross = Number(course.kuota_lintas_prodi ?? 0);
+    if (total > 0 && (internal > total || cross > total))
+      throw new AppError("Kuota internal dan lintas tidak boleh melebihi kapasitas awal kelas", 422);
     if (byId.get(course.matakuliah_id)?.has_prasyarat) {
-      if ((course.kuota_lintas_prodi ?? 0) > 0)
+      if (cross > 0)
         throw new AppError(
           "Mata kuliah berprasyarat tidak dapat dibuka untuk lintas prodi",
           422,
@@ -178,7 +184,24 @@ const validateCourses = async (programStudiId, courses, transaction) => {
     }
   }
 };
-const syncCourses = async (header, courses, transaction) => {
+const validateTargets = async (programStudiId, akses, targets, transaction) => {
+  if (akses !== "terpilih") return;
+  if (!targets.length)
+    throw new AppError("Pilih setidaknya satu program studi tujuan lintas prodi", 422);
+  if (targets.some((target) => target.program_studi_id === programStudiId))
+    throw new AppError("Program studi penyelenggara tidak dapat menjadi target lintas prodi", 422);
+  const rows = await ProgramStudi.findAll({
+    where: { id: targets.map((target) => target.program_studi_id) },
+    attributes: ["id"],
+    transaction,
+  });
+  if (rows.length !== targets.length)
+    throw new AppError("Satu atau lebih program studi tujuan tidak ditemukan", 422);
+};
+const syncCourses = async (header, courses, transaction, crossEnrollmentEnabled = true) => {
+  if (!crossEnrollmentEnabled) {
+    courses = courses.map((course) => ({ ...course, kuota_lintas_prodi: 0 }));
+  }
   await validateCourses(header.program_studi_id, courses, transaction);
   const current = await PenawaranMatakuliahDetil.findAll({
     where: { penawaran_matakuliah_id: header.id },
@@ -216,7 +239,7 @@ const syncCourses = async (header, courses, transaction) => {
 };
 const save = (id, payload) =>
   sequelize.transaction(async (transaction) => {
-    const { prodi_tujuan = [], matakuliah, ...data } = payload;
+    const { prodi_tujuan, matakuliah, ...data } = payload;
     let header;
     if (id) {
       header = await PenawaranMatakuliah.findByPk(id, {
@@ -226,6 +249,19 @@ const save = (id, payload) =>
       if (!header) throw new AppError("Periode penawaran tidak ditemukan", 404);
       if (header.status !== "draft")
         throw new AppError("Hanya periode draft yang dapat diubah", 409);
+    }
+    const ownerId = data.program_studi_id || header?.program_studi_id;
+    const akses = data.akses || header?.akses || "internal";
+    data.akses = akses;
+    const savedTargets = prodi_tujuan ?? (header && akses === "terpilih"
+      ? await PenawaranMatakuliahProdi.findAll({
+          where: { penawaran_matakuliah_id: header.id },
+          attributes: ["program_studi_id"],
+          transaction,
+        })
+      : []);
+    await validateTargets(ownerId, akses, savedTargets, transaction);
+    if (id) {
       await header.update(data, { transaction });
     } else {
       const existing = await PenawaranMatakuliah.findOne({
@@ -245,14 +281,23 @@ const save = (id, payload) =>
         header = await PenawaranMatakuliah.create(data, { transaction });
       }
     }
-    if (matakuliah) await syncCourses(header, matakuliah, transaction);
+    if (matakuliah) await syncCourses(header, matakuliah, transaction, akses !== "internal");
+    else if (akses === "internal")
+      await PenawaranMatakuliahDetil.update(
+        { kuota_lintas_prodi: 0 },
+        { where: { penawaran_matakuliah_id: header.id }, transaction },
+      );
     await PenawaranMatakuliahProdi.destroy({
       where: { penawaran_matakuliah_id: header.id },
       transaction,
     });
-    if (prodi_tujuan.length)
+    const targetsToSave = akses === "terpilih" ? savedTargets : [];
+    if (targetsToSave.length)
       await PenawaranMatakuliahProdi.bulkCreate(
-        prodi_tujuan.map((x) => ({ ...x, penawaran_matakuliah_id: header.id })),
+        targetsToSave.map(({ program_studi_id }) => ({
+          penawaran_matakuliah_id: header.id,
+          program_studi_id,
+        })),
         { transaction },
       );
     return getById(header.id, transaction);
@@ -273,20 +318,52 @@ const transition = (id, status) =>
   sequelize.transaction(async (transaction) => {
     const row = await PenawaranMatakuliah.findByPk(id, {
       include: [
-        { model: PenawaranMatakuliahDetil, as: "matakuliahDitawarkan" },
+        {
+          model: PenawaranMatakuliahDetil,
+          as: "matakuliahDitawarkan",
+          include: [
+            { model: Matakuliah, as: "matakuliah" },
+            {
+              model: Kelas,
+              as: "kelas",
+              include: [
+                { model: JadwalKelas, as: "jadwalKelas" },
+                { model: DosenKelas, as: "dosenKelas", attributes: ["id"] },
+              ],
+            },
+          ],
+        },
       ],
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
     if (!row) throw new AppError("Periode penawaran tidak ditemukan", 404);
-    if (
-      status === "published" &&
-      (row.status !== "draft" || !row.matakuliahDitawarkan.length)
-    )
-      throw new AppError(
-        "Draft harus memiliki matakuliah sebelum dipublikasikan",
-        409,
-      );
+    if (status === "published") {
+      if (row.status !== "draft")
+        throw new AppError("Hanya penawaran draft yang dapat dipublikasikan", 409);
+      // Draft boleh disiapkan sebelum KRS dibuka; mahasiswa baru melihat
+      // penawaran setelah publish, yang harus berada dalam periode KRS target.
+      await assertKrsPeriodForSemester(row.semester_id);
+      const issues = [];
+      for (const detail of row.matakuliahDitawarkan || []) {
+        const code = detail.matakuliah?.kode_matakuliah || detail.matakuliah?.nama_resmi || "Mata kuliah";
+        const classes = detail.kelas || [];
+        if (!classes.length) {
+          issues.push(`${code}: kelas belum tersedia`);
+          continue;
+        }
+        for (const kelas of classes) {
+          const label = `${code} kelas ${kelas.nama}`;
+          if (!(kelas.jadwalKelas || []).some((item) => item.hari && item.jam_mulai && item.jam_selesai))
+            issues.push(`${label}: jadwal perkuliahan belum dibuat`);
+          if (!(kelas.dosenKelas || []).length)
+            issues.push(`${label}: dosen pengampu belum ditambahkan`);
+        }
+      }
+      if (!row.matakuliahDitawarkan?.length) issues.push("Belum ada mata kuliah pada penawaran");
+      if (issues.length)
+        throw new AppError(`Penawaran belum dapat dipublikasikan: ${issues.join("; ")}`, 422);
+    }
     if (status === "closed" && row.status !== "published")
       throw new AppError("Penawaran belum dipublikasikan", 409);
     await row.update(
@@ -311,6 +388,7 @@ const catalog = async (query) => {
   if (programStudiId)
     and.push({
       [Op.or]: [
+        { program_studi_id: programStudiId },
         { akses: "semua" },
         { "$prodiTujuan.program_studi_id$": programStudiId },
       ],
@@ -330,6 +408,44 @@ const catalog = async (query) => {
     ),
   });
 };
+const reopen = (id) =>
+  sequelize.transaction(async (transaction) => {
+    const row = await PenawaranMatakuliah.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    if (!row) throw new AppError("Periode penawaran tidak ditemukan", 404);
+    if (row.status !== "closed")
+      throw new AppError("Hanya penawaran yang sudah ditutup yang dapat dibuka kembali untuk diedit", 409);
+    const details = await PenawaranMatakuliahDetil.findAll({
+      where: { penawaran_matakuliah_id: id },
+      attributes: ["id"],
+      transaction,
+    });
+    const classes = details.length
+      ? await Kelas.findAll({
+          where: { penawaran_matakuliah_id: details.map((item) => item.id) },
+          attributes: ["id"],
+          transaction,
+        })
+      : [];
+    if (
+      classes.length &&
+      (await KrsDetil.count({
+        where: { kelas_id: classes.map((item) => item.id) },
+        transaction,
+      }))
+    )
+      throw new AppError(
+        "Penawaran tidak dapat dibuka untuk diedit karena kelasnya sudah digunakan pada KRS",
+        409,
+      );
+    await row.update(
+      { status: "draft", closed_at: null, published_at: null },
+      { transaction },
+    );
+    return getById(id, transaction);
+  });
 const remove = async (id) => {
   const row = await getById(id);
   if (row.status !== "draft")
@@ -394,6 +510,7 @@ module.exports = {
     restoreRecord(PenawaranMatakuliah, id, "Penawaran Matakuliah"),
   publish: (id) => transition(id, "published"),
   close: (id) => transition(id, "closed"),
+  reopen,
   catalog,
   createSchedule,
   updateSchedule,

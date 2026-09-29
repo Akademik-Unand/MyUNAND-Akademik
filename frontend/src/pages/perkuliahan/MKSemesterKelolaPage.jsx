@@ -5,6 +5,7 @@ import { CPMKSemesterTable } from "../../components/mk-semester/CPMKSemesterTabl
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { PeriodOperationNotice } from "../../components/common/PeriodOperationNotice";
 import { Can } from "../../components/auth/Can";
 import { useResourceQuery } from "../../hooks/useResourceQuery";
 import { useCpmkPeriodOpen } from "../../hooks/usePeriodes";
@@ -16,12 +17,18 @@ export const MKSemesterKelolaPage = () => {
     params: id ? { filter: { matakuliah_id: id } } : {},
     enabled: Boolean(id),
   });
-  const cpmkOpen = useCpmkPeriodOpen().open;
+  const cpmkPeriod = useCpmkPeriodOpen();
+  const cpmkOpen = cpmkPeriod.open;
 
   if (query.isPending) return <PageSkeleton showFilter={false} tableCols={4} />;
 
   return (
     <MKSemesterLayout semester={semester} onSemesterChange={setSemester}>
+      <PeriodOperationNotice
+        period={cpmkPeriod.period}
+        label="CPMK dan sumber penilaian"
+        isLoading={cpmkPeriod.isPending}
+      />
       <Card
         title="Pengaturan CPMK Semester"
         actions={
@@ -33,17 +40,21 @@ export const MKSemesterKelolaPage = () => {
                 </Button>
               </Link>
             </Can>
-            {cpmkOpen && (
-              <Can I="update" a="Cpmk">
-                <Link to={`/perkuliahan/mk-semester/${id}/atur`}>
-                  <Button size="sm">Atur CPMK Semester ini</Button>
-                </Link>
-              </Can>
-            )}
+            <Can I="update" a="Cpmk">
+              <Link to={`/perkuliahan/mk-semester/${id}/atur`}>
+                <Button size="sm">
+                  {cpmkOpen ? "Atur Sumber Penilaian" : "Lihat Sumber Penilaian"}
+                </Button>
+              </Link>
+            </Can>
           </div>
         }
       >
         <CPMKSemesterTable items={query.data ?? []} />
+        <p className="mt-3 text-xs text-base-content/60">
+          Sumber penilaian diatur melalui tombol Atur CPMK Semester ini selama
+          periode CPMK sedang dibuka.
+        </p>
         <Link
           to="/perkuliahan/mk-semester"
           className="btn btn-ghost btn-sm mt-4"

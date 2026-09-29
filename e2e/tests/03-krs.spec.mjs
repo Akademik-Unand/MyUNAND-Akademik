@@ -31,6 +31,8 @@ test.describe("Pengambilan KRS", () => {
 
     await expect(page.getByText("KRS: Dibuka")).toBeVisible();
 
+    await pickCard.getByPlaceholder("Cari mata kuliah...").fill(PROBE_MK_KODE);
+
     const probeRow = pickCard
       .locator("tbody tr")
       .filter({ hasText: PROBE_MK_KODE });

@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 
 const TPB_NAMESPACE = '7bdca4d4-4e15-5ba7-9bb2-7e354f920db2';
+const normalizeDosenNip = (value) => String(value ?? '').slice(0, 18);
 
 function uuidToBytes(uuid) { return Buffer.from(uuid.replace(/-/g, ''), 'hex'); }
 
@@ -102,4 +103,4 @@ function mapSourceToActualIds(sourceRows, targetRows, sourceKey, targetKey) {
   }));
 }
 
-module.exports = { TPB_NAMESPACE, deterministicUuid, parseSqlValue, splitSqlList, parseValueTuples, parseInsertStatement, parseSqlDump, academicYearStart, academicSemesterYear, aggregateGrades, mapSourceToActualIds };
+module.exports = { TPB_NAMESPACE, deterministicUuid, normalizeDosenNip, parseSqlValue, splitSqlList, parseValueTuples, parseInsertStatement, parseSqlDump, academicYearStart, academicSemesterYear, aggregateGrades, mapSourceToActualIds };

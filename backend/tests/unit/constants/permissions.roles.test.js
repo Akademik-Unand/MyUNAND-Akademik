@@ -8,12 +8,38 @@ const {
   isPimpinanAllowed,
   isAdminProdiAllowed,
   isAdminFakultasAllowed,
+  isAdminAllowed,
+  ROLE_GRANT_PREDICATES,
 } = require('../../../src/constants/permissions');
 
 const catalog = buildCatalog();
 const namesOf = (predicate) => catalog.filter(predicate).map((item) => item.name);
 
 describe('organizational role grants', () => {
+  it('gives the university admin the CPMK and source assessment permissions', () => {
+    const predicate = ROLE_GRANT_PREDICATES['admin-universitas'];
+    const names = catalog.filter((item) => isAdminAllowed(item) && predicate(item)).map((item) => item.name);
+    expect(names).toEqual(expect.arrayContaining([
+      'cpmk.read',
+      'cpmk.create',
+      'cpmk.update',
+      'sumber-penilaian.read',
+      'sumber-penilaian.create',
+      'sumber-penilaian.update',
+      'sumber-penilaian.delete',
+      'periode.create',
+      'periode.update',
+    ]));
+    expect(names).not.toContain('role.delete');
+    expect(names).not.toContain('permission.delete');
+  });
+
+  it('does not seed destructive IAM deletes for administrator defaults', () => {
+    expect(namesOf(isAdminAllowed)).not.toEqual(
+      expect.arrayContaining(['role.delete', 'permission.delete']),
+    );
+  });
+
   it('contains complete cross-enrollment permission catalog and grants', () => {
     const names = catalog.map((item) => item.name);
     expect(names).toEqual(expect.arrayContaining([

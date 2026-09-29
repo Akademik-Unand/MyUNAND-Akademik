@@ -13,7 +13,6 @@ const {
   PenawaranMatakuliah,
   ProgramStudi,
   Departemen,
-  User,
   RekapCp,
   Cp,
   Fakultas,
@@ -21,6 +20,7 @@ const {
 const AppError = require('../../helpers/AppError');
 const appConfig = require('../../config/app');
 const { getPeriod, JENIS } = require('../../helpers/academicPeriod');
+const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
 
 const DUMMY_UNIVERSITY_SUMMARY = {
   mahasiswa: 24870,
@@ -151,8 +151,8 @@ const cpRows = async (where) => {
 };
 
 const academicSummary = async (user) => {
-  const actor = await User.findByPk(user?.id, { attributes: ['mahasiswa_id'] });
-  if (!actor?.mahasiswa_id) throw new AppError('Akun tidak terhubung ke data mahasiswa', 403);
+  const actor = await getUserAcademicIdentity(user?.id);
+  if (!actor.mahasiswa_id) throw new AppError('Akun tidak terhubung ke data mahasiswa', 403);
   const mahasiswa = await Mahasiswa.findByPk(actor.mahasiswa_id, { attributes: ['id', 'niu', 'nama', 'program_studi_id'] });
   if (!mahasiswa) throw new AppError('Data mahasiswa tidak ditemukan', 404);
 
@@ -221,7 +221,7 @@ const orgSummary = async ({ level, prodi_ids = [], departemen_ids = [], fakultas
 };
 
 const dosenSummary = async (user) => {
-  const actor = user?.id ? await User.findByPk(user.id, { attributes: ['dosen_id'] }) : null;
+  const actor = user?.id ? await getUserAcademicIdentity(user.id) : null;
   const dosenId = actor?.dosen_id;
   if (!dosenId) throw new AppError('Akun Anda tidak terhubung ke data dosen, sehingga ringkasan bimbingan tidak tersedia', 403);
   const dosen = await Dosen.findByPk(dosenId, {

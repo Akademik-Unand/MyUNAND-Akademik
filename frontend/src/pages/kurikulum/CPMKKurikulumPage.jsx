@@ -8,6 +8,7 @@ import { DataTable } from "../../components/common/DataTable";
 import { MappingMatrix } from "../../components/common/MappingMatrix";
 import { Can } from "../../components/auth/Can";
 import { PageSkeleton } from "../../components/common/PageSkeleton";
+import { PeriodOperationNotice } from "../../components/common/PeriodOperationNotice";
 import { useAcademicFilter } from "../../hooks/useAcademicFilter";
 import { useResourceQuery } from "../../hooks/useResourceQuery";
 import { useCpmkPeriodOpen } from "../../hooks/usePeriodes";
@@ -24,8 +25,9 @@ const cpmkCount = (row) =>
   Number(row.cpmk_count ?? row.matakuliah?.cpmk_count ?? 0);
 
 export const CPMKKurikulumPage = () => {
-  const academic = useAcademicFilter({ keys: FILTER_KEYS });
-  const cpmkOpen = useCpmkPeriodOpen().open;
+  const academic = useAcademicFilter({ keys: FILTER_KEYS, applyImmediately: true });
+  const cpmkPeriod = useCpmkPeriodOpen();
+  const cpmkOpen = cpmkPeriod.open;
   const [tab, setTab] = useState("mk");
   const kurikulumId = academic.applied.kurikulumId;
   const extraFilter = academic.extraFilter;
@@ -123,14 +125,20 @@ export const CPMKKurikulumPage = () => {
         breadcrumbs={[{ label: "Kurikulum & MK" }, { label: "CPMK Kurikulum" }]}
       />
 
-      <Card title="Filter">
+      <PeriodOperationNotice
+        period={cpmkPeriod.period}
+        label="CPMK"
+        isLoading={cpmkPeriod.isPending}
+      />
+
+      {tab === "mapping" && academic.fields.length > 0 && <Card title="Filter">
         <FilterBar
           fields={academic.fields}
           onApply={academic.apply}
           onReset={academic.reset}
           applyDisabled={!academic.canApply}
         />
-      </Card>
+      </Card>}
 
       <div className="tabs tabs-box w-fit bg-base-200">
         <button
@@ -157,13 +165,17 @@ export const CPMKKurikulumPage = () => {
               tableKey="cpmk_mk_"
               columns={columns}
               extraFilter={extraFilter}
+              toolbarFilters={academic.fields}
+              onApplyToolbarFilters={academic.apply}
+              onResetToolbarFilters={academic.reset}
+              toolbarFiltersDisabled={!academic.canApply}
               rowKey={(row) => row.id}
               searchPlaceholder="Cari kode atau nama mata kuliah..."
             />
           ) : (
             <p className="text-sm text-base-content/60">
-              Pilih fakultas hingga kurikulum, lalu klik Terapkan untuk melihat
-              mata kuliah dan mengatur CPMK.
+              Pilih fakultas, departemen, program studi, dan kurikulum untuk
+              melihat mata kuliah serta mengatur CPMK.
             </p>
           )}
         </Card>

@@ -3,7 +3,7 @@
 const Joi = require('joi');
 const { idParam, listQuery } = require('../common');
 
-const list = listQuery(["nip","nama","nidn","createdAt"], ["nip","program_studi_id"]);
+const list = listQuery(["nip","nama","nidn","createdAt"], ["nip","program_studi_id","account_status"]);
 const create = Joi.object({
     nip: Joi.string().max(18).required(),
     program_studi_id: Joi.string().uuid().allow(null),

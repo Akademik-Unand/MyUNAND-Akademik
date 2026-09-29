@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "../common/PageHeader";
@@ -37,11 +37,21 @@ export const MasterListPage = ({
   subject,
   rowActionExtra,
   detailResource,
+  detailId,
+  onCloseDetail,
   extraFilter,
   dataLocked,
   beforeTable,
+  toolbarFilters,
+  onApplyToolbarFilters,
+  onResetToolbarFilters,
+  toolbarFiltersDisabled,
   createDefaults,
   validate,
+  transformPayload,
+  autoOpenCreate = false,
+  autoCreateKey,
+  createInitialValues,
 }) => {
   const can = useCan();
   const mutations = useResourceMutations(resource, {
@@ -51,18 +61,29 @@ export const MasterListPage = ({
   });
 
   const { busy, run } = useBusyAction();
+  const [showArchived, setShowArchived] = useState(false);
   const [modal, setModal] = useState({
     open: false,
     mode: "create",
     values: emptyForm,
   });
+  const handledAutoCreate = useRef(null);
+  useEffect(() => {
+    if (!autoOpenCreate || !autoCreateKey || handledAutoCreate.current === autoCreateKey) return;
+    handledAutoCreate.current = autoCreateKey;
+    setModal({
+      open: true,
+      mode: "create",
+      values: { ...emptyForm, ...(createDefaults || {}), ...(createInitialValues || {}) },
+    });
+  }, [autoOpenCreate, autoCreateKey, createDefaults, createInitialValues, emptyForm]);
   const [detail, setDetail] = useState(null);
   // Bila ada detailResource, drawer memuat baris segar dari API (mis. user) supaya
   // field yang tidak ada di daftar (roles/units) tetap tampil benar.
-  const liveDetail = useResourceItem(
-    detailResource,
-    detail ? detail[idKey] : null,
-  );
+  const activeDetailId = detail?.[idKey] || detailId || null;
+  const liveDetail = useResourceItem(detailResource, activeDetailId);
+  const detailRow = detail || liveDetail.data;
+  const detailOpen = Boolean(activeDetailId);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const closeModal = () => {
@@ -102,7 +123,10 @@ export const MasterListPage = ({
       return;
     }
     run(async () => {
-      const payload = pickPayload(modal.values);
+      const selectedPayload = pickPayload(modal.values);
+      const payload = transformPayload
+        ? transformPayload(selectedPayload, { mode: modal.mode, values: modal.values })
+        : selectedPayload;
       const saved =
         modal.mode === "create"
           ? await mutations.create.mutateAsync(payload)
@@ -123,19 +147,12 @@ export const MasterListPage = ({
       className: "text-right",
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
-          {rowActionExtra?.(row)}
+          {!showArchived && rowActionExtra?.(row)}
           <RowActions
-            onDetail={() => setDetail(row)}
-            onEdit={
-              subject && can("update", subject)
-                ? () => openEdit(row)
-                : undefined
-            }
-            onDelete={
-              subject && can("delete", subject)
-                ? () => setDeleteTarget(row)
-                : undefined
-            }
+            onDetail={!showArchived ? () => setDetail(row) : undefined}
+            onEdit={!showArchived && subject && can("update", subject) ? () => openEdit(row) : undefined}
+            onDelete={!showArchived && subject && can("delete", subject) ? () => setDeleteTarget(row) : undefined}
+            onRestore={showArchived && subject && can("restore", subject) ? () => mutations.restore.mutateAsync(row[idKey]) : undefined}
           />
         </div>
       ),
@@ -148,7 +165,7 @@ export const MasterListPage = ({
         title={title}
         subtitle={subtitle}
         breadcrumbs={breadcrumbs}
-        action={
+        action={!showArchived && (
           subject ? (
             <Can I="create" a={subject}>
               <Button
@@ -168,7 +185,7 @@ export const MasterListPage = ({
               <Plus size={15} /> Tambahkan Data
             </Button>
           )
-        }
+        )}
       />
 
       {beforeTable}
@@ -179,6 +196,20 @@ export const MasterListPage = ({
           columns={tableColumns}
           extraFilter={extraFilter}
           dataLocked={dataLocked}
+          trashed={showArchived ? "only" : undefined}
+          toolbarActions={subject && can("restore", subject) ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowArchived((current) => !current)}
+            >
+              {showArchived ? "Kembali ke data aktif" : "Lihat arsip"}
+            </Button>
+          ) : undefined}
+          toolbarFilters={toolbarFilters}
+          onApplyToolbarFilters={onApplyToolbarFilters}
+          onResetToolbarFilters={onResetToolbarFilters}
+          toolbarFiltersDisabled={toolbarFiltersDisabled}
           rowKey={rowKey}
           searchPlaceholder={
             searchPlaceholder || `Cari ${title.toLowerCase()}...`
@@ -211,20 +242,23 @@ export const MasterListPage = ({
       </Modal>
 
       <Drawer
-        open={Boolean(detail)}
-        onClose={() => setDetail(null)}
+        open={detailOpen}
+        onClose={() => {
+          setDetail(null);
+          onCloseDetail?.();
+        }}
         title={`Detail ${title}`}
-        subtitle={detail ? rowKey(detail) : ""}
+        subtitle={detailRow ? rowKey(detailRow) : ""}
       >
-        {detail &&
+        {detailOpen &&
           (detailResource ? (
-            liveDetail.isPending ? (
+            liveDetail.isPending || !detailRow ? (
               <p className="text-sm text-base-content/60">Memuat detail...</p>
             ) : (
-              <DetailList items={detailItems(liveDetail.data)} />
+              <DetailList items={detailItems(detailRow)} />
             )
           ) : (
-            <DetailList items={detailItems(detail)} />
+            detailRow && <DetailList items={detailItems(detailRow)} />
           ))}
       </Drawer>
 

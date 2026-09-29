@@ -6,36 +6,71 @@ on:
       - main
 
 concurrency:
-  group: production
-  cancel-in-progress: true
+  group: deploy-myunand-kurikulum-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    # Add the custom `myunand` label to vm-myunand in GitHub runner settings.
+    runs-on: [self-hosted, linux, x64, myunand]
+    timeout-minutes: 30
 
     steps:
-      - name: Deploy
+      - name: Deploy and verify on production VM
+        shell: bash
         run: |
-          set -e
+          set -Eeuo pipefail
 
-          echo "===== START DEPLOY ====="
-          date
+          PROJECT_DIR="/home/docker/my-unand-akademik"
+          COMPOSE_PROJECT="myunand-kurikulum"
+          COMPOSE=(docker compose --project-name "$COMPOSE_PROJECT" --file "$PROJECT_DIR/docker-compose.yml")
 
-          cd /home/docker/my-unand-akademik
+          echo "===== DEPLOY START ====="
+          date --iso-8601=seconds
+          echo "Runner: ${RUNNER_NAME:-unknown} (${RUNNER_OS:-unknown}/${RUNNER_ARCH:-unknown})"
+          echo "Host: $(hostname -f)"
+          echo "Docker context: $(docker context show)"
+          docker info --format 'Docker daemon: {{.Name}}'
 
-          docker compose down || true
+          if [[ "$(hostname -s)" != "docker-prod" ]]; then
+            echo "ERROR: deployment ran on unexpected host $(hostname -s); expected docker-prod" >&2
+            exit 1
+          fi
 
-          git fetch origin
-          git checkout -f -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
-          git reset --hard "origin/${{ github.ref_name }}"
+          cd "$PROJECT_DIR"
+          git fetch --prune origin main
+          git checkout -f -B main origin/main
+          git reset --hard origin/main
+          echo "Deploying commit: $(git rev-parse --short HEAD)"
 
-          docker compose up -d --build
+          "${COMPOSE[@]}" config --quiet
+          "${COMPOSE[@]}" up --detach --build --remove-orphans
 
-          # Migrasi database tidak dijalankan di sini; jalankan manual bila perlu:
-          #   docker compose exec backend npm run db:migrate
+          # Wait up to three minutes for both services to report healthy.
+          deadline=$((SECONDS + 180))
+          while (( SECONDS < deadline )); do
+            backend_id=$("${COMPOSE[@]}" ps --all --quiet backend)
+            frontend_id=$("${COMPOSE[@]}" ps --all --quiet frontend)
 
-          # Docker membuat folder bind-mount (uploads, logs) sebagai root, padahal
-          # container jalan sebagai user node (uid 1000). Chown sekali agar bisa ditulis.
-          docker compose run --rm --user root backend chown -R node:node /app/uploads /app/logs
+            if [[ -n "$backend_id" && -n "$frontend_id" ]]; then
+              backend_state=$(docker inspect --format '{{.State.Status}}/{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' "$backend_id")
+              frontend_state=$(docker inspect --format '{{.State.Status}}/{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' "$frontend_id")
+              echo "backend=$backend_state frontend=$frontend_state"
 
-          echo "===== DEPLOY SUCCESS ====="
+              if [[ "$backend_state" == "running/healthy" && "$frontend_state" == "running/healthy" ]]; then
+                "${COMPOSE[@]}" ps
+                echo "===== DEPLOY SUCCESS ====="
+                exit 0
+              fi
+
+              if [[ "$backend_state" == exited/* || "$backend_state" == dead/* || "$frontend_state" == exited/* || "$frontend_state" == dead/* ]]; then
+                break
+              fi
+            fi
+            sleep 5
+          done
+
+          echo "ERROR: services did not both become healthy" >&2
+          "${COMPOSE[@]}" ps --all >&2 || true
+          "${COMPOSE[@]}" logs --no-color --tail=100 >&2 || true
+          exit 1

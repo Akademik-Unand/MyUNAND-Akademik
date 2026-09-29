@@ -1,6 +1,6 @@
 'use strict';
 
-const { computeOrgScope, orgFilterForResource } = require('../../../src/helpers/orgScope');
+const { computeOrgScope, orgFilterForResource, resourceNameFromBaseUrl } = require('../../../src/helpers/orgScope');
 
 const prodiUnit = (program_studi_id) => ({
   id: 'u-1',
@@ -92,5 +92,15 @@ describe('orgFilterForResource', () => {
   it('universitas / null → tanpa filter', () => {
     expect(orgFilterForResource('cpmk', { level: 'universitas' })).toBeNull();
     expect(orgFilterForResource('cpmk', { level: null })).toBeNull();
+  });
+
+  it('membatasi master dosen dan mahasiswa berdasarkan prodi', () => {
+    expect(orgFilterForResource('dosen', prodiScope)).toEqual({ program_studi_id: ['p-1', 'p-2'] });
+    expect(orgFilterForResource('mahasiswa', prodiScope)).toEqual({ program_studi_id: ['p-1', 'p-2'] });
+  });
+
+  it('mendeteksi resource dari ujung baseUrl router Express', () => {
+    expect(resourceNameFromBaseUrl('/api/v1/mahasiswa')).toBe('mahasiswa');
+    expect(resourceNameFromBaseUrl('/api/v1/users')).toBe('users');
   });
 });

@@ -31,6 +31,7 @@ const RESOURCE_PATH = {
   krs: "/krs",
   "krs-detil": "/krs-detil",
   "bimbingan-akademik": "/bimbingan-akademik",
+  "dosen-pa": "/bimbingan-akademik/dosen-pa",
   "bimbingan-saya": "/bimbingan-akademik/saya",
   "bimbingan-candidates": "/bimbingan-akademik/candidates",
 };
@@ -73,6 +74,9 @@ export const updateResourceItem = (resource, id, payload) =>
 
 export const deleteResourceItem = (resource, id) =>
   apiRequest(`${resourcePath(resource)}/${id}`, { method: "DELETE" });
+
+export const restoreResourceItem = (resource, id) =>
+  apiRequest(`${resourcePath(resource)}/${id}/restore`, { method: "POST" });
 
 export const loginWithPassword = ({ email, password }) =>
   apiRequest("/auth/login", { method: "POST", body: { email, password } });

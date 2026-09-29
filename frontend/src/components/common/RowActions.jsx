@@ -1,7 +1,7 @@
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { IconButton } from "./IconButton";
 
-export const RowActions = ({ onDetail, onEdit, onDelete, extra }) => {
+export const RowActions = ({ onDetail, onEdit, onDelete, onRestore, extra }) => {
   return (
     <div className="flex items-center justify-end gap-1">
       {onDetail && (
@@ -26,6 +26,14 @@ export const RowActions = ({ onDetail, onEdit, onDelete, extra }) => {
           icon={Trash2}
           tone="text-error"
           onClick={onDelete}
+        />
+      )}
+      {onRestore && (
+        <IconButton
+          label="Pulihkan data"
+          icon={RotateCcw}
+          tone="text-success"
+          onClick={onRestore}
         />
       )}
       {extra}
