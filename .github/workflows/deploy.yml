@@ -22,14 +22,17 @@ jobs:
           set -Eeuo pipefail
 
           PROJECT_DIR="/home/docker/my-unand-akademik"
-          COMPOSE_PROJECT="myunand-kurikulum"
+          # Keep the original Compose project so this deploy updates the existing
+          # stack and releases its ports instead of creating a parallel stack.
+          COMPOSE_PROJECT="my-unand-akademik"
           COMPOSE=(docker compose --project-name "$COMPOSE_PROJECT" --file "$PROJECT_DIR/docker-compose.yml")
 
           echo "===== DEPLOY START ====="
           date --iso-8601=seconds
           echo "Runner: ${RUNNER_NAME:-unknown} (${RUNNER_OS:-unknown}/${RUNNER_ARCH:-unknown})"
           echo "Host: $(hostname -f)"
-          echo "Docker context: $(docker context show)"
+          echo "Docker contexts:"
+          docker context ls
           docker info --format 'Docker daemon: {{.Name}}'
 
           if [[ "$(hostname -s)" != "docker-prod" ]]; then
