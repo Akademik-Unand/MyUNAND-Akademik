@@ -258,6 +258,11 @@ const SPECIAL = [
     description: "Ajukan lintas prodi",
   },
   { key: "nilai", action: "upload", description: "Unggah nilai massal" },
+  { key: "nilai", action: "manage-any", description: "Kelola nilai semua kelas tanpa batas dosen pengampu" },
+  { key: "cpmk", action: "manage-any", description: "Kelola CPMK semua mata kuliah tanpa batas dosen pengampu" },
+  { key: "sumber-penilaian", action: "manage-any", description: "Kelola komponen penilaian semua mata kuliah tanpa batas dosen pengampu" },
+  { key: "kelas", action: "manage-any", description: "Lihat data semua kelas tanpa batas dosen pengampu" },
+  { key: "matakuliah", action: "manage-any", description: "Lihat data semua mata kuliah tanpa batas dosen pengampu" },
   {
     key: "program-studi",
     action: "update-sks",
@@ -365,6 +370,9 @@ const isDosenAllowed = (item) => {
   // bimbingannya sendiri (otomatis dibatasi ke dirinya). Persetujuan pengajuan
   // lintas prodi ikut lewat `krs.approve`, tidak ada aksi terpisah.
   if (item.key === "bimbingan-akademik" && item.action === "read") return true;
+  if (["cpmk", "sumber-penilaian"].includes(item.key) && CRUD.includes(item.action)) return true;
+  if (item.key === "kelas" && item.action === "read") return true;
+  if (item.key === "matakuliah" && item.action === "read") return true;
   if (item.group === "nilai") return true;
   if (item.group === "evaluasi") return true;
   if (item.group === "laporan" && item.action === "read") return true;

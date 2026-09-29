@@ -143,7 +143,7 @@ describe('penawaran save (create)', () => {
     await service.create({ ...PAYLOAD, matakuliah: [{ matakuliah_id: 'm1', kuota_lintas_prodi: null }] });
 
     expect(PenawaranMatakuliahDetil.findOrCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ defaults: { matakuliah_id: 'm1', kuota_lintas_prodi: 0 } })
+      expect.objectContaining({ defaults: expect.objectContaining({ matakuliah_id: 'm1', kuota_lintas_prodi: 0, jumlah_peserta_max_default: 40 }) })
     );
   });
 
@@ -230,6 +230,32 @@ describe('penawaran publish readiness', () => {
     });
   });
 
+  it('menghitung kapasitas total awal dari kuota dan mengabaikan total kiriman', async () => {
+    PenawaranMatakuliah.findOne.mockResolvedValue(null);
+    PenawaranMatakuliah.create.mockResolvedValue({ id: 'p1', matakuliahDitawarkan: [] });
+    Matakuliah.findAll.mockResolvedValue([{ id: 'm1', has_prasyarat: false }]);
+
+    await service.create({
+      ...PAYLOAD,
+      matakuliah: [{
+        matakuliah_id: 'm1',
+        jumlah_peserta_max_default: 999,
+        jumlah_peserta_internal_max_default: 20,
+        kuota_lintas_prodi: 6,
+      }],
+    });
+
+    expect(PenawaranMatakuliahDetil.findOrCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        defaults: expect.objectContaining({
+          jumlah_peserta_max_default: 26,
+          jumlah_peserta_internal_max_default: 20,
+          kuota_lintas_prodi: 6,
+        }),
+      }),
+    );
+  });
+
   const attemptPublish = async (details) => {
     const row = {
       id: 'p1', semester_id: 'sem-1', status: 'draft', matakuliahDitawarkan: details,
@@ -291,7 +317,7 @@ describe('penawaran publish readiness', () => {
       { transaction },
     );
     expect(PenawaranMatakuliahDetil.findOrCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ defaults: { matakuliah_id: 'm1', kuota_lintas_prodi: 0 } }),
+      expect.objectContaining({ defaults: expect.objectContaining({ matakuliah_id: 'm1', kuota_lintas_prodi: 0, jumlah_peserta_max_default: 40 }) }),
     );
   });
 

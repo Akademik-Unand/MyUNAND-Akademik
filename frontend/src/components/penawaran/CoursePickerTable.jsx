@@ -74,18 +74,14 @@ export const CoursePickerTable = ({
         },
         {
           key: "jumlah_peserta_max_default",
-          header: "Kapasitas Total Awal",
-          render: (row) => (
-            <input
-              type="number"
-              min="0"
-              className="input input-sm w-24"
-              value={quotas[row.id]?.total ?? row.jumlah_peserta_max_default ?? 40}
-              disabled={!selected.includes(row.id)}
-              onChange={(event) => onQuotaChange(row.id, "total", event.target.value)}
-              aria-label={`Kapasitas total awal ${row.nama_resmi}`}
-            />
-          ),
+          header: "Total Awal (otomatis)",
+          render: (row) => {
+            const internal = quotas[row.id]?.internal ?? row.jumlah_peserta_internal_max_default ?? row.jumlah_peserta_max_default ?? 40;
+            const cross = !showCrossEnrollment || row.has_prasyarat
+              ? 0
+              : quotas[row.id]?.external ?? row.kuota_lintas_prodi ?? 0;
+            return <span className="text-sm font-semibold tabular-nums">{Number(internal || 0) + Number(cross || 0)}</span>;
+          },
         },
         {
           key: "jumlah_peserta_internal_max_default",

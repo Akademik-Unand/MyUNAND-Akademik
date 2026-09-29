@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Upload } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { MKSemesterLayout } from "../../components/mk-semester/MKSemesterLayout";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -15,7 +15,9 @@ import { useResourceMutations } from "../../hooks/useResourceMutations";
 
 export const DokumenEvaluasiPage = () => {
   const { id } = useParams();
-  const [semester, setSemester] = useState("");
+  const [searchParams] = useSearchParams();
+  const contextualSemester = searchParams.get("semester_id") || "";
+  const [semester, setSemester] = useState(contextualSemester);
   const [tab, setTab] = useState("daftar");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [form, setForm] = useState({

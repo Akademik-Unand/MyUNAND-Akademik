@@ -1,11 +1,12 @@
 'use strict';
 
 const { sequelize, Cpmk, Matakuliah, SumberPenilaian, Scp, CpmkScp } = require('../../models');
-const { paginate } = require('../../helpers/listQuery');
+const { paginate, normalizeListQuery } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
 const { orgFiltersOnMatakuliahViaKurikulum, ORG_FILTER_FIELDS } = require('../../helpers/academicFilters');
 const { assertCpmkPeriod } = require('../../helpers/academicPeriod');
+const { enforceDosenCourseScope } = require('../../helpers/dosenScope');
 
 const scpInclude = {
   model: Scp,
@@ -31,13 +32,18 @@ const LIST_OPTIONS = {
 const findLoaded = (id, transaction) =>
   Cpmk.findByPk(id, { include: LIST_OPTIONS.defaultInclude, transaction });
 
-const list = (query) => paginate(Cpmk, query, LIST_OPTIONS);
+const list = async (query, userId, options = {}) => {
+  const matakuliahId = normalizeListQuery(query).filter?.matakuliah_id;
+  await enforceDosenCourseScope(userId, matakuliahId, options);
+  return paginate(Cpmk, query, LIST_OPTIONS);
+};
 
-const getById = async (id) => {
+const getById = async (id, userId, options = {}) => {
   const item = await findLoaded(id);
   if (!item) {
     throw new AppError('CPMK dengan ID tersebut tidak ditemukan', 404);
   }
+  await enforceDosenCourseScope(userId, item.matakuliah_id, options);
   return item;
 };
 
@@ -108,15 +114,19 @@ const createOne = async (payload, transaction) => {
   return findLoaded(item.id, transaction);
 };
 
-const create = (payload) => sequelize.transaction((transaction) => createOne(payload, transaction));
+const create = (payload, userId, options = {}) => sequelize.transaction(async (transaction) => {
+  await enforceDosenCourseScope(userId, payload.matakuliah_id, { ...options, transaction });
+  return createOne(payload, transaction);
+});
 
-const createBulk = (items) =>
+const createBulk = (items, userId, options = {}) =>
   sequelize.transaction(async (transaction) => {
     await assertCpmkPeriod();
     const mkIds = new Set(items.map((item) => item.matakuliah_id));
     if (mkIds.size > 1) {
       throw new AppError('Semua CPMK harus pada mata kuliah yang sama', 422);
     }
+    await enforceDosenCourseScope(userId, items[0]?.matakuliah_id, { ...options, transaction });
     const created = [];
     for (const item of items) {
       created.push(await createOne(item, transaction));
@@ -124,7 +134,7 @@ const createBulk = (items) =>
     return created;
   });
 
-const update = async (id, payload) => {
+const update = async (id, payload, userId, options = {}) => {
   const { scp_ids, ...attrs } = payload;
   return sequelize.transaction(async (transaction) => {
     await assertCpmkPeriod();
@@ -132,6 +142,7 @@ const update = async (id, payload) => {
     if (!item) {
       throw new AppError('CPMK dengan ID tersebut tidak ditemukan', 404);
     }
+    await enforceDosenCourseScope(userId, item.matakuliah_id, { ...options, transaction });
     const nextParent = attrs.parent_cpmk_id !== undefined ? attrs.parent_cpmk_id : item.parent_cpmk_id;
     const nextMk = attrs.matakuliah_id || item.matakuliah_id;
     if (nextParent && nextParent === id) {
@@ -149,13 +160,14 @@ const update = async (id, payload) => {
   });
 };
 
-const remove = async (id) => {
+const remove = async (id, userId, options = {}) => {
   return sequelize.transaction(async (transaction) => {
     await assertCpmkPeriod();
     const item = await Cpmk.findByPk(id, { transaction });
     if (!item) {
       throw new AppError('CPMK dengan ID tersebut tidak ditemukan', 404);
     }
+    await enforceDosenCourseScope(userId, item.matakuliah_id, { ...options, transaction });
     const children = await Cpmk.findAll({ where: { parent_cpmk_id: id }, transaction });
     const ids = [id, ...children.map((child) => child.id)];
     await CpmkScp.destroy({ where: { cpmk_id: ids }, transaction });
@@ -165,8 +177,11 @@ const remove = async (id) => {
   });
 };
 
-const restore = async (id) => {
+const restore = async (id, userId, options = {}) => {
   await assertCpmkPeriod();
+  const item = await Cpmk.findByPk(id, { paranoid: false });
+  if (!item) throw new AppError('CPMK dengan ID tersebut tidak ditemukan', 404);
+  await enforceDosenCourseScope(userId, item.matakuliah_id, options);
   return restoreRecord(Cpmk, id, 'CPMK');
 };
 

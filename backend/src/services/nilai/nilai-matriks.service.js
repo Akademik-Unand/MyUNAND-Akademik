@@ -1,5 +1,7 @@
 'use strict';
 
+const { Op } = require('sequelize');
+
 const {
   Kelas,
   Matakuliah,
@@ -14,6 +16,7 @@ const {
 } = require('../../models');
 const AppError = require('../../helpers/AppError');
 const { toNilaiAngka, toNilaiHuruf, scpLabel } = require('../../helpers/nilaiHuruf');
+const { enforceDosenClassScope } = require('../../helpers/dosenScope');
 
 const scpInclude = {
   model: Scp,
@@ -60,13 +63,14 @@ const buildGroups = (cpmkRows) => {
   return [...groups.values()];
 };
 
-const getMatriksByKelas = async (kelasId) => {
+const getMatriksByKelas = async (kelasId, userId, options = {}) => {
   const kelas = await Kelas.findByPk(kelasId, {
     include: [{ model: Matakuliah, as: 'matakuliah' }],
   });
   if (!kelas) {
     throw new AppError('Kelas dengan ID tersebut tidak ditemukan', 404);
   }
+  await enforceDosenClassScope(userId, kelasId, options);
 
   const cpmkRows = await Cpmk.findAll({
     where: { matakuliah_id: kelas.matakuliah_id },
@@ -81,7 +85,7 @@ const getMatriksByKelas = async (kelasId) => {
   const sumber = groups.flatMap((group) => group.sumber);
 
   const pesertaRows = await KrsDetil.findAll({
-    where: { kelas_id: kelasId },
+    where: { kelas_id: kelasId, [Op.or]: [{ approved: '2' }, { cross_enrollment_status: 'approved' }] },
     include: [
       {
         model: Krs,

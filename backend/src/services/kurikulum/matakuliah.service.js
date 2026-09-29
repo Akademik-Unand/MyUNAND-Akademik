@@ -1,9 +1,13 @@
 'use strict';
 
-const { Matakuliah, ProgramStudi, JenisSemester, TipeMatakuliah, SifatMatakuliah, Cpmk, Kurikulum } = require('../../models');
+const { Op } = require('sequelize');
+
+const { Matakuliah, ProgramStudi, JenisSemester, TipeMatakuliah, SifatMatakuliah, Cpmk, Kurikulum, DosenKelas, Kelas } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
+const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
+const { enforceDosenCourseScope } = require('../../helpers/dosenScope');
 
 const LIST_OPTIONS = {
   searchFields: ["kode_matakuliah","nama_resmi"],
@@ -19,13 +23,24 @@ const LIST_OPTIONS = {
   ],
 };
 
-const list = (query) => paginate(Matakuliah, query, LIST_OPTIONS);
+const list = async (query, userId, { manageAny = false } = {}) => {
+  const { dosen_id: dosenId } = await getUserAcademicIdentity(userId);
+  if (!dosenId || manageAny) return paginate(Matakuliah, query, LIST_OPTIONS);
+  const assignments = await DosenKelas.findAll({
+    where: { dosen_id: dosenId },
+    attributes: [],
+    include: [{ model: Kelas, as: 'kelas', attributes: ['matakuliah_id'], required: true }],
+  });
+  const ids = [...new Set(assignments.map((item) => item.kelas?.matakuliah_id).filter(Boolean))];
+  return paginate(Matakuliah, query, { ...LIST_OPTIONS, findOptions: { where: { id: { [Op.in]: ids } } } });
+};
 
-const getById = async (id) => {
+const getById = async (id, userId, options = {}) => {
   const item = await Matakuliah.findByPk(id, { include: LIST_OPTIONS.defaultInclude });
   if (!item) {
     throw new AppError('Matakuliah dengan ID tersebut tidak ditemukan', 404);
   }
+  await enforceDosenCourseScope(userId, item.id, options);
   return item;
 };
 

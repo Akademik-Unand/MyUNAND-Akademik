@@ -4,7 +4,7 @@ jest.mock("../../../src/models", () => ({
   User: { findByPk: jest.fn() },
   Semester: { findOne: jest.fn() },
   Krs: { findOne: jest.fn() },
-  KrsDetil: {}, Kelas: {}, Matakuliah: {}, JadwalKelas: {}, Ruang: {},
+  KrsDetil: {}, Kelas: {}, Matakuliah: {}, JadwalKelas: {}, Ruang: {}, Shift: {},
   Mahasiswa: {}, ProgramStudi: {}, JenisSemester: {},
 }));
 jest.mock("../../../src/helpers/academicPeriod", () => ({
@@ -32,10 +32,14 @@ describe("krs.service getContext untuk kalender", () => {
     expect(query.where).toEqual({ mahasiswa_id: mahasiswa.id, semester_id: "semester-aktif" });
     expect(query).not.toHaveProperty("limit");
     const kelasInclude = query.include.find((item) => item.as === "krsDetil").include[0];
-    expect(kelasInclude.include).toContainEqual({
-      model: models.JadwalKelas, as: "jadwalKelas",
-      include: [{ model: models.Ruang, as: "ruang" }],
-    });
+    expect(kelasInclude.include).toContainEqual(expect.objectContaining({
+      model: models.JadwalKelas,
+      as: "jadwalKelas",
+      include: expect.arrayContaining([
+        { model: models.Ruang, as: "ruang" },
+        { model: models.Shift, as: "shift" },
+      ]),
+    }));
     expect(result.krs).toBe(krs);
     expect(result.sks_maksimal).toBe(24);
     expect(getPeriod).toHaveBeenCalledWith("semester-aktif", "krs");

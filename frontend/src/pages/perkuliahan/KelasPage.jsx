@@ -39,7 +39,6 @@ const EMPTY_KELAS_FORM = {
   penawaran_matakuliah_id: "",
   nama: "",
   jumlah_peserta_min: "",
-  jumlah_peserta_max: "",
   jumlah_peserta_internal_max: "",
   jumlah_peserta_lintas_prodi_max: 0,
 };
@@ -63,7 +62,8 @@ export const KelasPage = () => {
   const [capacityTarget, setCapacityTarget] = useState(null);
   const [capacityValues, setCapacityValues] = useState({
     jumlah_peserta_min: "",
-    jumlah_peserta_max: "",
+    jumlah_peserta_internal_max: "",
+    jumlah_peserta_lintas_prodi_max: "",
   });
   const [formOpen, setFormOpen] = useState(false);
   const [contextPrefilled, setContextPrefilled] = useState("");
@@ -110,7 +110,6 @@ export const KelasPage = () => {
         semester_id: contextSemesterId || offering.semester_id,
         matakuliah_id: detail.matakuliah_id,
         penawaran_matakuliah_id: detail.id,
-        jumlah_peserta_max: detail.jumlah_peserta_max_default ?? 40,
         jumlah_peserta_internal_max:
           detail.jumlah_peserta_internal_max_default ??
           detail.jumlah_peserta_max_default ??
@@ -145,7 +144,6 @@ export const KelasPage = () => {
   const openCapacity = (row) => {
     setCapacityValues({
       jumlah_peserta_min: row.jumlah_peserta_min ?? "",
-      jumlah_peserta_max: row.jumlah_peserta_max ?? "",
       jumlah_peserta_internal_max: row.jumlah_peserta_internal_max ?? "",
       jumlah_peserta_lintas_prodi_max: row.jumlah_peserta_lintas_prodi_max ?? "",
     });
@@ -162,7 +160,6 @@ export const KelasPage = () => {
       id: capacityTarget.id,
       payload: {
         jumlah_peserta_min: toNumberOrNull(capacityValues.jumlah_peserta_min),
-        jumlah_peserta_max: toNumberOrNull(capacityValues.jumlah_peserta_max),
         jumlah_peserta_internal_max: toNumberOrNull(capacityValues.jumlah_peserta_internal_max),
         jumlah_peserta_lintas_prodi_max: toNumberOrNull(capacityValues.jumlah_peserta_lintas_prodi_max),
       },
@@ -186,7 +183,6 @@ export const KelasPage = () => {
       penawaran_matakuliah_id: formValues.penawaran_matakuliah_id || null,
       nama: formValues.nama,
       jumlah_peserta_min: toNumberOrNull(formValues.jumlah_peserta_min),
-      jumlah_peserta_max: toNumberOrNull(formValues.jumlah_peserta_max),
       jumlah_peserta_internal_max: toNumberOrNull(formValues.jumlah_peserta_internal_max),
       jumlah_peserta_lintas_prodi_max: toNumberOrNull(formValues.jumlah_peserta_lintas_prodi_max),
     });

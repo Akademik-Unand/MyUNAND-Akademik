@@ -21,6 +21,7 @@ const AppError = require('../../helpers/AppError');
 const appConfig = require('../../config/app');
 const { getPeriod, JENIS } = require('../../helpers/academicPeriod');
 const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
+const cplMahasiswaService = require('../obe/cpl-mahasiswa.service');
 
 const DUMMY_UNIVERSITY_SUMMARY = {
   mahasiswa: 24870,
@@ -153,32 +154,42 @@ const cpRows = async (where) => {
 const academicSummary = async (user) => {
   const actor = await getUserAcademicIdentity(user?.id);
   if (!actor.mahasiswa_id) throw new AppError('Akun tidak terhubung ke data mahasiswa', 403);
-  const mahasiswa = await Mahasiswa.findByPk(actor.mahasiswa_id, { attributes: ['id', 'niu', 'nama', 'program_studi_id'] });
-  if (!mahasiswa) throw new AppError('Data mahasiswa tidak ditemukan', 404);
-
-  const [cpl, courses] = await Promise.all([
-    cpRows({ mahasiswa_id: mahasiswa.id }),
+  const [obe, courses] = await Promise.all([
+    cplMahasiswaService.calculateForMahasiswa(actor.mahasiswa_id),
     sequelize.query(
       `SELECT COUNT(*) AS mata_kuliah, COALESCE(SUM(x.sks), 0) AS sks FROM (
          SELECT kl.matakuliah_id, MAX(COALESCE(m.jumlah_sks_kurikulum, 0)) AS sks
            FROM krs k JOIN krs_detil kd ON kd.krs_id = k.id
            JOIN kelas kl ON kl.id = kd.kelas_id JOIN matakuliah m ON m.id = kl.matakuliah_id
-          WHERE k.mahasiswa_id = ${sequelize.escape(mahasiswa.id)} AND kd.approved = '2'
+          WHERE k.mahasiswa_id = ${sequelize.escape(actor.mahasiswa_id)} AND kd.approved = '2'
           GROUP BY kl.matakuliah_id
        ) x`,
       { type: sequelize.QueryTypes.SELECT },
     ),
   ]);
   const row = courses[0] || {};
+  const cpl = obe.cpl.map((item) => ({
+    id: item.id,
+    nama: item.nama_cp,
+    deskripsi: item.deskripsi,
+    nilai: item.nilai,
+    target: Number(item.nilai_min || 0),
+    status: item.status,
+    jumlah_kontributor: item.jumlah_kontributor,
+  }));
   return {
-    mahasiswa: { id: mahasiswa.id, niu: mahasiswa.niu, nama: mahasiswa.nama },
+    mahasiswa: { id: obe.mahasiswa.id, niu: obe.mahasiswa.nim, nama: obe.mahasiswa.nama },
     mata_kuliah: Number(row.mata_kuliah || 0),
     sks: Number(row.sks || 0),
     ipk: null,
-    cpl_tercapai: cpl.filter((item) => item.nilai >= item.target).length,
+    capaian_keseluruhan: obe.capaian_keseluruhan,
+    kurikulum: obe.kurikulum,
+    cpl_tercapai: cpl.filter((item) => item.nilai !== null && item.nilai >= item.target).length,
     cpl,
   };
 };
+
+const cplReport = (user) => cplMahasiswaService.getOwnCpl(user);
 
 const orgSummary = async ({ level, prodi_ids = [], departemen_ids = [], fakultas_ids = [] }) => {
   const empty = { mahasiswa: 0, dosen: 0, kelas: 0, krs_pending: 0, penawaran: 0, periode: null, semester: null, sks_maksimal: null, prodi: [], cpl: [] };
@@ -267,4 +278,4 @@ const dosenSummary = async (user) => {
   };
 };
 
-module.exports = { summary, academicSummary, orgSummary, dosenSummary };
+module.exports = { summary, academicSummary, cplReport, orgSummary, dosenSummary };

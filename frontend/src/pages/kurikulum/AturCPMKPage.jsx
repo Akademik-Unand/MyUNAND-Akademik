@@ -24,6 +24,9 @@ export const AturCPMKPage = () => {
   const { id } = useParams();
   const [params] = useSearchParams();
   const kurikulumId = params.get("kurikulum_id") || "";
+  const kelasId = params.get("kelas") || "";
+  const semesterId = params.get("semester") || "";
+  const semesterQuery = semesterId ? `?semester_id=${encodeURIComponent(semesterId)}` : "";
   const suffix = querySuffix(kurikulumId);
   const mk = useResourceItem("matakuliah", id);
   const query = useResourceQuery("cpmk-detail", {
@@ -69,15 +72,20 @@ export const AturCPMKPage = () => {
         ]}
         action={
           <div className="flex gap-2">
+            {kelasId && (
+              <Link to={`/perkuliahan/upload-nilai/${kelasId}`}>
+                <Button variant="ghost" size="sm">Kembali ke Kelas</Button>
+              </Link>
+            )}
             <Can I="read" a="MatakuliahKurikulum">
-              <Link to={`/perkuliahan/mk-semester/${id}`}>
+              <Link to={`/perkuliahan/mk-semester/${id}${semesterQuery}`}>
                 <Button variant="secondary" size="sm">
                   Lihat MK Semester
                 </Button>
               </Link>
             </Can>
             <Can I="update" a="Cpmk">
-              <Link to={`/perkuliahan/mk-semester/${id}/atur`}>
+              <Link to={`/perkuliahan/mk-semester/${id}/atur${semesterQuery}`}>
                 <Button variant="secondary" size="sm">
                   {cpmkOpen ? "Atur Sumber Penilaian" : "Lihat Sumber Penilaian"}
                 </Button>

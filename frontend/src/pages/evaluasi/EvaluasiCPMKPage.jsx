@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import Chart from "react-apexcharts";
 import { MKSemesterLayout } from "../../components/mk-semester/MKSemesterLayout";
 import { Card } from "../../components/ui/Card";
@@ -14,7 +14,9 @@ import {
 
 export const EvaluasiCPMKPage = () => {
   const { id } = useParams();
-  const [semester, setSemester] = useState("");
+  const [searchParams] = useSearchParams();
+  const contextualSemester = searchParams.get("semester_id") || "";
+  const [semester, setSemester] = useState(contextualSemester);
   const [tab, setTab] = useState("rangkuman");
   const scoped = Boolean(id && semester);
   const evaluasiFilter = scoped

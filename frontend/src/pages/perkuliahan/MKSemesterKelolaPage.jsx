@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { MKSemesterLayout } from "../../components/mk-semester/MKSemesterLayout";
 import { CPMKSemesterTable } from "../../components/mk-semester/CPMKSemesterTable";
 import { Card } from "../../components/ui/Card";
@@ -12,7 +12,9 @@ import { useCpmkPeriodOpen } from "../../hooks/usePeriodes";
 
 export const MKSemesterKelolaPage = () => {
   const { id } = useParams();
-  const [semester, setSemester] = useState("");
+  const [searchParams] = useSearchParams();
+  const contextualSemester = searchParams.get("semester_id") || "";
+  const [semester, setSemester] = useState(contextualSemester);
   const query = useResourceQuery("cpmk-semester", {
     params: id ? { filter: { matakuliah_id: id } } : {},
     enabled: Boolean(id),
@@ -41,7 +43,7 @@ export const MKSemesterKelolaPage = () => {
               </Link>
             </Can>
             <Can I="update" a="Cpmk">
-              <Link to={`/perkuliahan/mk-semester/${id}/atur`}>
+              <Link to={`/perkuliahan/mk-semester/${id}/atur${contextualSemester ? `?semester_id=${encodeURIComponent(contextualSemester)}` : ""}`}>
                 <Button size="sm">
                   {cpmkOpen ? "Atur Sumber Penilaian" : "Lihat Sumber Penilaian"}
                 </Button>

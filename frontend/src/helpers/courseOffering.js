@@ -1,3 +1,5 @@
+import { deriveTotalCapacity } from "./kelasCapacity";
+
 export const courseProgramId = (course) =>
   course?.program_studi_id ||
   course?.programStudi?.id ||
@@ -41,13 +43,11 @@ export const buildBulkOfferingPayload = (
       const course = byId.get(matakuliah_id);
       const values = courseQuotas[matakuliah_id];
       const legacyExternal = typeof values === "string" || typeof values === "number";
-      const total = Number(
-        values?.total ?? course?.jumlah_peserta_max_default ?? 40,
-      );
       const internal = Number(
         values?.internal ??
           course?.jumlah_peserta_internal_max_default ??
-          total,
+          course?.jumlah_peserta_max_default ??
+          40,
       );
       const kuota_lintas_prodi = akses === "internal" || course?.has_prasyarat
         ? 0
@@ -56,7 +56,7 @@ export const buildBulkOfferingPayload = (
           : Number(values?.external ?? course?.kuota_lintas_prodi ?? 0);
       return {
         matakuliah_id,
-        jumlah_peserta_max_default: total,
+        jumlah_peserta_max_default: deriveTotalCapacity(internal, kuota_lintas_prodi),
         jumlah_peserta_internal_max_default: internal,
         kuota_lintas_prodi,
       };

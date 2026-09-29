@@ -107,7 +107,6 @@ export const PenawaranSemesterPage = () => {
     setCourseQuotas(
       Object.fromEntries(
         openedRows.map((row) => [row.matakuliah_id, {
-          total: row.jumlah_peserta_max_default ?? 40,
           internal: row.jumlah_peserta_internal_max_default ?? row.jumlah_peserta_max_default ?? 40,
           external: row.kuota_lintas_prodi ?? 0,
         }]),
@@ -163,13 +162,6 @@ export const PenawaranSemesterPage = () => {
       [id]: { ...(current[id] || {}), [field]: value },
     }));
   const crossEnrollmentEnabled = settings.akses !== "internal";
-  const quotasValid = selected.every((id) => {
-    const values = courseQuotas[id] || {};
-    const total = Number(values.total ?? 40);
-    const internal = Number(values.internal ?? total);
-    const external = crossEnrollmentEnabled ? Number(values.external ?? 0) : 0;
-    return total <= 0 || (internal <= total && external <= total);
-  });
   const save = async () => {
     const payloadSettings = {
       ...settings,
@@ -190,7 +182,6 @@ export const PenawaranSemesterPage = () => {
     offeringKeyReady &&
     selected.length > 0 &&
     canEditExisting &&
-    quotasValid &&
     (settings.akses !== "terpilih" || settings.prodi_tujuan.length > 0);
   const actionLabel = existing
     ? `Simpan Perubahan Draft (${selected.length} MK)`
@@ -237,7 +228,7 @@ export const PenawaranSemesterPage = () => {
         <p className="mb-3 text-sm text-base-content/60">
           Mata kuliah disimpan sebagai draft penawaran untuk prodi penyelenggara.
           Centang opsi lintas prodi hanya jika mahasiswa prodi lain juga boleh mengambilnya;
-          total dan kuota setiap kelas menjadi batas aktual; nilai di sini hanya nilai awal.
+          total awal dihitung dari kuota internal dan lintas; nilai di sini hanya nilai awal.
         </p>
         <p className="mb-3 text-xs text-base-content/60">
           Penawaran dapat disiapkan sebagai draft lebih awal. Mahasiswa baru
@@ -254,8 +245,6 @@ export const PenawaranSemesterPage = () => {
                   ? "Pilih minimal satu program studi tujuan untuk akses lintas."
                 : !selected.length
                     ? "Pilih minimal satu mata kuliah untuk ditawarkan."
-                    : !quotasValid
-                      ? "Kuota internal dan lintas tidak boleh melebihi kapasitas awal kelas."
                     : "Penawaran ini perlu dibuka kembali sebagai draft sebelum dapat diedit."}
           </p>
         )}

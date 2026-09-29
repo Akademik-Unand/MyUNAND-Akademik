@@ -3,9 +3,10 @@
 const asyncHandler = require("../../middleware/asyncHandler");
 const { success } = require("../../helpers/response");
 const sumberPenilaianService = require("../../services/obe/sumber-penilaian.service");
+const scopeOptions = (req) => ({ manageAny: Boolean(req.ability?.can("manage-any", "SumberPenilaian")) });
 
 const list = asyncHandler(async (req, res) => {
-  const { rows, pagination } = await sumberPenilaianService.list(req.query);
+  const { rows, pagination } = await sumberPenilaianService.list(req.query, req.user?.id, scopeOptions(req));
   return success(res, {
     message: "Data Sumber Penilaian berhasil diambil",
     data: rows,
@@ -14,7 +15,7 @@ const list = asyncHandler(async (req, res) => {
 });
 
 const getById = asyncHandler(async (req, res) => {
-  const data = await sumberPenilaianService.getById(req.params.id);
+  const data = await sumberPenilaianService.getById(req.params.id, req.user?.id, scopeOptions(req));
   return success(res, {
     message: "Detail Sumber Penilaian berhasil diambil",
     data,
@@ -22,7 +23,7 @@ const getById = asyncHandler(async (req, res) => {
 });
 
 const create = asyncHandler(async (req, res) => {
-  const data = await sumberPenilaianService.create(req.body);
+  const data = await sumberPenilaianService.create(req.body, req.user?.id, scopeOptions(req));
   return success(res, {
     code: 201,
     message: "Sumber Penilaian berhasil ditambahkan",
@@ -31,7 +32,7 @@ const create = asyncHandler(async (req, res) => {
 });
 
 const update = asyncHandler(async (req, res) => {
-  const data = await sumberPenilaianService.update(req.params.id, req.body);
+  const data = await sumberPenilaianService.update(req.params.id, req.body, req.user?.id, scopeOptions(req));
   return success(res, {
     message: "Sumber Penilaian berhasil diperbarui",
     data,
@@ -39,7 +40,7 @@ const update = asyncHandler(async (req, res) => {
 });
 
 const remove = asyncHandler(async (req, res) => {
-  const data = await sumberPenilaianService.remove(req.params.id);
+  const data = await sumberPenilaianService.remove(req.params.id, req.user?.id, scopeOptions(req));
   return success(res, { message: "Sumber Penilaian berhasil dihapus", data });
 });
 

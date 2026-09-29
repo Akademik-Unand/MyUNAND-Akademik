@@ -25,6 +25,7 @@ const AppError = require("../../helpers/AppError");
 const { restoreRecord } = require("../../helpers/softDelete");
 const { assertJadwalValid } = require("../../helpers/jadwalConflict");
 const { assertKrsPeriodForSemester } = require("../../helpers/academicPeriod");
+const { deriveTotalCapacity } = require("../../helpers/kelasCapacity");
 
 const cpmkInclude = {
   model: Cpmk,
@@ -169,11 +170,8 @@ const validateCourses = async (programStudiId, courses, transaction) => {
     );
   const byId = new Map(rows.map((row) => [row.id, row]));
   for (const course of courses) {
-    const total = Number(course.jumlah_peserta_max_default ?? 40);
-    const internal = Number(course.jumlah_peserta_internal_max_default ?? total);
-    const cross = Number(course.kuota_lintas_prodi ?? 0);
-    if (total > 0 && (internal > total || cross > total))
-      throw new AppError("Kuota internal dan lintas tidak boleh melebihi kapasitas awal kelas", 422);
+    const internal = Number(course.jumlah_peserta_internal_max_default ?? course.jumlah_peserta_max_default ?? 40);
+    let cross = Number(course.kuota_lintas_prodi ?? 0);
     if (byId.get(course.matakuliah_id)?.has_prasyarat) {
       if (cross > 0)
         throw new AppError(
@@ -181,7 +179,11 @@ const validateCourses = async (programStudiId, courses, transaction) => {
           422,
         );
       course.kuota_lintas_prodi = 0;
+      cross = 0;
     }
+    course.jumlah_peserta_internal_max_default = internal;
+    course.kuota_lintas_prodi = cross;
+    course.jumlah_peserta_max_default = deriveTotalCapacity(internal, cross);
   }
 };
 const validateTargets = async (programStudiId, akses, targets, transaction) => {

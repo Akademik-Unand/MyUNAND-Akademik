@@ -39,12 +39,22 @@ export const KelasInfoCard = ({ kelas }) => {
               {kelas?.matakuliah?.nama_resmi || "—"}
             </span>
             <div className="mt-2 flex flex-wrap gap-2">
+              {kelas?.matakuliah_id && (
+                <Can I="update" a="Cpmk">
+                  <Link
+                    to={`/kurikulum/cpmk/${kelas.matakuliah_id}?kelas=${kelas.id}&semester=${kelas.semester_id}`}
+                    className="btn btn-primary btn-xs"
+                  >
+                    Kelola CPMK &amp; Mapping CPL
+                  </Link>
+                </Can>
+              )}
               {mkId && (
                 <>
                   {cpmkOpen && (
                     <Can I="update" a="Cpmk">
                       <Link
-                        to={`/perkuliahan/mk-semester/${mkId}/atur`}
+                        to={`/perkuliahan/mk-semester/${mkId}/atur?semester_id=${encodeURIComponent(kelas.semester_id || "")}`}
                         className="btn btn-success btn-xs"
                       >
                         CPMK Semester
@@ -53,7 +63,7 @@ export const KelasInfoCard = ({ kelas }) => {
                   )}
                   <Can I="read" a="EvaluasiCpmk">
                     <Link
-                      to={`/perkuliahan/mk-semester/${mkId}/evaluasi`}
+                      to={`/perkuliahan/mk-semester/${mkId}/evaluasi?semester_id=${encodeURIComponent(kelas.semester_id || "")}`}
                       className="btn btn-success btn-xs"
                     >
                       Evaluasi Semester
@@ -61,7 +71,7 @@ export const KelasInfoCard = ({ kelas }) => {
                   </Can>
                   <Can I="read" a="DokumenEvaluasi">
                     <Link
-                      to={`/perkuliahan/mk-semester/${mkId}/dokumen`}
+                      to={`/perkuliahan/mk-semester/${mkId}/dokumen?semester_id=${encodeURIComponent(kelas.semester_id || "")}`}
                       className="btn btn-success btn-xs"
                     >
                       Upload Dokumen Semester

@@ -3,9 +3,10 @@
 const asyncHandler = require("../../middleware/asyncHandler");
 const { success } = require("../../helpers/response");
 const matakuliahService = require("../../services/kurikulum/matakuliah.service");
+const scopeOptions = (req) => ({ manageAny: Boolean(req.ability?.can("manage-any", "Matakuliah")) });
 
 const list = asyncHandler(async (req, res) => {
-  const { rows, pagination } = await matakuliahService.list(req.query);
+  const { rows, pagination } = await matakuliahService.list(req.query, req.user?.id, scopeOptions(req));
   return success(res, {
     message: "Data Matakuliah berhasil diambil",
     data: rows,
@@ -14,7 +15,7 @@ const list = asyncHandler(async (req, res) => {
 });
 
 const getById = asyncHandler(async (req, res) => {
-  const data = await matakuliahService.getById(req.params.id);
+  const data = await matakuliahService.getById(req.params.id, req.user?.id, scopeOptions(req));
   return success(res, { message: "Detail Matakuliah berhasil diambil", data });
 });
 

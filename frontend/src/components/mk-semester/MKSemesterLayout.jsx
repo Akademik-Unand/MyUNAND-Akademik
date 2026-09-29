@@ -1,10 +1,11 @@
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink, useParams, useSearchParams } from "react-router-dom";
 import { PageHeader } from "../common/PageHeader";
 import { Card } from "../ui/Card";
 import { ResourceSelect } from "../common/ResourceSelect";
 import { useResourceItem } from "../../hooks/useResourceQuery";
 import { PageSkeleton } from "../common/PageSkeleton";
 import { mkKode, mkLabel } from "../../helpers/mkSemester";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
 
 export const MKSemesterLayout = ({
   children,
@@ -13,6 +14,13 @@ export const MKSemesterLayout = ({
   onSemesterChange,
 }) => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const contextualSemester = searchParams.get("semester_id") || "";
+  const semesterValue = contextualSemester || semester || "";
+  const semesterQuery = useResourceItem("setting-semester", contextualSemester);
+  const semesterSuffix = contextualSemester
+    ? `?semester_id=${encodeURIComponent(contextualSemester)}`
+    : "";
   const mkQuery = useResourceItem("matakuliah", id);
   const mk = mkQuery.data;
 
@@ -20,9 +28,9 @@ export const MKSemesterLayout = ({
 
   const base = `/perkuliahan/mk-semester/${id}`;
   const tabs = [
-    { id: "pengaturan", to: base, label: "Pengaturan CPMK Semester" },
-    { id: "evaluasi", to: `${base}/evaluasi`, label: "Evaluasi CPMK Semester" },
-    { id: "dokumen", to: `${base}/dokumen`, label: "Dokumen Evaluasi" },
+    { id: "pengaturan", to: `${base}${semesterSuffix}`, label: "Pengaturan CPMK Semester" },
+    { id: "evaluasi", to: `${base}/evaluasi${semesterSuffix}`, label: "Evaluasi CPMK Semester" },
+    { id: "dokumen", to: `${base}/dokumen${semesterSuffix}`, label: "Dokumen Evaluasi" },
   ];
 
   return (
@@ -39,16 +47,25 @@ export const MKSemesterLayout = ({
       />
 
       <Card>
-        <ResourceSelect
-          resource="setting-semester"
-          label="Semester"
-          size="sm"
-          value={semester || ""}
-          onChange={(e) => onSemesterChange?.(e.target.value)}
-          getLabel={(row) =>
-            `${row.jenisSemester?.nama || "Semester"} ${row.tahun}`
-          }
-        />
+        {contextualSemester ? (
+          <div>
+            <p className="text-sm text-base-content/60">Semester</p>
+            <p className="mt-1 font-medium">
+              {semesterQuery.isPending ? "Memuat semester..." : semesterAkademikLabel(semesterQuery.data)}
+            </p>
+          </div>
+        ) : (
+          <ResourceSelect
+            resource="setting-semester"
+            label="Semester"
+            size="sm"
+            value={semesterValue}
+            onChange={(e) => onSemesterChange?.(e.target.value)}
+            getLabel={(row) =>
+              `${row.jenisSemester?.nama || "Semester"} ${row.tahun}`
+            }
+          />
+        )}
       </Card>
 
       <Card>

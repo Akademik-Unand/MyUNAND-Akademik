@@ -4,14 +4,21 @@ import { Card } from "../ui/Card";
 const hasPositiveValue = (value) =>
   Number(typeof value === "object" && value !== null ? value.y : value) > 0;
 
-export const DashboardChart = ({ title, subtitle, config, type = "bar", height = 280 }) => {
+export const DashboardChart = ({
+  title,
+  subtitle,
+  config,
+  type = "bar",
+  height = 280,
+  bodyClassName,
+}) => {
   const hasData = config?.series?.some((series) => {
     if (typeof series === "number") return hasPositiveValue(series);
     const values = Array.isArray(series) ? series : series?.data;
     return values?.some(hasPositiveValue);
   });
   return (
-    <Card title={title} subtitle={subtitle}>
+    <Card title={title} subtitle={subtitle} bodyClassName={bodyClassName}>
       {hasData ? (
         <Chart options={config.options} series={config.series} type={type} height={height} />
       ) : (

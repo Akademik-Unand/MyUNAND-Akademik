@@ -114,9 +114,9 @@ export const PenawaranDetailPage = () => {
       "—",
     kode: detail.matakuliah?.kode_matakuliah || "—",
     sks: detail.matakuliah?.jumlah_sks_kurikulum,
-    kapasitasTotal: detail.jumlah_peserta_max_default ?? 40,
     kuotaInternal: detail.jumlah_peserta_internal_max_default ?? 40,
     kuotaLintas: offering.akses === "internal" ? null : detail.kuota_lintas_prodi ?? 0,
+    kapasitasTotal: Number(detail.jumlah_peserta_internal_max_default ?? detail.jumlah_peserta_max_default ?? 40) + Number(offering.akses === "internal" ? 0 : detail.kuota_lintas_prodi ?? 0),
     kelas: detail.kelas || [],
     readiness: getOfferingReadiness({ matakuliahDitawarkan: [detail] }).results[0],
     peserta: (detail.kelas || []).reduce(

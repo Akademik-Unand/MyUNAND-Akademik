@@ -12,6 +12,7 @@ const STUDENT_NAV_PATHS = new Set([
   "/krs/pengambilan",
   "/krs/riwayat",
   "/mahasiswa/katalog-lintas-prodi",
+  "/mahasiswa/laporan-cpl",
 ]);
 
 // Menu yang tidak relevan untuk admin unit (fakultas/departemen/prodi): kelola

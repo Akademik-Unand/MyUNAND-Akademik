@@ -118,6 +118,12 @@ export const NAVIGATION_MENU = [
         icon: "ScrollText",
         permission: { action: "read", subject: "Krs" },
       },
+      {
+        label: "Laporan CPL",
+        path: "/mahasiswa/laporan-cpl",
+        icon: "BarChart3",
+        permission: { action: "read", subject: "RekapCp" },
+      },
     ],
   },
   {

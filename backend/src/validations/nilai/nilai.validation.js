@@ -8,14 +8,14 @@ const list = listQuery(['nilai', 'createdAt'], ['krs_detil_id', 'sumber_penilaia
 const create = Joi.object({
   krs_detil_id: Joi.string().uuid().required(),
   sumber_penilaian_id: Joi.string().uuid().required(),
-  nilai: Joi.number().allow(null),
+  nilai: Joi.number().min(0).max(100).allow(null),
   catatan: Joi.string().allow(null, ''),
 });
 
 const update = Joi.object({
   krs_detil_id: Joi.string().uuid().allow(null),
   sumber_penilaian_id: Joi.string().uuid().allow(null),
-  nilai: Joi.number().allow(null),
+  nilai: Joi.number().min(0).max(100).allow(null),
   catatan: Joi.string().allow(null, ''),
 });
 
@@ -26,7 +26,7 @@ const upload = Joi.object({
   items: Joi.array().items(Joi.object({
     krs_detil_id: Joi.string().uuid().required(),
     sumber_penilaian_id: Joi.string().uuid().required(),
-    nilai: Joi.number().allow(null),
+    nilai: Joi.number().min(0).max(100).allow(null),
     catatan: Joi.string().allow(null, ''),
   })).min(1).required(),
 });

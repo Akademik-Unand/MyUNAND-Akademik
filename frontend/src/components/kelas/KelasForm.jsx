@@ -2,6 +2,7 @@ import { Select } from "../ui/Select";
 import { Input } from "../ui/Input";
 import { Badge } from "../ui/Badge";
 import { namaKelasBentrok } from "../../helpers/kelasInfo";
+import { totalCapacityLabel } from "../../helpers/kelasCapacity";
 
 const OFFERING_STATUS_LABEL = {
   draft: "Draft — publikasikan agar kelas dapat diambil",
@@ -34,7 +35,6 @@ export const KelasForm = ({
       ...values,
       penawaran_matakuliah_id: detilId,
       matakuliah_id: detail?.matakuliahId || "",
-      jumlah_peserta_max: detail?.jumlahPesertaMaxDefault ?? 40,
       jumlah_peserta_internal_max:
         detail?.jumlahPesertaInternalMaxDefault ??
         detail?.jumlahPesertaMaxDefault ??
@@ -96,13 +96,12 @@ export const KelasForm = ({
         onChange={set("jumlah_peserta_min")}
       />
 
-      <Input
-        label="Kapasitas total kelas"
-        type="number"
-        min="0"
-        value={values.jumlah_peserta_max ?? ""}
-        onChange={set("jumlah_peserta_max")}
-      />
+      <div className="form-control gap-1">
+        <span className="label-text">Kapasitas total kelas (otomatis)</span>
+        <div className="input input-bordered flex items-center bg-base-200 font-semibold">
+          {totalCapacityLabel(values.jumlah_peserta_internal_max, values.jumlah_peserta_lintas_prodi_max)}
+        </div>
+      </div>
       <Input
         label="Kuota maksimum mahasiswa prodi sendiri"
         type="number"
@@ -138,8 +137,7 @@ export const KelasForm = ({
         <p className="text-xs text-base-content/60">
           Kelas dibuat untuk mata kuliah yang sudah dibuka di Penawaran MK
           Semester. Buka MK terlebih dahulu bila belum tersedia. Kapasitas
-          maksimum berlaku untuk gabungan semua mahasiswa. Kuota prodi sendiri
-          dan lintas prodi dihitung terpisah di dalam kapasitas total ini. Kuota
+          maksimum otomatis merupakan penjumlahan kuota prodi sendiri dan lintas prodi. Kuota
           kelompok 0 menutup kelompok itu; kapasitas total 0 berarti tanpa batas.
         </p>
       </div>

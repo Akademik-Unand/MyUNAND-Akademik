@@ -62,6 +62,7 @@ import { PersetujuanKrsPage } from "../pages/perkuliahan/PersetujuanKrsPage";
 import { DosenPaPage } from "../pages/kemahasiswaan/DosenPaPage";
 import { DosenPaDetailPage } from "../pages/kemahasiswaan/DosenPaDetailPage";
 import { MahasiswaBimbinganPage } from "../pages/kemahasiswaan/MahasiswaBimbinganPage";
+import { LaporanCplMahasiswaPage } from "../pages/mahasiswa/LaporanCplMahasiswaPage";
 
 export const router = createBrowserRouter([
   {
@@ -76,6 +77,7 @@ export const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
           { index: true, element: <DashboardPage /> },
+          { path: "mahasiswa/laporan-cpl", element: gate("read", "RekapCp", <LaporanCplMahasiswaPage />) },
           { path: "profil", element: <ProfilePage /> },
 
           {

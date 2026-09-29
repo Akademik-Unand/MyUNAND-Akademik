@@ -25,6 +25,15 @@ router.get(
   dashboardController.academicSummary,
 );
 
+/** GET /dashboard/cpl-report — laporan CPL aktual milik mahasiswa login */
+router.get(
+  "/cpl-report",
+  authenticate,
+  attachAbility,
+  checkPermission("read", "RekapCp"),
+  dashboardController.cplReport,
+);
+
 /** GET /dashboard/org-summary — data yang di-scope ke level organisasi user */
 router.get(
   "/org-summary",

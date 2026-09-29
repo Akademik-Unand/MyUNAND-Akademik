@@ -51,4 +51,9 @@ const academicSummary = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { summary, orgSummary, dosenSummary, academicSummary };
+const cplReport = asyncHandler(async (req, res) => {
+  const data = await dashboardService.cplReport(req.user);
+  return success(res, { message: 'Laporan capaian CPL berhasil diambil', data });
+});
+
+module.exports = { summary, orgSummary, dosenSummary, academicSummary, cplReport };

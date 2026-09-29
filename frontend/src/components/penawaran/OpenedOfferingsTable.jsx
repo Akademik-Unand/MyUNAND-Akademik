@@ -50,9 +50,9 @@ export const OpenedOfferingsTable = ({
         detail.matakuliah?.kode_matakuliah ||
         "—",
       kode: detail.matakuliah?.kode_matakuliah || "—",
-      kapasitasTotal: detail.jumlah_peserta_max_default ?? 40,
       kuotaInternal: detail.jumlah_peserta_internal_max_default ?? 40,
       kuotaLintas: offering.akses === "internal" ? null : detail.kuota_lintas_prodi ?? 0,
+      kapasitasTotal: Number(detail.jumlah_peserta_internal_max_default ?? detail.jumlah_peserta_max_default ?? 40) + Number(offering.akses === "internal" ? 0 : detail.kuota_lintas_prodi ?? 0),
       akses: offering.akses || "internal",
       publishIssues: offeringPublishIssues(offering),
     })),

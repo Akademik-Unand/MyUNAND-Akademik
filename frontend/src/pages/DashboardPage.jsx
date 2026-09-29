@@ -6,6 +6,7 @@ import {
   BookOpenCheck,
   ClipboardList,
   Clock3,
+  FileText,
   GraduationCap,
   LibraryBig,
   Users,
@@ -167,6 +168,14 @@ const StudentDashboard = () => {
           action="Lihat Katalog"
           variant="secondary"
           onClick={() => navigate("/mahasiswa/katalog-lintas-prodi")}
+        />
+        <StudentAction
+          icon={FileText}
+          title="Laporan Capaian CPL"
+          subtitle="Lihat capaian per CPL beserta mata kuliah, CPMK, Sub-CPMK, dan komponen nilainya."
+          action="Buka Laporan"
+          variant="outline"
+          onClick={() => navigate("/mahasiswa/laporan-cpl")}
         />
       </div>
     </div>

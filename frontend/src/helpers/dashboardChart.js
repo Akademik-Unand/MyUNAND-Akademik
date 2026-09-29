@@ -26,13 +26,39 @@ export const countBarChart = (rows = [], valueKey = "jumlah") => ({
 
 export const cplBarChart = (rows = []) => ({
   series: [
-    { name: "Capaian", data: rows.map((row) => Number(row.nilai || 0)) },
+    { name: "Capaian", data: rows.map((row) => row.nilai == null ? null : Number(row.nilai)) },
     { name: "Target", data: rows.map((row) => Number(row.target || 0)) },
   ],
   options: {
     ...baseChart("bar"),
     xaxis: { categories: rows.map((row) => row.nama), min: 0, max: 100 },
     yaxis: { min: 0, max: 100 },
+  },
+});
+
+export const cplRadarChart = (rows = []) => ({
+  series: [
+    {
+      name: "Capaian Mahasiswa",
+      data: rows.map((row) => row.nilai == null ? null : Number(row.nilai)),
+    },
+    {
+      name: "Nilai Minimum",
+      data: rows.map((row) => Number(row.nilai_min ?? row.target ?? 0)),
+    },
+  ],
+  options: {
+    ...baseChart("radar"),
+    xaxis: { categories: rows.map((row) => row.nama_cp || row.nama) },
+    yaxis: { min: 0, max: 100, tickAmount: 5 },
+    fill: { opacity: 0.16 },
+    markers: { size: 4 },
+    stroke: { width: 2 },
+    legend: { position: "bottom" },
+    tooltip: {
+      ...baseChart("radar").tooltip,
+      y: { formatter: (value) => value == null ? "Belum ada data" : `${Number(value).toLocaleString("id-ID")}%` },
+    },
   },
 });
 

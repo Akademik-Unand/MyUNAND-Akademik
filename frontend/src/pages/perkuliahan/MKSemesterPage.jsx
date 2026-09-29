@@ -25,6 +25,12 @@ export const MKSemesterPage = () => {
     applyImmediately: true,
   });
   const extraFilter = academic.extraFilter;
+  const withSemesterContext = (path) => {
+    const semesterId = extraFilter?.semester_id;
+    return semesterId
+      ? `${path}?semester_id=${encodeURIComponent(semesterId)}`
+      : path;
+  };
 
   const columns = [
     { header: "#", render: (_, idx) => idx + 1 },
@@ -61,7 +67,7 @@ export const MKSemesterPage = () => {
       render: (row) => (
         <Can I="read" a="DokumenEvaluasi">
           <Link
-            to={`/perkuliahan/mk-semester/${row.matakuliah_id}/dokumen`}
+            to={withSemesterContext(`/perkuliahan/mk-semester/${row.matakuliah_id}/dokumen`)}
             className="btn btn-xs btn-ghost"
           >
             Dokumen
@@ -79,7 +85,7 @@ export const MKSemesterPage = () => {
           icon={Settings2}
           tone="text-info"
           tooltipPosition="tooltip-left"
-          to={`/perkuliahan/mk-semester/${row.matakuliah_id}`}
+          to={withSemesterContext(`/perkuliahan/mk-semester/${row.matakuliah_id}`)}
         />
       ),
     },

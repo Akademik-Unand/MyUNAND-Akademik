@@ -46,7 +46,7 @@ describe("course offering helpers", () => {
 
     expect(payload.matakuliah).toEqual([
       { matakuliah_id: "m1", jumlah_peserta_max_default: 40, jumlah_peserta_internal_max_default: 40, kuota_lintas_prodi: 0 },
-      { matakuliah_id: "m2", jumlah_peserta_max_default: 40, jumlah_peserta_internal_max_default: 40, kuota_lintas_prodi: 7 },
+      { matakuliah_id: "m2", jumlah_peserta_max_default: 47, jumlah_peserta_internal_max_default: 40, kuota_lintas_prodi: 7 },
     ]);
   });
 
@@ -67,7 +67,7 @@ describe("course offering helpers", () => {
 
     expect(payload.matakuliah).toEqual([
       { matakuliah_id: "m1", jumlah_peserta_max_default: 40, jumlah_peserta_internal_max_default: 40, kuota_lintas_prodi: 0 },
-      { matakuliah_id: "m2", jumlah_peserta_max_default: 40, jumlah_peserta_internal_max_default: 40, kuota_lintas_prodi: 9 },
+      { matakuliah_id: "m2", jumlah_peserta_max_default: 49, jumlah_peserta_internal_max_default: 40, kuota_lintas_prodi: 9 },
     ]);
   });
 

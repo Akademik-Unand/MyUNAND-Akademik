@@ -1,5 +1,7 @@
 'use strict';
 
+const { Op } = require('sequelize');
+
 const {
   sequelize,
   Kelas,
@@ -22,6 +24,9 @@ const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
 const { kelasFilters, ORG_FILTER_FIELDS } = require('../../helpers/academicFilters');
+const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
+const { assertTeachesClass } = require('../../helpers/dosenScope');
+const { deriveTotalCapacity } = require('../../helpers/kelasCapacity');
 
 const extraAttributes = {
   include: [
@@ -89,13 +94,22 @@ const LIST_OPTIONS = {
 const loadKelas = (id, transaction) =>
   Kelas.findByPk(id, { include: findInclude, attributes: extraAttributes, transaction });
 
-const list = (query) => paginate(Kelas, query, LIST_OPTIONS);
+const list = async (query, userId, { manageAny = false } = {}) => {
+  const { dosen_id: dosenId } = await getUserAcademicIdentity(userId);
+  if (!dosenId || manageAny) return paginate(Kelas, query, LIST_OPTIONS);
+  const assignments = await DosenKelas.findAll({ where: { dosen_id: dosenId }, attributes: ['kelas_id'] });
+  return paginate(Kelas, query, {
+    ...LIST_OPTIONS,
+    findOptions: { ...LIST_OPTIONS.findOptions, where: { id: { [Op.in]: assignments.map((item) => item.kelas_id) } } },
+  });
+};
 
-const getById = async (id) => {
+const getById = async (id, userId, options = {}) => {
   const item = await loadKelas(id);
   if (!item) {
     throw new AppError('Kelas dengan ID tersebut tidak ditemukan', 404);
   }
+  await assertTeachesClass(userId, id, options);
   return item;
 };
 
@@ -131,16 +145,6 @@ const assertKelasConsistency = async (payload, transaction) => {
     }
   }
   return detil;
-};
-
-const assertQuotaDoesNotExceedTotal = (payload) => {
-  const total = Number(payload.jumlah_peserta_max || 0);
-  if (!total) return;
-  for (const field of ["jumlah_peserta_internal_max", "jumlah_peserta_lintas_prodi_max"]) {
-    const value = payload[field];
-    if (value != null && Number(value) > total)
-      throw new AppError("Kuota internal dan lintas tidak boleh melebihi kapasitas total kelas", 422);
-  }
 };
 
 const DUPLICATE_INCLUDE = [
@@ -223,7 +227,10 @@ const create = async (payload) => {
       jumlah_peserta_lintas_prodi_max: detil?.kuota_lintas_prodi ?? 0,
     };
     const next = { ...defaults, ...payload };
-    assertQuotaDoesNotExceedTotal(next);
+    next.jumlah_peserta_max = deriveTotalCapacity(
+      next.jumlah_peserta_internal_max,
+      next.jumlah_peserta_lintas_prodi_max,
+    );
     const item = await Kelas.create(next, { transaction });
     return loadKelas(item.id, transaction);
   });
@@ -232,10 +239,13 @@ const create = async (payload) => {
 const update = async (id, payload) => {
   const item = await getById(id);
   const merged = { ...item.toJSON(), ...payload };
-  assertQuotaDoesNotExceedTotal(merged);
+  merged.jumlah_peserta_max = deriveTotalCapacity(
+    merged.jumlah_peserta_internal_max,
+    merged.jumlah_peserta_lintas_prodi_max,
+  );
   await assertKelasConsistency(merged);
   await assertNamaKelasUnik(merged, { excludeId: item.id });
-  await item.update(payload);
+  await item.update({ ...payload, jumlah_peserta_max: merged.jumlah_peserta_max });
   return loadKelas(id);
 };
 

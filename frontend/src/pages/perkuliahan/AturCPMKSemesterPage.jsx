@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
@@ -16,62 +16,85 @@ import {
   deleteResourceItem,
   updateResourceItem,
 } from "../../services/api";
-import { Can } from "../../components/auth/Can";
 import { mkKode, mkLabel } from "../../helpers/mkSemester";
-import { bobotMelebihiMaks, MAX_MK_BOBOT } from "../../helpers/cpmkBobot";
+import { MAX_MK_BOBOT } from "../../helpers/cpmkBobot";
+import { assessmentSaveOperations, buildAssessmentMatrix, totalAssessmentWeight } from "../../helpers/assessmentMatrix";
 import { useCpmkPeriodOpen } from "../../hooks/usePeriodes";
+import { useCan } from "../../hooks/useCan";
 
 export const AturCPMKSemesterPage = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const semesterId = searchParams.get("semester_id") || "";
   const mk = useResourceItem("matakuliah", id);
   const query = useResourceQuery("cpmk-semester", {
     params: id ? { filter: { matakuliah_id: id } } : {},
     enabled: Boolean(id),
   });
   const navigate = useNavigate();
-  const [items, setItems] = useState([]);
-  const [loadedCpmkData, setLoadedCpmkData] = useState(null);
-  if (query.data && query.data !== loadedCpmkData) {
-    setLoadedCpmkData(query.data);
-    setItems(
-      query.data.map((row) => ({
-        ...row,
-        sumberPenilaian: row.sumberPenilaian || [],
-      })),
-    );
-  }
+  const items = useMemo(
+    () => (query.data || []).map((row) => ({ ...row, sumberPenilaian: row.sumberPenilaian || [] })),
+    [query.data],
+  );
+  const [matrixState, setMatrixState] = useState({ source: null, columns: [] });
+  const columns = matrixState.source === query.data
+    ? matrixState.columns
+    : buildAssessmentMatrix(items);
+  const setColumns = (next) => setMatrixState({ source: query.data, columns: next });
   const [saving, setSaving] = useState(false);
+  const can = useCan();
   const cpmkPeriod = useCpmkPeriodOpen();
   const cpmkOpen = cpmkPeriod.open;
-  const back = `/perkuliahan/mk-semester/${id}`;
+  const back = `/perkuliahan/mk-semester/${id}${semesterId ? `?semester_id=${encodeURIComponent(semesterId)}` : ""}`;
+  const operations = useMemo(() => assessmentSaveOperations(items, columns), [items, columns]);
+  const saveOperations = useMemo(() => {
+    const previousWeights = new Map(items.flatMap((item) =>
+      (item.sumberPenilaian || []).map((source) => [source.id, Number(source.bobot || 0)]),
+    ));
+    return [...operations].sort((left, right) => {
+      const delta = (operation) => operation.type === "delete"
+        ? Number.NEGATIVE_INFINITY
+        : operation.type === "create"
+          ? Number(operation.payload.bobot || 0)
+          : Number(operation.payload.bobot || 0) - (previousWeights.get(operation.id) || 0);
+      return delta(left) - delta(right);
+    });
+  }, [items, operations]);
+  const totalBobot = totalAssessmentWeight(columns);
+  const overMax = totalBobot > MAX_MK_BOBOT + 0.01;
+  const missingPermissions = [...new Set(operations
+    .filter((operation) => !can(operation.type, "SumberPenilaian"))
+    .map((operation) => operation.type))];
+  const hasUnnamedSelectedColumn = columns.some((column) =>
+    Object.values(column.cells).some((cell) => cell.selected) && !column.nama.trim(),
+  );
 
   const save = async () => {
     if (saving) return;
-    if (bobotMelebihiMaks(items)) {
-      toast.error(`Total bobot sumber penilaian maksimal ${MAX_MK_BOBOT}%.`);
+    if (hasUnnamedSelectedColumn) {
+      toast.error("Isi nama komponen penilaian untuk setiap kolom yang dipetakan.");
+      return;
+    }
+    if (overMax) {
+      toast.error(`Total bobot komponen penilaian maksimal ${MAX_MK_BOBOT}%.`);
+      return;
+    }
+    if (missingPermissions.length) {
+      toast.error("Akun belum memiliki izin sumber penilaian: " + missingPermissions.join(", ") + ".");
       return;
     }
     setSaving(true);
     try {
-      for (const cpmk of items) {
-        for (const removed of cpmk.removedSumber || []) {
-          await deleteResourceItem("sumber-penilaian", removed.id);
-        }
-        for (const row of cpmk.sumberPenilaian || []) {
-          const payload = {
-            cpmk_id: cpmk.id,
-            nama_sumber_penilaian: row.nama_sumber_penilaian,
-            bobot: Number(row.bobot || 0),
-          };
-          if (row.isNew) {
-            if (!payload.nama_sumber_penilaian) continue;
-            await createResourceItem("sumber-penilaian", payload);
-          } else {
-            await updateResourceItem("sumber-penilaian", row.id, payload);
-          }
+      for (const operation of saveOperations) {
+        if (operation.type === "create") {
+          await createResourceItem("sumber-penilaian", operation.payload);
+        } else if (operation.type === "update") {
+          await updateResourceItem("sumber-penilaian", operation.id, operation.payload);
+        } else {
+          await deleteResourceItem("sumber-penilaian", operation.id);
         }
       }
-      toast.success("Pengaturan CPMK semester disimpan");
+      toast.success(operations.length ? "Pemetaan komponen penilaian berhasil disimpan." : "Tidak ada perubahan untuk disimpan.");
       navigate(back);
     } catch (err) {
       toast.error(err.message || "Gagal menyimpan CPMK semester");
@@ -103,11 +126,7 @@ export const AturCPMKSemesterPage = () => {
       />
 
       <Card title={`Sumber penilaian untuk ${mkLabel(mk.data)}`}>
-        <AturCPMKSemesterForm
-          items={items}
-          onChange={setItems}
-          disabled={!cpmkOpen || cpmkPeriod.isPending}
-        />
+        <AturCPMKSemesterForm items={items} columns={columns} onChange={setColumns} disabled={!cpmkOpen || cpmkPeriod.isPending || saving} />
         <div className="mt-6 flex justify-end gap-2">
           <Button
             variant="ghost"
@@ -120,31 +139,28 @@ export const AturCPMKSemesterPage = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() =>
-              setItems(
-                query.data?.map((row) => ({
-                  ...row,
-                  sumberPenilaian: row.sumberPenilaian || [],
-                })) || [],
-              )
-            }
+            onClick={() => setColumns(buildAssessmentMatrix(items))}
             disabled={saving}
           >
             Reset
           </Button>
           {cpmkOpen && (
-            <Can I="update" a="Cpmk">
-              <Button
-                size="sm"
-                onClick={save}
-                isLoading={saving}
-                disabled={bobotMelebihiMaks(items)}
-              >
-                Simpan
-              </Button>
-            </Can>
+            <Button
+              size="sm"
+              onClick={save}
+              isLoading={saving}
+              disabled={overMax || hasUnnamedSelectedColumn || missingPermissions.length > 0}
+              title={missingPermissions.length ? "Perlu izin sumber penilaian: " + missingPermissions.join(", ") : undefined}
+            >
+              Simpan
+            </Button>
           )}
         </div>
+        {missingPermissions.length > 0 && (
+          <p className="mt-3 text-right text-xs text-warning">
+            Perubahan ini memerlukan izin sumber penilaian: {missingPermissions.join(", ")}. Minta admin memperbarui akses role.
+          </p>
+        )}
       </Card>
     </div>
   );

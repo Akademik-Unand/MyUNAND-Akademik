@@ -262,6 +262,7 @@ describe("filterNavigation", () => {
     expect(pathsOf(filterNavigation(NAVIGATION_MENU, mahasiswa))).toEqual([
       "/",
       "/krs/pengambilan",
+      "/krs/riwayat",
     ]);
   });
 
