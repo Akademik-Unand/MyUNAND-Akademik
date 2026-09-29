@@ -17,6 +17,7 @@ const {
 const AppError = require('../../helpers/AppError');
 const { toNilaiAngka, toNilaiHuruf, scpLabel } = require('../../helpers/nilaiHuruf');
 const { enforceDosenClassScope } = require('../../helpers/dosenScope');
+const { getNilaiAssessmentReadiness } = require('../../helpers/nilaiAssessment');
 
 const scpInclude = {
   model: Scp,
@@ -81,6 +82,8 @@ const getMatriksByKelas = async (kelasId, userId, options = {}) => {
     order: [['createdAt', 'ASC']],
   });
 
+  const assessment = await getNilaiAssessmentReadiness(kelas.matakuliah_id);
+
   const groups = buildGroups(cpmkRows);
   const sumber = groups.flatMap((group) => group.sumber);
 
@@ -126,6 +129,7 @@ const getMatriksByKelas = async (kelasId, userId, options = {}) => {
   return {
     kelas_id: kelas.id,
     matakuliah_id: kelas.matakuliah_id,
+    assessment,
     groups,
     peserta,
   };

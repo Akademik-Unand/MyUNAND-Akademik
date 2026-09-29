@@ -1,4 +1,7 @@
 import { useMemo, useState } from "react";
+import { flattenSumber } from "../../helpers/nilaiCsv";
+
+const EMPTY_GROUPS = [];
 
 const matchesSearch = (row, search) => {
   if (!search) return true;
@@ -18,9 +21,17 @@ const formatScore = (value) => {
   return value;
 };
 
-export const NilaiPesertaMatrix = ({ data }) => {
+export const NilaiPesertaMatrix = ({
+  data,
+  editable = false,
+  savingStudentId = null,
+  onSaveStudent,
+}) => {
   const [search, setSearch] = useState("");
-  const groups = data?.groups || [];
+  const [drafts, setDrafts] = useState({});
+  const groups = data?.groups || EMPTY_GROUPS;
+  const sources = useMemo(() => flattenSumber(groups), [groups]);
+  const assessment = data?.assessment;
   const peserta = useMemo(
     () => (data?.peserta || []).filter((row) => matchesSearch(row, search)),
     [data?.peserta, search],
@@ -30,8 +41,54 @@ export const NilaiPesertaMatrix = ({ data }) => {
     0,
   );
 
+  const saveRow = async (row) => {
+    const values = drafts[row.krs_detil_id] || {};
+    const items = sources.flatMap((source) => {
+      const previous = row.nilai?.[source.id] == null ? null : Number(row.nilai[source.id]);
+      const raw = values[source.id] ?? (previous == null ? "" : String(previous));
+      const next = raw === "" ? null : Number(raw);
+      if (next === previous) return [];
+      return [{ krs_detil_id: row.krs_detil_id, sumber_penilaian_id: source.id, nilai: next }];
+    });
+    if (!items.length) return;
+    const saved = await onSaveStudent?.({ krs_detil_id: row.krs_detil_id, nama: row.nama, items });
+    if (saved) {
+      setDrafts((current) => {
+        const next = { ...current };
+        delete next[row.krs_detil_id];
+        return next;
+      });
+    }
+  };
+
+  const rowHasChanges = (row) => sources.some((source) => {
+    const previous = row.nilai?.[source.id] == null ? null : Number(row.nilai[source.id]);
+    const raw = drafts[row.krs_detil_id]?.[source.id] ?? (previous == null ? "" : String(previous));
+    const next = raw === "" ? null : Number(raw);
+    return next !== previous;
+  });
+  const rowHasInvalidScore = (row) => sources.some((source) => {
+    const raw = drafts[row.krs_detil_id]?.[source.id];
+    if (raw == null || raw === "") return false;
+    const score = Number(raw);
+    return !Number.isFinite(score) || score < 0 || score > 100;
+  });
+
   return (
     <div className="space-y-3">
+      {assessment?.ready === false && (
+        <div role="alert" className="alert alert-warning items-start text-sm">
+          <div>
+            <p className="font-semibold">Nilai belum bisa diinput.</p>
+            <p className="mt-1">Lengkapi sumber penilaian, bobot, dan pemetaan CPMK ke CPL terlebih dahulu.</p>
+            {assessment.errors?.length > 0 && (
+              <ul className="mt-2 list-inside list-disc space-y-1 text-xs">
+                {assessment.errors.map((error) => <li key={error}>{error}</li>)}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="font-medium">Nilai Peserta Kelas</h4>
         <input
@@ -76,6 +133,7 @@ export const NilaiPesertaMatrix = ({ data }) => {
               >
                 Nilai Huruf
               </th>
+              {editable && <th rowSpan={groups.length ? 3 : 1} className="align-bottom">Aksi</th>}
             </tr>
             {groups.length > 0 && (
               <>
@@ -98,7 +156,7 @@ export const NilaiPesertaMatrix = ({ data }) => {
                         className="text-center font-normal min-w-16"
                       >
                         <div>{item.nama}</div>
-                        <div className="text-info">{item.bobot}</div>
+                        <div className="text-info">Bobot {item.bobot}%</div>
                       </th>
                     )),
                   )}
@@ -110,7 +168,7 @@ export const NilaiPesertaMatrix = ({ data }) => {
             {peserta.length === 0 ? (
               <tr>
                 <td
-                  colSpan={5 + colSpan}
+                  colSpan={5 + colSpan + (editable ? 1 : 0)}
                   className="text-center text-base-content/60 py-8"
                 >
                   Tidak ada peserta.
@@ -127,7 +185,24 @@ export const NilaiPesertaMatrix = ({ data }) => {
                   {groups.flatMap((group) =>
                     group.sumber.map((item) => (
                       <td key={item.id} className="text-center">
-                        {formatScore(row.nilai?.[item.id])}
+                        {editable ? (
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            className="input input-xs w-20 text-center"
+                            aria-label={`${item.nama} untuk ${row.nama}`}
+                            value={drafts[row.krs_detil_id]?.[item.id] ?? (row.nilai?.[item.id] == null ? "" : String(row.nilai[item.id]))}
+                            onChange={(event) => setDrafts((current) => ({
+                              ...current,
+                              [row.krs_detil_id]: {
+                                ...(current[row.krs_detil_id] || {}),
+                                [item.id]: event.target.value,
+                              },
+                            }))}
+                          />
+                        ) : formatScore(row.nilai?.[item.id])}
                       </td>
                     )),
                   )}
@@ -137,6 +212,18 @@ export const NilaiPesertaMatrix = ({ data }) => {
                   <td className="text-center bg-info/10">
                     {row.nilai_huruf ?? ""}
                   </td>
+                  {editable && (
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-xs"
+                        disabled={savingStudentId != null || !rowHasChanges(row) || rowHasInvalidScore(row)}
+                        onClick={() => saveRow(row)}
+                      >
+                        {savingStudentId === row.krs_detil_id ? "Menyimpan..." : "Simpan"}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

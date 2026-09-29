@@ -20,6 +20,7 @@ const logger = require('../../utils/logger');
 const { assertNilaiPeriodForKelas, assertNilaiPeriodForKrsDetil } = require('../../helpers/academicPeriod');
 const { nilaiFilters } = require('../../helpers/academicFilters');
 const { enforceDosenClassScope } = require('../../helpers/dosenScope');
+const { getNilaiAssessmentReadiness } = require('../../helpers/nilaiAssessment');
 
 const LIST_OPTIONS = {
   searchFields: [],
@@ -83,7 +84,15 @@ const assertSourceInClass = async (sumberPenilaianId, matakuliahId, transaction)
   if (!source || source.cpmk?.matakuliah_id !== matakuliahId) {
     throw new AppError('Komponen penilaian tidak terhubung dengan mata kuliah kelas ini', 422);
   }
+  await assertClassAssessmentReady(matakuliahId, transaction);
   await assertAssessmentConfiguration([source], transaction);
+};
+
+const assertClassAssessmentReady = async (matakuliahId, transaction) => {
+  const readiness = await getNilaiAssessmentReadiness(matakuliahId, transaction);
+  if (!readiness.ready) {
+    throw new AppError(`Nilai belum dapat diinput. Lengkapi sumber penilaian, bobot, dan pemetaan CPMK ke CPL terlebih dahulu: ${readiness.errors.join(' ')}`, 422);
+  }
 };
 
 const assertAssessmentConfiguration = async (sources, transaction) => {
@@ -147,7 +156,11 @@ const uploadBulk = async (payload, userId, options = {}) => {
       throw new AppError('Semua mahasiswa harus berasal dari kelas yang dipilih', 422);
     }
     const targetClassId = kelas_id || details[0]?.kelas_id;
+    if (new Set(details.map((item) => String(item.kelas_id))).size > 1) {
+      throw new AppError('Input nilai manual harus berasal dari satu kelas', 422);
+    }
     await enforceDosenClassScope(userId, targetClassId, { ...options, transaction });
+    await assertClassAssessmentReady(details[0].kelas.matakuliah_id, transaction);
     const detailById = new Map(details.map((item) => [String(item.id), item]));
     const sourceIds = [...new Set(items.map((item) => item.sumber_penilaian_id))];
     const sourceRows = await SumberPenilaian.findAll({
@@ -198,10 +211,11 @@ const uploadBulk = async (payload, userId, options = {}) => {
     }
 
     if (kelas_id) {
+      const manualEntry = file_name === 'Input Manual';
       await HistoryUploadNilai.create({
         kelas_id,
         user_id: userId || null,
-        tipe: 'Bulk Excel / Form',
+        tipe: manualEntry ? 'Input Manual' : 'Bulk Excel / Form',
         file_name: file_name || 'manual_entry.xlsx',
         keterangan: keterangan || `Berhasil mengunggah ${items.length} data nilai`,
       }, { transaction });
