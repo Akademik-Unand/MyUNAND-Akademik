@@ -4,7 +4,7 @@ const asyncHandler = require("../../middleware/asyncHandler");
 const { success } = require("../../helpers/response");
 const authService = require("../../services/auth/auth.service");
 const { getAcademicAdvisor } = require("../../services/auth/academic-advisor.service");
-
+// halo
 const academicAdvisor = asyncHandler(async (req, res) => {
   const data = await getAcademicAdvisor(req.user.id);
   return success(res, { message: "Informasi dosen PA berhasil diambil", data });

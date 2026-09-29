@@ -33,5 +33,7 @@ module.exports = {
     dialect: "mysql",
     logging: false,
     timezone: "+07:00",
+    // Persist successful seeder runs so `db:seed:all` only applies pending seeders.
+    seederStorage: "sequelize",
   },
 };
