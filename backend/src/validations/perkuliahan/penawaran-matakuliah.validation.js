@@ -9,5 +9,6 @@ const create = Joi.object({ semester_id: Joi.string().uuid().required(), program
 const update = create.fork(['semester_id','program_studi_id','matakuliah'], (schema) => schema.optional()).min(1);
 const sync = Joi.object({ matakuliah: Joi.array().items(course).unique('matakuliah_id').required() });
 const catalog = listQuery(['published_at','createdAt'], ['semester_id','program_studi_id','matakuliah_id']);
-const schedule = Joi.object({ ruang_id: Joi.string().uuid().required(), hari: Joi.string().valid('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu').required(), jam_mulai: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/).required(), jam_selesai: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/).required() });
-module.exports = { list, create, update, sync, catalog, schedule, idParam };
+const schedule = Joi.object({ ruang_id: Joi.string().uuid().required(), hari: Joi.string().valid('Senin','Selasa','Rabu','Kamis','Jumat').required(), jam_mulai: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/).required(), jam_selesai: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/).required() });
+const scheduleUpdate = schedule.keys({ hari: Joi.string().valid('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu').required() });
+module.exports = { list, create, update, sync, catalog, schedule, scheduleUpdate, idParam };

@@ -97,7 +97,10 @@ Hanya state klien (auth, sidebar, tema terang/gelap, ukuran huruf). Data API tet
 
 ## 9. Loading — Skeleton
 
-Halaman/list: skeleton (`PageSkeleton`, baris tabel DataTable). Spinner hanya di tombol submit. Saat refetch tabel, redupkan isi (`opacity`) jangan kosongkan baris.
+- Skeleton harus meniru layout dan jenis data yang sedang dimuat: jumlah/posisi kolom tabel, grup/baris, kartu, kalender/grid, filter, serta susunan responsifnya. Gunakan skeleton khusus komponen bila `PageSkeleton` generik tidak cocok.
+- Isi skeleton dengan bentuk dan kepadatan yang mendekati konten sebenarnya, termasuk kolom gabung (`rowSpan`) atau struktur bertingkat bila ada. Jangan menampilkan skeleton kartu atau tabel generik di dalam area yang bentuk akhirnya berbeda.
+- Halaman/list boleh memakai `PageSkeleton` bila bentuk halamannya memang cocok; tabel memakai baris `TableSkeleton`. Saat refetch tabel, redupkan isi (`opacity`) dan pertahankan baris yang sudah tampil.
+- Spinner hanya di tombol submit; hindari mengganti seluruh halaman dengan spinner untuk proses lokal.
 
 ## 10. Overlay — Modal, Drawer, Hapus
 

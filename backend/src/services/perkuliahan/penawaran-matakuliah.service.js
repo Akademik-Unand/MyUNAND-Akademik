@@ -24,6 +24,7 @@ const { paginate, normalizeListQuery } = require("../../helpers/listQuery");
 const AppError = require("../../helpers/AppError");
 const { restoreRecord } = require("../../helpers/softDelete");
 const { assertJadwalValid } = require("../../helpers/jadwalConflict");
+const { assertTeachingDay } = require("../../helpers/teachingDay");
 const { assertKrsPeriodForSemester } = require("../../helpers/academicPeriod");
 const { deriveTotalCapacity } = require("../../helpers/kelasCapacity");
 
@@ -463,6 +464,7 @@ const remove = async (id) => {
 };
 const createSchedule = (detailId, classId, payload) =>
   sequelize.transaction(async (transaction) => {
+    assertTeachingDay(payload.hari);
     const kelas = await Kelas.findOne({
       where: { id: classId, penawaran_matakuliah_id: detailId },
       transaction,
@@ -489,6 +491,7 @@ const updateSchedule = (detailId, classId, id, payload) =>
       lock: transaction.LOCK.UPDATE,
     });
     if (!row) throw new AppError("Jadwal tidak ditemukan", 404);
+    assertTeachingDay(payload.hari, row.hari);
     await assertJadwalValid({ ...row.toJSON(), ...payload }, { excludeId: id, transaction });
     return row.update(payload, { transaction });
   });

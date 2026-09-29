@@ -24,7 +24,7 @@ const pickGlobal = (value = {}) => ({
 export const useAcademicFilter = ({
   keys = DEFAULT_KEYS,
   scope: scopeOverride,
-  defaultSemesterToActive = false,
+  defaultSemesterToActive = true,
 } = {}) => {
   const raw = useFilterOptions();
   const ownScope = useOrgScope();
@@ -53,13 +53,12 @@ export const useAcademicFilter = ({
         .map((key) => [LOCAL_STATE_KEYS[key], ""])
         .filter(([key]) => key),
     );
-    if (semesterConfigurable && global.prodiId && activeSemesterId) {
+    if (semesterConfigurable && activeSemesterId) {
       base.semesterId = activeSemesterId;
     }
     return base;
   }, [
     localKeys,
-    global.prodiId,
     activeSemesterId,
     semesterConfigurable,
   ]);

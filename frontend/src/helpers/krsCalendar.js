@@ -1,6 +1,6 @@
 import { HARI_JADWAL, jadwalBertabrakan } from "./jadwal";
 
-export const KRS_CALENDAR_DAYS = [...HARI_JADWAL, "Minggu"];
+export const KRS_CALENDAR_DAYS = [...HARI_JADWAL];
 
 // TIME diperlakukan sebagai jam lokal perkuliahan, tanpa konversi Date/timezone.
 const minutes = (value) => {

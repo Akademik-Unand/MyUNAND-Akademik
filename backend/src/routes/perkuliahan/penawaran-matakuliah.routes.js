@@ -66,7 +66,7 @@ router.post(
 router.put(
   "/:id/classes/:classId/schedules/:scheduleId",
   ...guard("schedule"),
-  validate({ params: ids, body: v.schedule }),
+  validate({ params: ids, body: v.scheduleUpdate }),
   c.updateSchedule,
 );
 router.delete(

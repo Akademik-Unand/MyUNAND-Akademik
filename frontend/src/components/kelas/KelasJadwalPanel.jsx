@@ -12,16 +12,9 @@ import { IconButton } from "../common/IconButton";
 import { useResourceQuery } from "../../hooks/useResourceQuery";
 import { useResourceMutations } from "../../hooks/useResourceMutations";
 import { useCan } from "../../hooks/useCan";
+import { HARI_JADWAL } from "../../helpers/jadwal";
 
-const HARI_OPTIONS = [
-  "Senin",
-  "Selasa",
-  "Rabu",
-  "Kamis",
-  "Jumat",
-  "Sabtu",
-  "Minggu",
-].map((hari) => ({
+const HARI_OPTIONS = HARI_JADWAL.map((hari) => ({
   value: hari,
   label: hari,
 }));
@@ -87,6 +80,11 @@ export const KelasJadwalPanel = ({ kelas }) => {
     value: row.id,
     label: `${row.kode} (${formatJam(row.jam_mulai)}–${formatJam(row.jam_selesai)})`,
   }));
+  const hariOptions = [...HARI_OPTIONS];
+  const legacyHari = jadwalModal?.mode === "edit" ? jadwalModal.row?.hari : null;
+  if (legacyHari && !HARI_JADWAL.includes(legacyHari)) {
+    hariOptions.push({ value: legacyHari, label: `${legacyHari} (jadwal lama)` });
+  }
 
   const addDosen = async (event) => {
     event.preventDefault();
@@ -360,7 +358,7 @@ export const KelasJadwalPanel = ({ kelas }) => {
             <Select
               label="Hari *"
               placeholder="Pilih hari"
-              options={HARI_OPTIONS}
+              options={hariOptions}
               value={jadwalValues.hari}
               onChange={(e) =>
                 setJadwalValues((prev) => ({ ...prev, hari: e.target.value }))

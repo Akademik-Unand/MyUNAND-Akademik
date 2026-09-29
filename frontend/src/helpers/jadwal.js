@@ -4,7 +4,6 @@ export const HARI_JADWAL = [
   "Rabu",
   "Kamis",
   "Jumat",
-  "Sabtu",
 ];
 
 export const formatJam = (value) => (value ? String(value).slice(0, 5) : "");

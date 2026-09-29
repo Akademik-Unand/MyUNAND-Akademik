@@ -9,8 +9,9 @@ import { Badge } from "../../components/ui/Badge";
 import { Modal } from "../../components/ui/Modal";
 import { FormActions } from "../../components/common/FormActions";
 import { ConfirmDeleteModal } from "../../components/common/ConfirmDeleteModal";
-import { PageSkeleton } from "../../components/common/PageSkeleton";
 import { JadwalGrid } from "../../components/jadwal/JadwalGrid";
+import { JadwalGridSkeleton } from "../../components/jadwal/JadwalGridSkeleton";
+import { JadwalKelasDetailModal } from "../../components/jadwal/JadwalKelasDetailModal";
 import { useResourceQuery } from "../../hooks/useResourceQuery";
 import { useResourceMutations } from "../../hooks/useResourceMutations";
 import { useCan } from "../../hooks/useCan";
@@ -134,6 +135,7 @@ export const JadwalRuangPage = () => {
   );
 
   const [modal, setModal] = useState(null);
+  const [detailKelas, setDetailKelas] = useState(null);
   const [values, setValues] = useState({ shift_id: "", ruang_id: "" });
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -368,7 +370,7 @@ export const JadwalRuangPage = () => {
         }
       >
         {loading ? (
-          <PageSkeleton cards={1} />
+          <JadwalGridSkeleton />
         ) : !semesterKey ? (
           <p className="text-sm text-base-content/60">
             Pilih program studi terlebih dahulu.
@@ -381,6 +383,7 @@ export const JadwalRuangPage = () => {
             canUpdate={canUpdate}
             onAdd={openAdd}
             onEdit={openEdit}
+            onView={setDetailKelas}
           />
         )}
         {semesterKey && !shiftList.length && (
@@ -390,6 +393,11 @@ export const JadwalRuangPage = () => {
           </p>
         )}
       </Card>
+
+      <JadwalKelasDetailModal
+        kelas={detailKelas}
+        onClose={() => setDetailKelas(null)}
+      />
 
       <Modal
         open={Boolean(modal)}

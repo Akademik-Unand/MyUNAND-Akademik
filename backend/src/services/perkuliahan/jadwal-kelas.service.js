@@ -4,6 +4,7 @@ const { JadwalKelas, Kelas, Ruang, Shift, ProgramStudi } = require('../../models
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { assertJadwalValid } = require('../../helpers/jadwalConflict');
+const { assertTeachingDay } = require('../../helpers/teachingDay');
 
 const LIST_OPTIONS = {
   searchFields: [],
@@ -47,6 +48,7 @@ const resolveShift = async (payload, transaction) => {
 };
 
 const create = async (payload) => {
+  assertTeachingDay(payload.hari);
   const resolved = await resolveShift(payload);
   await assertJadwalValid(resolved);
   const item = await JadwalKelas.create(resolved);
@@ -55,6 +57,7 @@ const create = async (payload) => {
 
 const update = async (id, payload) => {
   const item = await getById(id);
+  assertTeachingDay(payload.hari, item.hari);
   const resolved = await resolveShift({ ...item.toJSON(), ...payload });
   await assertJadwalValid(resolved, { excludeId: id });
   await item.update(payload);

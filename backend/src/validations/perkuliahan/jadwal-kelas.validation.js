@@ -8,7 +8,7 @@ const create = Joi.object({
     kelas_id: Joi.string().uuid().required(),
     ruang_id: Joi.string().uuid().allow(null),
     shift_id: Joi.string().uuid().allow(null),
-    hari: Joi.string().valid('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu').required(),
+    hari: Joi.string().valid('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat').required(),
     jam_mulai: Joi.string().allow(null),
     jam_selesai: Joi.string().allow(null),
 });

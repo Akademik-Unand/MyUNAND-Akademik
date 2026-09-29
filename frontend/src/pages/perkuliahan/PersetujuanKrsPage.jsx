@@ -77,9 +77,8 @@ export const PersetujuanKrsPage = () => {
   });
   const semesterRows = semesterQuery.data || [];
   const defaultSemester =
-    semesterRows.find((row) => row.is_aktif && row.pending_count > 0) ||
-    semesterRows.find((row) => row.pending_count > 0) ||
     semesterRows.find((row) => row.is_aktif) ||
+    semesterRows.find((row) => row.pending_count > 0) ||
     semesterRows[0];
   const [draftSemester, setDraftSemester] = useState('');
   const [appliedSemester, setAppliedSemester] = useState('');
