@@ -15,7 +15,10 @@ export const coursesForProgram = (courses, programId) =>
 
 export const activeOfferingProgramId = (offerings, selectedId, ownProgramId) => {
   const availableIds = new Set((offerings || []).map((row) => row.program_studi_id));
-  if (selectedId && availableIds.has(selectedId)) return selectedId;
+  // Prodi sendiri tetap pilihan yang valid meski belum membuka penawaran.
+  // Dengan begitu pilihan dropdown tidak meloncat kembali ke prodi lintas.
+  if (selectedId && (availableIds.has(selectedId) || selectedId === ownProgramId))
+    return selectedId;
   if (ownProgramId && availableIds.has(ownProgramId)) return ownProgramId;
   return (
     (offerings || []).find((row) => row.program_studi_id !== ownProgramId)

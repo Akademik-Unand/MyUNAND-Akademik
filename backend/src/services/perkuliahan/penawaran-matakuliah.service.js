@@ -383,6 +383,11 @@ const catalog = async (query) => {
   const programStudiId = normalizedQuery.filter?.program_studi_id;
   const matakuliahId = normalizedQuery.filter?.matakuliah_id;
   const semesterId = normalizedQuery.filter?.semester_id;
+  // Filter prodi/semester sudah diterapkan oleh `where` katalog di bawah.
+  // Jangan teruskan ke `paginate`: filterableFields kosong berarti pakai semua
+  // atribut model, sehingga program_studi_id akan membatasi hasil ke prodi host.
+  const paginationQuery = { ...normalizedQuery };
+  delete paginationQuery.filter;
   const detailWhere = matakuliahId
     ? { matakuliah_id: matakuliahId }
     : undefined;
@@ -400,7 +405,7 @@ const catalog = async (query) => {
   if (and.length) where[Op.and] = and;
   // `paginate` hanya membaca klausa where dari `findOptions.where`; where
   // top-level akan diabaikan sehingga draft ikut tampil. Selalu taruh di sini.
-  return paginate(PenawaranMatakuliah, normalizedQuery, {
+  return paginate(PenawaranMatakuliah, paginationQuery, {
     ...options,
     filterableFields: [],
     findOptions: { ...options.findOptions, where },

@@ -393,6 +393,40 @@ export const PengambilanKrsPage = () => {
                 Gagal memuat penawaran terbaru. Muat ulang jadwal sebelum mengambil kelas.
               </p>
             )}
+            <div className="mb-4 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-base-content/70">Program studi:</span>
+                <Select
+                  size="sm"
+                  className="min-w-56"
+                  options={prodiOptions}
+                  value={activeProdiId || ""}
+                  onChange={(e) => {
+                    setSelectedProdi(e.target.value);
+                    setPreviewTarget(null);
+                  }}
+                />
+                {offering && !isOwnOffer && (
+                  <Badge variant="info" size="xs">Lintas Prodi</Badge>
+                )}
+              </div>
+              {hasCrossProdi ? (
+                <div className="flex items-start gap-2 rounded-lg border border-base-300 bg-base-200 px-3 py-2">
+                  <Info size={16} className="mt-0.5 shrink-0 text-info" />
+                  <p className="text-xs text-base-content/70">
+                    Anda juga bisa mengambil mata kuliah dari program studi
+                    lain. Pilih program studi lain pada daftar di atas untuk
+                    melihatnya. Pengambilan lintas prodi menunggu persetujuan
+                    dosen PA.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-base-content/60">
+                  Belum ada mata kuliah dari program studi lain yang dibuka untuk semester ini.
+                </p>
+              )}
+            </div>
+
             {!offering ? (
               <p className="text-sm text-base-content/60">
                 {semester
@@ -401,45 +435,6 @@ export const PengambilanKrsPage = () => {
               </p>
             ) : (
               <>
-                <div className="mb-4 space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm text-base-content/70">
-                      Program studi:
-                    </span>
-                    <Select
-                      size="sm"
-                      className="min-w-56"
-                      options={prodiOptions}
-                      value={activeProdiId || ""}
-                      onChange={(e) => {
-                        setSelectedProdi(e.target.value);
-                        setPreviewTarget(null);
-                      }}
-                    />
-                    {!isOwnOffer && (
-                      <Badge variant="info" size="xs">
-                        Lintas Prodi
-                      </Badge>
-                    )}
-                  </div>
-                  {hasCrossProdi ? (
-                    <div className="flex items-start gap-2 rounded-lg border border-base-300 bg-base-200 px-3 py-2">
-                      <Info size={16} className="mt-0.5 shrink-0 text-info" />
-                      <p className="text-xs text-base-content/70">
-                        Anda juga bisa mengambil mata kuliah dari program studi
-                        lain. Pilih program studi lain pada daftar di atas untuk
-                        melihatnya — pengambilan lintas prodi menunggu
-                        persetujuan dosen PA.
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-base-content/60">
-                      Belum ada mata kuliah dari program studi lain yang dibuka
-                      untuk semester ini.
-                    </p>
-                  )}
-                </div>
-
                 <DataTable
                   data={pickRows}
                   tableKey="krs_pick_"
