@@ -56,12 +56,22 @@ const assertKapasitasRuang = async ({ kelas_id, ruang_id }, transaction) => {
   }
 };
 
-const baseWhere = ({ hari, jam_mulai, jam_selesai }, excludeId) => ({
-  hari,
-  ...(excludeId ? { id: { [Op.ne]: excludeId } } : {}),
-  jam_mulai: { [Op.lt]: jam_selesai },
-  jam_selesai: { [Op.gt]: jam_mulai },
-});
+const baseWhere = ({ hari, jam_mulai, jam_selesai, frekuensi = 'Mingguan' }, excludeId) => {
+  const where = {
+    hari,
+    ...(excludeId ? { id: { [Op.ne]: excludeId } } : {}),
+    jam_mulai: { [Op.lt]: jam_selesai },
+    jam_selesai: { [Op.gt]: jam_mulai },
+  };
+
+  if (frekuensi === 'Ganjil') {
+    where.frekuensi = { [Op.in]: ['Mingguan', 'Ganjil'] };
+  } else if (frekuensi === 'Genap') {
+    where.frekuensi = { [Op.in]: ['Mingguan', 'Genap'] };
+  }
+
+  return where;
+};
 
 /**
  * Kelas pengikut jadwal bentrok. Bila `semesterId` diketahui, kelas dibatasi ke

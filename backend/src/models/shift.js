@@ -4,10 +4,7 @@ const { Model, DataTypes } = require("sequelize");
 module.exports = (sequelize) => {
   class Shift extends Model {
     static associate(models) {
-      Shift.belongsTo(models.Fakultas, {
-        foreignKey: "fakultas_id",
-        as: "fakultas",
-      });
+      // no associations needed for now
     }
   }
   Shift.init(
@@ -17,7 +14,11 @@ module.exports = (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      fakultas_id: { type: DataTypes.UUID, allowNull: false },
+      sistem_sks: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+        defaultValue: "2 SKS",
+      },
       kode: { type: DataTypes.STRING(50), allowNull: false },
       jam_mulai: { type: DataTypes.TIME, allowNull: false },
       jam_selesai: { type: DataTypes.TIME, allowNull: false },

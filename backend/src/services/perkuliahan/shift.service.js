@@ -6,11 +6,11 @@ const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
 
 const LIST_OPTIONS = {
-  searchFields: ['kode'],
-  sortableFields: ['kode', 'jam_mulai', 'jam_selesai', 'createdAt'],
-  filterableFields: ['fakultas_id'],
-  defaultInclude: [{ model: Fakultas, as: 'fakultas' }],
-  defaultOrder: [['kode', 'ASC']],
+  searchFields: ['kode', 'sistem_sks'],
+  sortableFields: ['kode', 'jam_mulai', 'jam_selesai', 'sistem_sks', 'createdAt'],
+  filterableFields: ['sistem_sks'],
+  defaultInclude: [],
+  defaultOrder: [['sistem_sks', 'ASC'], ['kode', 'ASC']],
 };
 
 const list = (query) => paginate(Shift, query, LIST_OPTIONS);
