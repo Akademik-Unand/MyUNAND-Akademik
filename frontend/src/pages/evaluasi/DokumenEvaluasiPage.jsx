@@ -17,7 +17,7 @@ export const DokumenEvaluasiPage = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const contextualSemester = searchParams.get("semester_id") || "";
-  const [semester, setSemester] = useState(contextualSemester);
+  const semester = contextualSemester;
   const [tab, setTab] = useState("daftar");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [form, setForm] = useState({
@@ -70,8 +70,6 @@ export const DokumenEvaluasiPage = () => {
 
   return (
     <MKSemesterLayout
-      semester={semester}
-      onSemesterChange={setSemester}
       action={
         <Can I="create" a="DokumenEvaluasi">
           <Button

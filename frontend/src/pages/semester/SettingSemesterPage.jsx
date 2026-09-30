@@ -129,7 +129,7 @@ export const SettingSemesterPage = () => {
           resource="setting-semester"
           columns={columns}
           rowKey={(row) => row.id}
-          searchPlaceholder="Cari tahun ajaran atau semester..."
+          searchPlaceholder="Cari tahun atau jenis semester..."
         />
       </Card>
 
@@ -138,7 +138,7 @@ export const SettingSemesterPage = () => {
         onClose={() => setDetail(null)}
         title="Detail Setting Semester"
         subtitle={
-          detail ? `${detail.jenisSemester?.nama || ""} ${detail.tahun}` : ""
+          detail ? semesterAkademikLabel(detail) : ""
         }
       >
         {detail && (
@@ -163,7 +163,7 @@ export const SettingSemesterPage = () => {
         title="Hapus Setting Semester"
         message={
           deleteTarget
-            ? `Yakin ingin menghapus ${deleteTarget.jenisSemester?.nama || "semester"} ${deleteTarget.tahun}?`
+            ? `Yakin ingin menghapus semester ${semesterAkademikLabel(deleteTarget)}?`
             : ""
         }
         onConfirm={async () => {

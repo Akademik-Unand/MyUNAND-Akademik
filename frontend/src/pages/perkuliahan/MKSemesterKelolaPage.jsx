@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { MKSemesterLayout } from "../../components/mk-semester/MKSemesterLayout";
 import { CPMKSemesterTable } from "../../components/mk-semester/CPMKSemesterTable";
@@ -14,7 +13,6 @@ export const MKSemesterKelolaPage = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const contextualSemester = searchParams.get("semester_id") || "";
-  const [semester, setSemester] = useState(contextualSemester);
   const query = useResourceQuery("cpmk-semester", {
     params: id ? { filter: { matakuliah_id: id } } : {},
     enabled: Boolean(id),
@@ -25,7 +23,7 @@ export const MKSemesterKelolaPage = () => {
   if (query.isPending) return <PageSkeleton showFilter={false} tableCols={4} />;
 
   return (
-    <MKSemesterLayout semester={semester} onSemesterChange={setSemester}>
+    <MKSemesterLayout>
       <PeriodOperationNotice
         period={cpmkPeriod.period}
         label="CPMK dan sumber penilaian"

@@ -1,3 +1,5 @@
+import { semesterAkademikLabel } from "./academicLabel";
+
 export const EMPTY_ACADEMIC_FILTER = {
   fakultasId: "",
   departemenId: "",
@@ -155,8 +157,7 @@ export const cascadeAcademicOptions = (
     ),
     semester: toOptions(
       rows.semester,
-      (row) =>
-        `${row.jenisSemester?.nama || row.jenisSemester?.alias || "Semester"} ${row.tahun}`,
+      semesterAkademikLabel,
     ),
   };
 };

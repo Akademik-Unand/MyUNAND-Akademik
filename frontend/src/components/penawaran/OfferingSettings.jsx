@@ -1,11 +1,12 @@
 import { Select } from "../ui/Select";
 import { useFilterOptions } from "../../hooks/useFilterOptions";
+import { semesterAkademikLabel } from "../../helpers/academicLabel";
 
 export const OfferingSettings = ({ values, onChange }) => {
   const raw = useFilterOptions();
   const semesterOptions = (raw.semesterRows || []).map((row) => ({
     value: row.id,
-    label: `${row.jenisSemester?.nama || row.jenisSemester?.alias || "Semester"} ${row.tahun}${row.is_aktif ? " (Aktif)" : ""}`,
+    label: `${semesterAkademikLabel(row)}${row.is_aktif ? " (Aktif)" : ""}`,
   }));
 
   const update = (changes) => onChange({ ...values, ...changes });

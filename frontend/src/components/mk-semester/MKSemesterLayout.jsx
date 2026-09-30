@@ -1,8 +1,7 @@
 import { NavLink, useParams, useSearchParams } from "react-router-dom";
 import { PageHeader } from "../common/PageHeader";
 import { Card } from "../ui/Card";
-import { ResourceSelect } from "../common/ResourceSelect";
-import { useResourceItem } from "../../hooks/useResourceQuery";
+import { useResourceItem, useResourceQuery } from "../../hooks/useResourceQuery";
 import { PageSkeleton } from "../common/PageSkeleton";
 import { mkKode, mkLabel } from "../../helpers/mkSemester";
 import { semesterAkademikLabel } from "../../helpers/academicLabel";
@@ -10,19 +9,29 @@ import { semesterAkademikLabel } from "../../helpers/academicLabel";
 export const MKSemesterLayout = ({
   children,
   action,
-  semester,
-  onSemesterChange,
 }) => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const contextualSemester = searchParams.get("semester_id") || "";
-  const semesterValue = contextualSemester || semester || "";
   const semesterQuery = useResourceItem("setting-semester", contextualSemester);
+  const activeSemestersQuery = useResourceQuery("setting-semester", {
+    enabled: !contextualSemester,
+  });
+  const activeSemester = activeSemestersQuery.data?.find((row) => row.is_aktif);
   const semesterSuffix = contextualSemester
     ? `?semester_id=${encodeURIComponent(contextualSemester)}`
     : "";
   const mkQuery = useResourceItem("matakuliah", id);
   const mk = mkQuery.data;
+  const semesterLabel = contextualSemester
+    ? semesterQuery.isPending
+      ? "Memuat semester..."
+      : semesterAkademikLabel(semesterQuery.data)
+    : activeSemestersQuery.isPending
+      ? "Memuat semester..."
+      : activeSemester
+        ? semesterAkademikLabel(activeSemester)
+        : "Belum ada semester aktif";
 
   if (mkQuery.isPending) return <PageSkeleton cards={2} />;
 
@@ -47,25 +56,10 @@ export const MKSemesterLayout = ({
       />
 
       <Card>
-        {contextualSemester ? (
-          <div>
-            <p className="text-sm text-base-content/60">Semester</p>
-            <p className="mt-1 font-medium">
-              {semesterQuery.isPending ? "Memuat semester..." : semesterAkademikLabel(semesterQuery.data)}
-            </p>
-          </div>
-        ) : (
-          <ResourceSelect
-            resource="setting-semester"
-            label="Semester"
-            size="sm"
-            value={semesterValue}
-            onChange={(e) => onSemesterChange?.(e.target.value)}
-            getLabel={(row) =>
-              `${row.jenisSemester?.nama || "Semester"} ${row.tahun}`
-            }
-          />
-        )}
+        <div>
+          <p className="text-sm text-base-content/60">Semester</p>
+          <p className="mt-1 font-medium">{semesterLabel}</p>
+        </div>
       </Card>
 
       <Card>

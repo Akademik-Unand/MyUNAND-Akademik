@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import Chart from "react-apexcharts";
 import { MKSemesterLayout } from "../../components/mk-semester/MKSemesterLayout";
@@ -16,7 +15,7 @@ export const EvaluasiCPMKPage = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const contextualSemester = searchParams.get("semester_id") || "";
-  const [semester, setSemester] = useState(contextualSemester);
+  const semester = contextualSemester;
   const [tab, setTab] = useState("rangkuman");
   const scoped = Boolean(id && semester);
   const evaluasiFilter = scoped
@@ -51,7 +50,7 @@ export const EvaluasiCPMKPage = () => {
   ];
 
   return (
-    <MKSemesterLayout semester={semester} onSemesterChange={setSemester}>
+    <MKSemesterLayout>
       {!scoped ? (
         <DataGate
           title="Pilih semester dulu"

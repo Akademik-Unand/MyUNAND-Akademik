@@ -1,11 +1,7 @@
 export const semesterAkademikLabel = (semester) => {
   if (!semester) return "—";
   const jenis = semester.jenisSemester?.nama || semester.jenisSemester?.alias;
-  const tahun = Number(semester.tahun);
-  const tahunAjaran = Number.isFinite(tahun)
-    ? `${tahun}/${tahun + 1}`
-    : semester.tahun;
-  const term = [jenis, tahunAjaran]
+  const term = [semester.tahun, jenis]
     .filter((part) => part !== undefined && part !== null && part !== "")
     .join(" ");
   return term || "—";

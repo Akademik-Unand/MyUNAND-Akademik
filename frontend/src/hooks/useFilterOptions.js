@@ -1,4 +1,5 @@
 import { useResourceQuery } from "./useResourceQuery";
+import { semesterAkademikLabel } from "../helpers/academicLabel";
 
 const toOptions = (rows, getLabel) =>
   (rows || []).map((row) => ({ value: row.id, label: getLabel(row) }));
@@ -27,8 +28,7 @@ export const useFilterOptions = () => {
     ),
     semester: toOptions(
       semester.data,
-      (row) =>
-        `${row.jenisSemester?.nama || row.jenisSemester?.alias || "Semester"} ${row.tahun}`,
+      semesterAkademikLabel,
     ),
     jenjang: toOptions(
       jenjang.data,
