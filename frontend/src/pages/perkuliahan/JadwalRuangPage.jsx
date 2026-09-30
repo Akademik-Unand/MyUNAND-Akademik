@@ -123,10 +123,7 @@ export const JadwalRuangPage = () => {
   const ruangQuery = useResourceQuery("ruang");
   const ruangList = useMemo(() => ruangQuery.data || [], [ruangQuery.data]);
 
-  const shiftQuery = useResourceQuery("shift", {
-    params: fakultasId ? { filter: { fakultas_id: fakultasId } } : undefined,
-    enabled: Boolean(fakultasId),
-  });
+  const shiftQuery = useResourceQuery("shift");
   const shiftList = shiftQuery.data || [];
 
   const konflik = useMemo(
@@ -136,7 +133,7 @@ export const JadwalRuangPage = () => {
 
   const [modal, setModal] = useState(null);
   const [detailKelas, setDetailKelas] = useState(null);
-  const [values, setValues] = useState({ shift_id: "", ruang_id: "" });
+  const [values, setValues] = useState({ shift_id: "", ruang_id: "", frekuensi: "Mingguan", jam_mulai: "", jam_selesai: "" });
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const jadwalMutations = useResourceMutations("jadwal-kelas", {
@@ -148,7 +145,7 @@ export const JadwalRuangPage = () => {
   const refresh = () => client.invalidateQueries({ queryKey: ["kelas"] });
 
   const openAdd = (kelas, hari) => {
-    setValues({ shift_id: "", ruang_id: "" });
+    setValues({ shift_id: "", ruang_id: "", frekuensi: "Mingguan", jam_mulai: "", jam_selesai: "" });
     setModal({ kelas, hari, jadwal: null });
   };
 
@@ -156,18 +153,24 @@ export const JadwalRuangPage = () => {
     setValues({
       shift_id: jadwal.shift_id || "",
       ruang_id: jadwal.ruang_id || "",
+      frekuensi: jadwal.frekuensi || "Mingguan",
+      jam_mulai: jadwal.jam_mulai || "",
+      jam_selesai: jadwal.jam_selesai || "",
     });
     setModal({ kelas, hari: jadwal.hari, jadwal });
   };
 
   const submit = async (event) => {
     event.preventDefault();
-    if (!values.shift_id) return;
+    if (!values.shift_id && (!values.jam_mulai || !values.jam_selesai)) return;
     const payload = {
       kelas_id: modal.kelas.id,
-      shift_id: values.shift_id,
+      shift_id: values.shift_id || null,
       ruang_id: values.ruang_id || null,
       hari: modal.hari,
+      frekuensi: values.frekuensi,
+      jam_mulai: values.shift_id ? undefined : values.jam_mulai,
+      jam_selesai: values.shift_id ? undefined : values.jam_selesai,
     };
     if (modal.jadwal) {
       await jadwalMutations.update.mutateAsync({
@@ -191,10 +194,13 @@ export const JadwalRuangPage = () => {
   const canUpdate = can("update", "JadwalKelas");
   const canDelete = can("delete", "JadwalKelas");
 
-  const shiftOptions = shiftList.map((row) => ({
-    value: row.id,
-    label: `${row.kode} (${formatJam(row.jam_mulai)}–${formatJam(row.jam_selesai)})`,
-  }));
+  const shiftOptions = [
+    { value: "", label: "-- Waktu Manual (Praktikum/Asistensi) --" },
+    ...shiftList.map((row) => ({
+      value: row.id,
+      label: `[${row.sistem_sks}] ${row.kode} (${formatJam(row.jam_mulai)}–${formatJam(row.jam_selesai)})`,
+    }))
+  ];
 
   const shiftTerpilih =
     shiftList.find((row) => row.id === values.shift_id) || null;
@@ -215,11 +221,11 @@ export const JadwalRuangPage = () => {
         kelasSemester,
         kebutuhanKapasitas,
         hari: modal?.hari,
-        jamMulai: shiftTerpilih?.jam_mulai,
-        jamSelesai: shiftTerpilih?.jam_selesai,
+        jamMulai: shiftTerpilih?.jam_mulai || values.jam_mulai,
+        jamSelesai: shiftTerpilih?.jam_selesai || values.jam_selesai,
         excludeJadwalId: modal?.jadwal?.id,
       }),
-    [ruangList, kelasSemester, kebutuhanKapasitas, modal, shiftTerpilih],
+    [ruangList, kelasSemester, kebutuhanKapasitas, modal, shiftTerpilih, values.jam_mulai, values.jam_selesai],
   );
   const statusRuang = (ruangId) =>
     analisis.find((item) => item.ruang.id === ruangId) || null;
@@ -257,11 +263,16 @@ export const JadwalRuangPage = () => {
   );
 
   const bentrok = (() => {
-    if (!modal || !shiftTerpilih) return [];
+    if (!modal) return [];
+    const jamMulai = shiftTerpilih?.jam_mulai || values.jam_mulai;
+    const jamSelesai = shiftTerpilih?.jam_selesai || values.jam_selesai;
+    if (!jamMulai || !jamSelesai) return [];
+    
     const kandidat = {
       hari: modal.hari,
-      jam_mulai: shiftTerpilih.jam_mulai,
-      jam_selesai: shiftTerpilih.jam_selesai,
+      jam_mulai: jamMulai,
+      jam_selesai: jamSelesai,
+      frekuensi: values.frekuensi,
     };
     const dosenKelas = new Set(
       (modal.kelas?.dosenKelas || []).map((row) => row.dosen_id),
@@ -272,6 +283,15 @@ export const JadwalRuangPage = () => {
         if (jadwal.id === modal.jadwal?.id) continue;
         if (jadwal.hari !== modal.hari || !jamOverlap(jadwal, kandidat))
           continue;
+          
+        // Cek frekuensi (Ganjil vs Genap tidak bentrok)
+        if (
+          (jadwal.frekuensi === "Ganjil" && kandidat.frekuensi === "Genap") ||
+          (jadwal.frekuensi === "Genap" && kandidat.frekuensi === "Ganjil")
+        ) {
+          continue;
+        }
+
         const alasan = new Set();
         if (values.ruang_id && jadwal.ruang_id === values.ruang_id)
           alasan.add("ruang");
@@ -436,12 +456,53 @@ export const JadwalRuangPage = () => {
             </span>
           </div>
           <Select
-            label="Shift *"
-            placeholder="Pilih shift"
+            label="Shift (Template Waktu)"
+            placeholder="Pilih shift..."
             options={shiftOptions}
             value={values.shift_id}
             onChange={(event) =>
               setValues((prev) => ({ ...prev, shift_id: event.target.value }))
+            }
+          />
+          {!values.shift_id && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Jam Mulai *</span>
+                </label>
+                <input
+                  type="time"
+                  className="input input-bordered"
+                  value={values.jam_mulai}
+                  onChange={(e) => setValues(prev => ({ ...prev, jam_mulai: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Jam Selesai *</span>
+                </label>
+                <input
+                  type="time"
+                  className="input input-bordered"
+                  value={values.jam_selesai}
+                  onChange={(e) => setValues(prev => ({ ...prev, jam_selesai: e.target.value }))}
+                  required
+                />
+              </div>
+            </div>
+          )}
+          <Select
+            label="Frekuensi"
+            placeholder="Pilih frekuensi"
+            options={[
+              { value: "Mingguan", label: "Mingguan (Tiap Minggu)" },
+              { value: "Ganjil", label: "Ganjil (Minggu 1, 3, 5...)" },
+              { value: "Genap", label: "Genap (Minggu 2, 4, 6...)" },
+            ]}
+            value={values.frekuensi}
+            onChange={(event) =>
+              setValues((prev) => ({ ...prev, frekuensi: event.target.value }))
             }
             required
           />
@@ -469,7 +530,7 @@ export const JadwalRuangPage = () => {
             </div>
           )}
 
-          {shiftTerpilih && (
+          {(shiftTerpilih || (values.jam_mulai && values.jam_selesai)) && (
             <div className="rounded-box border border-base-300 px-3 py-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs font-medium text-base-content/80">
