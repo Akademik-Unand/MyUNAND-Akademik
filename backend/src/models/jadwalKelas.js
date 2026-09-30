@@ -46,6 +46,11 @@ module.exports = (sequelize) => {
       },
       jam_mulai: { type: DataTypes.TIME, allowNull: true },
       jam_selesai: { type: DataTypes.TIME, allowNull: true },
+      frekuensi: {
+        type: DataTypes.ENUM("Mingguan", "Ganjil", "Genap"),
+        allowNull: false,
+        defaultValue: "Mingguan",
+      },
     },
     {
       sequelize,

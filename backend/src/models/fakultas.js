@@ -16,10 +16,6 @@ module.exports = (sequelize) => {
         foreignKey: "fakultas_id",
         as: "programStudi",
       });
-      Fakultas.hasMany(models.Shift, {
-        foreignKey: "fakultas_id",
-        as: "shift",
-      });
     }
   }
   Fakultas.init(

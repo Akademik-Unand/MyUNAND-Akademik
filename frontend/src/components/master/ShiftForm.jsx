@@ -3,23 +3,21 @@ import { Input } from "../ui/Input";
 import { useResourceQuery } from "../../hooks/useResourceQuery";
 
 export const ShiftForm = ({ values, onChange }) => {
-  const { data: fakultasRows = [] } = useResourceQuery("fakultas");
   const set = (key) => (event) =>
     onChange({ ...values, [key]: event.target.value });
-
-  const fakultasOptions = fakultasRows.map((row) => ({
-    value: row.id,
-    label: `${row.nama_resmi || row.nama_singkat || row.kode_fakultas}${row.nama_singkat ? ` (${row.nama_singkat})` : ""}`,
-  }));
 
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
       <Select
-        label="Fakultas *"
-        placeholder="Pilih fakultas"
-        options={fakultasOptions}
-        value={values.fakultas_id || ""}
-        onChange={set("fakultas_id")}
+        label="Sistem SKS *"
+        placeholder="Pilih sistem"
+        options={[
+          { value: "2 SKS", label: "2 SKS" },
+          { value: "3 SKS", label: "3 SKS" },
+          { value: "Lainnya", label: "Lainnya" },
+        ]}
+        value={values.sistem_sks || ""}
+        onChange={set("sistem_sks")}
         required
       />
       <Input
