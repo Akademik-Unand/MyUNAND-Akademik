@@ -141,38 +141,42 @@ const list = async (query, user) => {
 };
 
 /**
- * Semester yang memiliki KRS mahasiswa bimbingan dosen login. Sumber ini
- * sengaja tidak memakai master `/semester`: dosen tidak memerlukan izin master
- * semester, dan cakupannya harus identik dengan antrean persetujuan KRS.
+ * Semua semester yang tersedia beserta jumlah KRS pending mahasiswa bimbingan.
+ * Endpoint khusus ini menghindari kebutuhan izin master semester untuk dosen PA.
  */
 const listApprovalSemesters = async (user = {}) => {
   const actor = await requireActorDosen(user);
   const adviseeIds = await getAdviseeIds(actor.dosen_id);
-  if (!adviseeIds.length) return [];
-
-  const rows = await Krs.findAll({
-    where: { mahasiswa_id: { [Op.in]: adviseeIds } },
-    attributes: ['id', 'semester_id', 'approval_ke'],
-    include: [
-      { model: Semester, as: 'semester', include: SEMESTER_INCLUDE },
-      {
-        model: KrsDetil,
-        as: 'krsDetil',
-        attributes: ['approved', 'is_cross_enrollment', 'cross_enrollment_status'],
-      },
-    ],
+  const semesterRows = await Semester.findAll({
+    include: SEMESTER_INCLUDE,
+    order: [['tahun', 'DESC'], [{ model: JenisSemester, as: 'jenisSemester' }, 'urut', 'ASC']],
   });
 
-  const semesters = new Map();
+  const semesters = new Map(semesterRows.map((semester) => {
+    const plain = typeof semester?.toJSON === 'function' ? semester.toJSON() : semester;
+    return [plain.id, { ...plain, pending_count: 0 }];
+  }));
+
+  const rows = adviseeIds.length
+    ? await Krs.findAll({
+      where: { mahasiswa_id: { [Op.in]: adviseeIds } },
+      attributes: ['id', 'semester_id', 'approval_ke'],
+      include: [
+        { model: Semester, as: 'semester', include: SEMESTER_INCLUDE },
+        {
+          model: KrsDetil,
+          as: 'krsDetil',
+          attributes: ['approved', 'is_cross_enrollment', 'cross_enrollment_status'],
+        },
+      ],
+    })
+    : [];
+
   for (const row of rows) {
     const plain = typeof row?.toJSON === 'function' ? row.toJSON() : row;
-    if (!plain?.semester?.id) continue;
-    const current = semesters.get(plain.semester.id) || {
-      ...plain.semester,
-      pending_count: 0,
-    };
+    if (!plain?.semester_id || !semesters.has(plain.semester_id)) continue;
+    const current = semesters.get(plain.semester_id);
     if (krsApprovalStatus(plain) === 'pending_pa') current.pending_count += 1;
-    semesters.set(plain.semester.id, current);
   }
 
   return [...semesters.values()].sort((left, right) => {
