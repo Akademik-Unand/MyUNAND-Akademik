@@ -51,7 +51,8 @@ jobs:
           fi
 
           "${COMPOSE[@]}" config --quiet
-          "${COMPOSE[@]}" build backend frontend
+          # Build every service before starting the stack with --no-build.
+          "${COMPOSE[@]}" build
 
           echo "===== DATABASE MIGRATIONS ====="
           "${COMPOSE[@]}" run --rm --no-deps backend npm run db:migrate
@@ -66,31 +67,33 @@ jobs:
           echo "===== STARTING SERVICES ====="
           "${COMPOSE[@]}" up --detach --no-build --remove-orphans
 
-          # Wait up to three minutes for both services to report healthy.
+          # Wait for the HTTP services to be healthy and the worker to run.
           deadline=$((SECONDS + 180))
           while (( SECONDS < deadline )); do
             backend_id=$("${COMPOSE[@]}" ps --all --quiet backend)
             frontend_id=$("${COMPOSE[@]}" ps --all --quiet frontend)
+            worker_id=$("${COMPOSE[@]}" ps --all --quiet penjadwalan-worker)
 
-            if [[ -n "$backend_id" && -n "$frontend_id" ]]; then
+            if [[ -n "$backend_id" && -n "$frontend_id" && -n "$worker_id" ]]; then
               backend_state=$(docker inspect --format '{{.State.Status}}/{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' "$backend_id")
               frontend_state=$(docker inspect --format '{{.State.Status}}/{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' "$frontend_id")
-              echo "backend=$backend_state frontend=$frontend_state"
+              worker_state=$(docker inspect --format '{{.State.Status}}' "$worker_id")
+              echo "backend=$backend_state frontend=$frontend_state worker=$worker_state"
 
-              if [[ "$backend_state" == "running/healthy" && "$frontend_state" == "running/healthy" ]]; then
+              if [[ "$backend_state" == "running/healthy" && "$frontend_state" == "running/healthy" && "$worker_state" == "running" ]]; then
                 "${COMPOSE[@]}" ps
                 echo "===== DEPLOY SUCCESS ====="
                 exit 0
               fi
 
-              if [[ "$backend_state" == exited/* || "$backend_state" == dead/* || "$frontend_state" == exited/* || "$frontend_state" == dead/* ]]; then
+              if [[ "$backend_state" == exited/* || "$backend_state" == dead/* || "$frontend_state" == exited/* || "$frontend_state" == dead/* || "$worker_state" == "exited" || "$worker_state" == "dead" ]]; then
                 break
               fi
             fi
             sleep 5
           done
 
-          echo "ERROR: services did not both become healthy" >&2
+          echo "ERROR: HTTP services are unhealthy or scheduling worker is not running" >&2
           "${COMPOSE[@]}" ps --all >&2 || true
           "${COMPOSE[@]}" logs --no-color --tail=100 >&2 || true
           exit 1
