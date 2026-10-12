@@ -34,14 +34,12 @@ async function prepare(page, { faculty = false } = {}) {
     config: {
       main_buildings: [buildings[0].id],
       backup_buildings: [buildings[1].id],
-      rooms: rooms
-        .slice(0, 2)
-        .map((r) => ({
-          id: r.id,
-          type: "teori",
-          facilities: [],
-          zone: "Limau Manis",
-        })),
+      rooms: rooms.slice(0, 2).map((r) => ({
+        id: r.id,
+        type: "teori",
+        facilities: [],
+        zone: "Limau Manis",
+      })),
       travel: [],
       unavailable: [],
       reservations: [],
@@ -278,4 +276,59 @@ test("new scenario requires explicit groups and submits real session input", asy
     type: "teori",
   });
   expect(state.writes[0].body.input.baseline).toEqual([]);
+});
+
+test("policy page has a distinct card and guides building selection", async ({
+  page,
+}) => {
+  const state = await prepare(page);
+  state.setup.policy.config.main_buildings = [];
+  state.setup.policy.config.backup_buildings = [];
+  await page.goto(
+    `/perkuliahan/penjadwalan?semester=${id(1)}&faculty=${id(3)}`,
+  );
+  await page
+    .getByRole("button", {
+      name: "Kebijakan gedung & sumber daya",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText("1. Tentukan gedung untuk Fakultas Teknologi Informasi"),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Pilih gedung utama atau cadangan di atas untuk menampilkan ruang yang perlu dilengkapi.",
+    ),
+  ).toBeVisible();
+  const card = page
+    .locator(".card")
+    .filter({
+      has: page.getByRole("heading", {
+        name: "Penjadwalan Global",
+        exact: true,
+      }),
+    });
+  await expect(card).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await page
+    .locator("fieldset")
+    .filter({ has: page.locator("legend", { hasText: /^Gedung utama$/ }) })
+    .getByRole("checkbox")
+    .first()
+    .check();
+  await expect(
+    page.getByRole("textbox", { name: "Jenis F101", exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/penjadwalan-policy-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    page.getByRole("button", { name: "Simpan kebijakan fakultas" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/penjadwalan-policy-mobile.png",
+    fullPage: true,
+  });
 });

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { CalendarRange, Trash2 } from "lucide-react";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Card } from "../../components/ui/Card";
 import { Select } from "../../components/ui/Select";
@@ -24,7 +25,10 @@ import {
   deteksiKonflikJadwal,
 } from "../../helpers/jadwal";
 import { kelasDisplayName } from "../../helpers/kelasInfo";
-import { semesterAkademikLabel, programStudiLabel } from "../../helpers/academicLabel";
+import {
+  semesterAkademikLabel,
+  programStudiLabel,
+} from "../../helpers/academicLabel";
 import { filterProdiByScope } from "../../helpers/organizationContext";
 
 const ruangLabel = (ruang) => {
@@ -133,7 +137,13 @@ export const JadwalRuangPage = () => {
 
   const [modal, setModal] = useState(null);
   const [detailKelas, setDetailKelas] = useState(null);
-  const [values, setValues] = useState({ shift_id: "", ruang_id: "", frekuensi: "Mingguan", jam_mulai: "", jam_selesai: "" });
+  const [values, setValues] = useState({
+    shift_id: "",
+    ruang_id: "",
+    frekuensi: "Mingguan",
+    jam_mulai: "",
+    jam_selesai: "",
+  });
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const jadwalMutations = useResourceMutations("jadwal-kelas", {
@@ -145,7 +155,13 @@ export const JadwalRuangPage = () => {
   const refresh = () => client.invalidateQueries({ queryKey: ["kelas"] });
 
   const openAdd = (kelas, hari) => {
-    setValues({ shift_id: "", ruang_id: "", frekuensi: "Mingguan", jam_mulai: "", jam_selesai: "" });
+    setValues({
+      shift_id: "",
+      ruang_id: "",
+      frekuensi: "Mingguan",
+      jam_mulai: "",
+      jam_selesai: "",
+    });
     setModal({ kelas, hari, jadwal: null });
   };
 
@@ -199,7 +215,7 @@ export const JadwalRuangPage = () => {
     ...shiftList.map((row) => ({
       value: row.id,
       label: `[${row.sistem_sks}] ${row.kode} (${formatJam(row.jam_mulai)}–${formatJam(row.jam_selesai)})`,
-    }))
+    })),
   ];
 
   const shiftTerpilih =
@@ -225,7 +241,15 @@ export const JadwalRuangPage = () => {
         jamSelesai: shiftTerpilih?.jam_selesai || values.jam_selesai,
         excludeJadwalId: modal?.jadwal?.id,
       }),
-    [ruangList, kelasSemester, kebutuhanKapasitas, modal, shiftTerpilih, values.jam_mulai, values.jam_selesai],
+    [
+      ruangList,
+      kelasSemester,
+      kebutuhanKapasitas,
+      modal,
+      shiftTerpilih,
+      values.jam_mulai,
+      values.jam_selesai,
+    ],
   );
   const statusRuang = (ruangId) =>
     analisis.find((item) => item.ruang.id === ruangId) || null;
@@ -267,7 +291,7 @@ export const JadwalRuangPage = () => {
     const jamMulai = shiftTerpilih?.jam_mulai || values.jam_mulai;
     const jamSelesai = shiftTerpilih?.jam_selesai || values.jam_selesai;
     if (!jamMulai || !jamSelesai) return [];
-    
+
     const kandidat = {
       hari: modal.hari,
       jam_mulai: jamMulai,
@@ -283,7 +307,7 @@ export const JadwalRuangPage = () => {
         if (jadwal.id === modal.jadwal?.id) continue;
         if (jadwal.hari !== modal.hari || !jamOverlap(jadwal, kandidat))
           continue;
-          
+
         // Cek frekuensi (Ganjil vs Genap tidak bentrok)
         if (
           (jadwal.frekuensi === "Ganjil" && kandidat.frekuensi === "Genap") ||
@@ -310,8 +334,7 @@ export const JadwalRuangPage = () => {
     return hasil;
   })();
 
-  const loading =
-    org.isLoading || Boolean(semesterKey && kelasQuery.isPending);
+  const loading = org.isLoading || Boolean(semesterKey && kelasQuery.isPending);
 
   return (
     <div className="space-y-4">
@@ -320,11 +343,25 @@ export const JadwalRuangPage = () => {
         subtitle="Susun jadwal kelas sekaligus ruangannya per program studi. Sistem menolak bentrok ruang, dosen, dan mahasiswa semester yang sama."
         breadcrumbs={[{ label: "Perkuliahan" }, { label: "Jadwal & Ruang" }]}
         action={
-          konflik.size ? (
-            <Badge variant="error" size="sm">
-              {konflik.size} jadwal bermasalah
-            </Badge>
-          ) : null
+          <div className="flex flex-wrap items-center gap-2">
+            {can("read", "Penjadwalan") && (
+              <Link
+                className="btn btn-primary btn-sm"
+                to={`/perkuliahan/penjadwalan?${new URLSearchParams({
+                  ...(semesterId ? { semester: semesterId } : {}),
+                  ...(fakultasId ? { faculty: fakultasId } : {}),
+                })}`}
+              >
+                <CalendarRange size={16} />
+                Penjadwalan Global
+              </Link>
+            )}
+            {konflik.size ? (
+              <Badge variant="error" size="sm">
+                {konflik.size} jadwal bermasalah
+              </Badge>
+            ) : null}
+          </div>
         }
       />
 
@@ -379,7 +416,9 @@ export const JadwalRuangPage = () => {
 
       <Card
         title={
-          activeProdi ? `Grid Jadwal — ${programStudiLabel(activeProdi)}` : "Grid Jadwal"
+          activeProdi
+            ? `Grid Jadwal — ${programStudiLabel(activeProdi)}`
+            : "Grid Jadwal"
         }
         actions={
           kelasList.length ? (
@@ -474,7 +513,12 @@ export const JadwalRuangPage = () => {
                   type="time"
                   className="input input-bordered"
                   value={values.jam_mulai}
-                  onChange={(e) => setValues(prev => ({ ...prev, jam_mulai: e.target.value }))}
+                  onChange={(e) =>
+                    setValues((prev) => ({
+                      ...prev,
+                      jam_mulai: e.target.value,
+                    }))
+                  }
                   required
                 />
               </div>
@@ -486,7 +530,12 @@ export const JadwalRuangPage = () => {
                   type="time"
                   className="input input-bordered"
                   value={values.jam_selesai}
-                  onChange={(e) => setValues(prev => ({ ...prev, jam_selesai: e.target.value }))}
+                  onChange={(e) =>
+                    setValues((prev) => ({
+                      ...prev,
+                      jam_selesai: e.target.value,
+                    }))
+                  }
                   required
                 />
               </div>

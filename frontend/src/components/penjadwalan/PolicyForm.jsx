@@ -7,10 +7,20 @@ function Windows({ name, register, control, rooms, lecturers, faculties }) {
   const { fields, append, remove } = useFieldArray({ control, name });
   const values = useWatch({ control, name }) || [];
   return (
-    <section className="space-y-2">
+    <section className="space-y-3 rounded-box border border-base-300 p-4 sm:p-5">
       <h3 className="font-semibold">
         {name === "unavailable" ? "Waktu tidak tersedia" : "Reservasi fakultas"}
       </h3>
+      <p className="text-sm text-base-content/70">
+        {name === "unavailable"
+          ? "Blokir waktu saat ruang atau dosen tidak dapat digunakan, misalnya istirahat atau kegiatan lain."
+          : "Sisihkan ruang pada waktu tertentu untuk fakultas yang ditentukan."}
+      </p>
+      {!fields.length && (
+        <p className="text-sm text-base-content/60">
+          Belum ada aturan. Tambahkan bila diperlukan.
+        </p>
+      )}
       {fields.map((f, i) => (
         <div key={f.id} className="flex flex-wrap gap-2">
           {name === "unavailable" ? (
@@ -125,7 +135,7 @@ function Windows({ name, register, control, rooms, lecturers, faculties }) {
     </section>
   );
 }
-export function PolicyForm({ setup, faculties, onSave, busy }) {
+export function PolicyForm({ setup, faculties, facultyName, onSave, busy }) {
   const existing = setup.policy?.config;
   const {
     register,
@@ -169,25 +179,36 @@ export function PolicyForm({ setup, faculties, onSave, busy }) {
         }),
       )}
     >
-      <p className="text-sm">
-        Pilih F dan G sebagai gedung utama FTI setelah alokasi dikonfirmasi.
-        Gedung cadangan hanya boleh dipakai setelah persetujuan pusat pada hasil
-        simulasi.
-      </p>
+      <div className="rounded-box border border-base-300 bg-base-200/50 p-4 text-sm leading-relaxed">
+        <p className="font-medium">
+          1. Tentukan gedung untuk {facultyName || "fakultas terpilih"}
+        </p>
+        <p className="text-base-content/70 mt-1">
+          Gedung utama diprioritaskan saat menyusun jadwal. Gedung cadangan
+          hanya menjadi usulan dan memerlukan persetujuan pusat sebelum
+          publikasi. Gedung yang tidak dipilih tidak akan digunakan.
+        </p>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         {[
           ["main_buildings", "Gedung utama"],
           ["backup_buildings", "Gedung cadangan"],
         ].map(([name, label]) => (
-          <fieldset key={name} className="fieldset">
+          <fieldset
+            key={name}
+            className="fieldset rounded-box border border-base-300 p-4"
+          >
             <legend className="fieldset-legend">{label}</legend>
             <Controller
               control={control}
               name={name}
               render={({ field }) => (
-                <div className="flex flex-wrap gap-3">
+                <div className="grid gap-2 sm:grid-cols-2">
                   {setup.buildings.map((b) => (
-                    <label key={b.id} className="flex gap-2 items-center">
+                    <label
+                      key={b.id}
+                      className={`flex gap-3 items-center rounded-field border p-3 text-sm cursor-pointer ${field.value.includes(b.id) ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}
+                    >
                       <input
                         className="checkbox checkbox-sm"
                         type="checkbox"
@@ -209,62 +230,75 @@ export function PolicyForm({ setup, faculties, onSave, busy }) {
           </fieldset>
         ))}
       </div>
-      <h3 className="font-semibold">Inventaris ruang yang diizinkan</h3>
-      <p className="text-sm">
-        Jenis ruang dan zona wajib diisi untuk ruang yang dipilih. Nama
-        jenis/fasilitas harus sama dengan kebutuhan sesi.
-      </p>
-      <DataTable
-        rows={rooms}
-        tableKey="policy_room_"
-        rowKey={(r) => r.id}
-        searchableFields={["kode", "nama"]}
-        columns={[
-          {
-            key: "nama",
-            header: "Ruang / kapasitas",
-            render: (r) => `${r.kode} ${r.nama} · ${r.kapasitas} kursi`,
-          },
-          {
-            key: "type",
-            header: "Jenis",
-            render: (r) => (
-              <input
-                className="input input-sm"
-                aria-label={`Jenis ${r.kode}`}
-                placeholder="teori / lab"
-                {...register(`rooms.${r.index}.type`)}
-              />
-            ),
-          },
-          {
-            key: "facilities",
-            header: "Fasilitas",
-            render: (r) => (
-              <input
-                className="input input-sm"
-                aria-label={`Fasilitas ${r.kode}`}
-                placeholder="proyektor, komputer"
-                {...register(`rooms.${r.index}.facilities`)}
-              />
-            ),
-          },
-          {
-            key: "zone",
-            header: "Kampus / zona",
-            render: (r) => (
-              <input
-                className="input input-sm"
-                aria-label={`Zona ${r.kode}`}
-                placeholder="Limau Manis"
-                {...register(`rooms.${r.index}.zone`)}
-              />
-            ),
-          },
-        ]}
-      />
-      <section className="space-y-2">
-        <h3 className="font-semibold">Waktu perpindahan antargedung</h3>
+      <section className="space-y-3 rounded-box border border-base-300 p-4 sm:p-5">
+        <h3 className="font-semibold">
+          2. Lengkapi ruang yang diizinkan{" "}
+          <span className="badge badge-ghost">{rooms.length} ruang</span>
+        </h3>
+        <p className="text-sm">
+          Jenis ruang dan zona wajib diisi untuk ruang yang dipilih. Nama
+          jenis/fasilitas harus sama dengan kebutuhan sesi.
+        </p>
+        {!rooms.length ? (
+          <div className="rounded-box bg-base-200/50 p-6 text-center text-sm text-base-content/70">
+            {!main.length && !backup.length
+              ? "Pilih gedung utama atau cadangan di atas untuk menampilkan ruang yang perlu dilengkapi."
+              : "Belum ada ruang pada gedung yang dipilih. Lengkapi data ruang di menu master terlebih dahulu."}
+          </div>
+        ) : (
+          <DataTable
+            rows={rooms}
+            tableKey="policy_room_"
+            rowKey={(r) => r.id}
+            searchableFields={["kode", "nama"]}
+            columns={[
+              {
+                key: "nama",
+                header: "Ruang / kapasitas",
+                render: (r) => `${r.kode} ${r.nama} · ${r.kapasitas} kursi`,
+              },
+              {
+                key: "type",
+                header: "Jenis",
+                render: (r) => (
+                  <input
+                    className="input input-sm"
+                    aria-label={`Jenis ${r.kode}`}
+                    placeholder="teori / lab"
+                    {...register(`rooms.${r.index}.type`)}
+                  />
+                ),
+              },
+              {
+                key: "facilities",
+                header: "Fasilitas",
+                render: (r) => (
+                  <input
+                    className="input input-sm"
+                    aria-label={`Fasilitas ${r.kode}`}
+                    placeholder="proyektor, komputer"
+                    {...register(`rooms.${r.index}.facilities`)}
+                  />
+                ),
+              },
+              {
+                key: "zone",
+                header: "Kampus / zona",
+                render: (r) => (
+                  <input
+                    className="input input-sm"
+                    aria-label={`Zona ${r.kode}`}
+                    placeholder="Limau Manis"
+                    {...register(`rooms.${r.index}.zone`)}
+                  />
+                ),
+              },
+            ]}
+          />
+        )}
+      </section>
+      <section className="space-y-3 rounded-box border border-base-300 p-4 sm:p-5">
+        <h3 className="font-semibold">3. Waktu perpindahan antargedung</h3>
         <p className="text-sm">
           Masukkan kedua arah. Jika belum ditentukan, perpindahan antargedung
           pada hari yang sama untuk dosen/kelompok yang sama akan diblokir.
@@ -329,10 +363,15 @@ export function PolicyForm({ setup, faculties, onSave, busy }) {
           Periksa pilihan gedung, ruang, waktu, dan jalur perpindahan.
         </div>
       )}
-      <button className="btn btn-primary" disabled={busy}>
-        {busy && <span className="loading loading-spinner loading-xs" />}Simpan
-        kebijakan fakultas
-      </button>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-base-300 pt-4">
+        <p className="text-sm text-base-content/70">
+          Menyimpan kebijakan tidak mengubah jadwal aktif.
+        </p>
+        <button className="btn btn-primary" disabled={busy}>
+          {busy && <span className="loading loading-spinner loading-xs" />}
+          Simpan kebijakan fakultas
+        </button>
+      </div>
     </form>
   );
 }

@@ -58,7 +58,7 @@ function SchedulingHome() {
       return next;
     });
   return (
-    <div className="space-y-5">
+    <div className="card bg-base-100 border border-base-300 shadow-sm p-4 sm:p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Penjadwalan Global</h1>
         <p className="opacity-70 mt-1">
@@ -66,7 +66,7 @@ function SchedulingHome() {
           sebelum publikasi.
         </p>
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-2 gap-4 rounded-box border border-base-300 bg-base-200/50 p-4">
         <label className="fieldset">
           <span className="fieldset-legend">Semester</span>
           <select
@@ -107,7 +107,10 @@ function SchedulingHome() {
           {semesters.error?.message || faculties.error?.message}
         </p>
       )}
-      <div className="tabs tabs-box">
+      <div
+        className="tabs tabs-box flex-wrap gap-1"
+        aria-label="Bagian penjadwalan"
+      >
         <button
           className={`tab ${tab === "list" ? "tab-active" : ""}`}
           onClick={() => setTab("list")}
@@ -131,85 +134,108 @@ function SchedulingHome() {
           </button>
         </Can>
       </div>
-      {tab === "list" ? (
-        <DataTable
-          resource="penjadwalan-scenarios"
-          tableKey="scenario_"
-          extraFilter={{
-            ...(semester ? { semester_id: semester } : {}),
-            ...(faculty ? { fakultas_id: faculty } : {}),
-          }}
-          rowKey={(r) => r.id}
-          columns={[
-            { key: "nama", header: "Skenario", sortable: true },
-            { key: "revision", header: "Versi", sortable: true },
-            {
-              key: "status",
-              header: "Status",
-              sortable: true,
-              render: (r) => (
-                <span className="badge badge-ghost">
-                  {statuses[r.status] || r.status}
-                </span>
-              ),
-            },
-            {
-              key: "createdAt",
-              header: "Dibuat",
-              sortable: true,
-              render: (r) => new Date(r.createdAt).toLocaleString("id-ID"),
-            },
-            {
-              key: "actions",
-              header: "Aksi",
-              render: (r) => (
-                <button
-                  className="btn btn-sm"
-                  onClick={() => navigate(`/perkuliahan/penjadwalan/${r.id}`)}
-                >
-                  Buka skenario
-                </button>
-              ),
-            },
-          ]}
-          emptyText="Belum ada skenario penjadwalan."
-        />
-      ) : !semester || !faculty ? (
-        <div className="alert">
-          Pilih semester dan fakultas terlebih dahulu.
+      <div className="border-t border-base-300 pt-5 space-y-5">
+        <div>
+          <h2 className="text-lg font-semibold">
+            {tab === "list"
+              ? "Daftar skenario"
+              : tab === "new"
+                ? "Buat skenario penjadwalan"
+                : "Kebijakan gedung dan sumber daya"}
+          </h2>
+          <p className="text-sm text-base-content/70 mt-1">
+            {tab === "list"
+              ? "Buka skenario untuk melihat jadwal, menjalankan simulasi, dan meninjau perubahan."
+              : tab === "new"
+                ? "Tentukan kebutuhan kelas terlebih dahulu. Jadwal aktif baru berubah setelah pengesahan dan publikasi."
+                : "Atur gedung yang boleh digunakan, lengkapi ruang, lalu tetapkan aturan waktu sebelum membuat skenario."}
+          </p>
         </div>
-      ) : setup.isPending ? (
-        <SchedulingSkeleton />
-      ) : setup.error ? (
-        <div role="alert" className="alert alert-error">
-          {setup.error.message}
-        </div>
-      ) : tab === "policy" ? (
-        <PolicyForm
-          key={`${semester}-${faculty}-${setup.data.policy?.updatedAt || ""}`}
-          setup={setup.data}
-          faculties={faculties.data || []}
-          busy={policy.isPending}
-          onSave={(config) => policy.mutate(config)}
-        />
-      ) : !setup.data.policy ? (
-        <div className="alert alert-warning">
-          Pusat perlu menetapkan kebijakan gedung fakultas sebelum skenario
-          dibuat.
-        </div>
-      ) : !setup.data.classes.length ? (
-        <div className="alert">Belum ada kelas fakultas pada semester ini.</div>
-      ) : (
-        <SessionForm
-          key={`${semester}-${faculty}`}
-          setup={setup.data}
-          busy={create.isPending}
-          onSave={async (body) => {
-            const item = await create.mutateAsync(body).catch(() => null);
-            if (item) navigate(`/perkuliahan/penjadwalan/${item.id}`);
-          }}
-        />
-      )}
+        {tab === "list" ? (
+          <DataTable
+            resource="penjadwalan-scenarios"
+            tableKey="scenario_"
+            extraFilter={{
+              ...(semester ? { semester_id: semester } : {}),
+              ...(faculty ? { fakultas_id: faculty } : {}),
+            }}
+            rowKey={(r) => r.id}
+            columns={[
+              { key: "nama", header: "Skenario", sortable: true },
+              { key: "revision", header: "Versi", sortable: true },
+              {
+                key: "status",
+                header: "Status",
+                sortable: true,
+                render: (r) => (
+                  <span className="badge badge-ghost">
+                    {statuses[r.status] || r.status}
+                  </span>
+                ),
+              },
+              {
+                key: "createdAt",
+                header: "Dibuat",
+                sortable: true,
+                render: (r) => new Date(r.createdAt).toLocaleString("id-ID"),
+              },
+              {
+                key: "actions",
+                header: "Aksi",
+                render: (r) => (
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => navigate(`/perkuliahan/penjadwalan/${r.id}`)}
+                  >
+                    Buka skenario
+                  </button>
+                ),
+              },
+            ]}
+            emptyText="Belum ada skenario penjadwalan."
+          />
+        ) : !semester || !faculty ? (
+          <div className="alert">
+            Pilih semester dan fakultas terlebih dahulu.
+          </div>
+        ) : setup.isPending ? (
+          <SchedulingSkeleton />
+        ) : setup.error ? (
+          <div role="alert" className="alert alert-error">
+            {setup.error.message}
+          </div>
+        ) : tab === "policy" ? (
+          <PolicyForm
+            key={`${semester}-${faculty}-${setup.data.policy?.updatedAt || ""}`}
+            setup={setup.data}
+            facultyName={
+              faculties.data?.find((f) => f.id === faculty)?.nama_resmi
+            }
+            faculties={faculties.data || []}
+            busy={policy.isPending}
+            onSave={(config) => policy.mutate(config)}
+          />
+        ) : !setup.data.policy ? (
+          <div className="alert alert-warning">
+            Pusat perlu menetapkan kebijakan gedung fakultas sebelum skenario
+            dibuat.
+          </div>
+        ) : !setup.data.classes.length ? (
+          <div className="alert">
+            Belum ada kelas fakultas pada semester ini.
+          </div>
+        ) : (
+          <SessionForm
+            key={`${semester}-${faculty}`}
+            setup={setup.data}
+            busy={create.isPending}
+            onSave={async (body) => {
+              const item = await create.mutateAsync(body).catch(() => null);
+              if (item) navigate(`/perkuliahan/penjadwalan/${item.id}`);
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -240,7 +266,7 @@ function ScenarioDetail({ id }) {
     );
   if (!scenario || !setup.data) return null;
   return (
-    <div className="space-y-5">
+    <div className="card bg-base-100 border border-base-300 shadow-sm p-4 sm:p-6 space-y-6">
       <button
         className="btn btn-ghost btn-sm"
         onClick={() =>
@@ -288,7 +314,10 @@ function ScenarioDetail({ id }) {
             "Proses simulasi gagal. Periksa worker dan data, lalu coba ulang."}
         </div>
       )}
-      <div className="tabs tabs-box">
+      <div
+        className="tabs tabs-box flex-wrap gap-1"
+        aria-label="Bagian penjadwalan"
+      >
         {[
           ["result", "Hasil & persetujuan"],
           ["input", "Kebutuhan & kunci"],
