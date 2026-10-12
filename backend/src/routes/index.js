@@ -2,6 +2,7 @@
 
 const express = require("express");
 const router = express.Router();
+router.use('/penjadwalan', require('./penjadwalan/penjadwalan.routes'));
 
 const authRoutes = require("./auth/auth.routes");
 const usersRoutes = require("./iam/users.routes");

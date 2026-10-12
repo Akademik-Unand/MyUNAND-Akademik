@@ -46,7 +46,7 @@ export const OfferingSettings = ({ values, onChange }) => {
             <span className="block font-medium">Buka juga untuk mahasiswa prodi lain</span>
             <span className="block text-xs text-base-content/60">
               Penawaran untuk mahasiswa prodi penyelenggara tetap tersedia.
-              Kuota lintas menjadi nilai awal, lalu dapat diatur sesuai kapasitas setiap kelas.
+              Atur kuota internal dan lintas prodi secara global pada setiap mata kuliah.
             </span>
           </span>
         </label>

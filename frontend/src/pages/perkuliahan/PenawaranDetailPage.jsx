@@ -116,7 +116,11 @@ export const PenawaranDetailPage = () => {
     sks: detail.matakuliah?.jumlah_sks_kurikulum,
     kuotaInternal: detail.jumlah_peserta_internal_max_default ?? 40,
     kuotaLintas: offering.akses === "internal" ? null : detail.kuota_lintas_prodi ?? 0,
-    kapasitasTotal: Number(detail.jumlah_peserta_internal_max_default ?? detail.jumlah_peserta_max_default ?? 40) + Number(offering.akses === "internal" ? 0 : detail.kuota_lintas_prodi ?? 0),
+    kapasitasTotal: Number(detail.jumlah_peserta_max_default ?? 40),
+    kapasitasTeralokasi: (detail.kelas || []).reduce(
+      (sum, kelas) => sum + Number(kelas.jumlah_peserta_max || 0),
+      0,
+    ),
     kelas: detail.kelas || [],
     readiness: getOfferingReadiness({ matakuliahDitawarkan: [detail] }).results[0],
     peserta: (detail.kelas || []).reduce(
@@ -196,7 +200,7 @@ export const PenawaranDetailPage = () => {
               {readiness.ready ? "Siap dipublikasikan" : "Masih perlu persiapan"}
             </p>
             <p className="mt-1 text-sm text-base-content/60">
-              Status dihitung dari kelas, dosen pengampu, dan jadwal tersimpan.
+              Status dihitung dari kesesuaian kuota global dan total kelas, dosen pengampu, serta jadwal tersimpan.
             </p>
           </div>
           {offering.status === "draft" && readiness.ready && can("publish", "PenawaranMatakuliah") ? (
@@ -228,7 +232,7 @@ export const PenawaranDetailPage = () => {
                   <p className="font-medium">{detail.matakuliah?.kode_matakuliah} — {detail.matakuliah?.nama_resmi}</p>
                   <p className="text-xs text-base-content/60">
                     {ready
-                      ? `${classes.length} kelas siap; akses ${offering.akses === "internal" ? "prodi penyelenggara" : "lintas prodi sesuai kebijakan penawaran"}; kuota diatur pada mata kuliah dan tiap kelas.`
+                      ? `${classes.length} kelas siap; kuota internal/lintas diatur global dan kapasitas total dibagi ke tiap kelas.`
                       : issues.join(" · ")}
                   </p>
                   {!!classes.length && (
@@ -268,11 +272,12 @@ export const PenawaranDetailPage = () => {
             { key: "nama", header: "Mata Kuliah" },
             { key: "kode", header: "Kode" },
             { key: "sks", header: "SKS", render: (row) => row.sks ?? "—" },
-            { key: "kapasitasTotal", header: "Total Awal/Kelas" },
-            { key: "kuotaInternal", header: "Internal Awal/Kelas" },
+            { key: "kapasitasTotal", header: "Kuota Total Global" },
+            { key: "kapasitasTeralokasi", header: "Total Kuota Semua Kelas" },
+            { key: "kuotaInternal", header: "Kuota Internal Global" },
             ...(offering.akses !== "internal" ? [{
               key: "kuotaLintas",
-              header: "Kuota Lintas Prodi",
+              header: "Kuota Lintas Prodi Global",
               render: (row) => row.kuotaLintas ?? "—",
             }] : []),
             {
@@ -320,7 +325,7 @@ export const PenawaranDetailPage = () => {
               <li key={detail.id} className="rounded-box bg-base-200/50 p-3">
                 <p className="font-medium">{detail.matakuliah?.kode_matakuliah} — {detail.matakuliah?.nama_resmi}</p>
                 <p className="text-base-content/70">{(detail.kelas || []).map((kelas) => `Kelas ${kelas.nama}: ${kelasDosenNames(kelas)}; ${(kelas.jadwalKelas || []).map((jadwal) => `${jadwal.hari} ${String(jadwal.jam_mulai || "").slice(0,5)}-${String(jadwal.jam_selesai || "").slice(0,5)}`).join(", ")}`).join(" · ")}</p>
-                <p className="text-base-content/70">Kuota awal per kelas: total {detail.jumlah_peserta_max_default ?? 40}, internal {detail.jumlah_peserta_internal_max_default ?? 40}, lintas {offering.akses === "internal" ? 0 : detail.kuota_lintas_prodi ?? 0} mahasiswa.</p>
+                <p className="text-base-content/70">Kuota global: total {detail.jumlah_peserta_max_default ?? 40} mahasiswa (internal {detail.jumlah_peserta_internal_max_default ?? 40}, lintas {offering.akses === "internal" ? 0 : detail.kuota_lintas_prodi ?? 0}). Kuota kelas saat ini: {(detail.kelas || []).reduce((sum, kelas) => sum + Number(kelas.jumlah_peserta_max || 0), 0)}. Total kuota semua kelas harus sama dengan kuota global.</p>
               </li>
             ))}
           </ul>

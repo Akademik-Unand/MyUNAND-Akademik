@@ -33,6 +33,21 @@ services:
       retries: 3
       start_period: 40s
 
+  penjadwalan-worker:
+    build:
+      context: ./backend
+      dockerfile: solver/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - network
+
   frontend:
     build:
       context: ./frontend

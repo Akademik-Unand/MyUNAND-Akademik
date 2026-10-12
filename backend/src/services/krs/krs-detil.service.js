@@ -9,6 +9,7 @@ const { assertActivePa } = require('../../helpers/activePa');
 const { assertJadwalKrsTidakBentrok } = require('../../helpers/jadwalBentrok');
 const { assertKelasKrsReady } = require('../../helpers/kelasKrsEligibility');
 const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
+const { assertGlobalOriginQuota } = require('../../helpers/kelasQuota');
 
 const LIST_OPTIONS = {
   searchFields: ['$krs.mahasiswa.nama$', '$krs.mahasiswa.niu$'],
@@ -62,17 +63,10 @@ const assertKelasOwnCapacity = async (kelasId, transaction) => {
     ],
   };
   const occupied = await KrsDetil.count({ where: activeWhere, transaction });
-  if (kelas.jumlah_peserta_max > 0 && occupied >= kelas.jumlah_peserta_max) {
+  if (kelas.jumlah_peserta_max != null && occupied >= kelas.jumlah_peserta_max) {
     throw new AppError('Kapasitas total kelas penuh', 409);
   }
-  if (kelas.jumlah_peserta_internal_max == null) return;
-  const internalOccupied = await KrsDetil.count({
-    where: { kelas_id: kelasId, is_cross_enrollment: false },
-    transaction,
-  });
-  if (internalOccupied >= kelas.jumlah_peserta_internal_max) {
-    throw new AppError('Kuota mahasiswa prodi sendiri pada kelas ini penuh', 409);
-  }
+  await assertGlobalOriginQuota({ kelas, origin: 'internal', transaction });
 };
 
 /**

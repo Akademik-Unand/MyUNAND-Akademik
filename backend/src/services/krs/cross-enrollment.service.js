@@ -22,6 +22,7 @@ const { paginate } = require('../../helpers/listQuery');
 const { assertKrsPeriodForSemester } = require('../../helpers/academicPeriod');
 const { assertActivePa } = require('../../helpers/activePa');
 const { assertJadwalKrsTidakBentrok } = require('../../helpers/jadwalBentrok');
+const { assertGlobalOriginQuota } = require('../../helpers/kelasQuota');
 const { assertKelasKrsReady } = require('../../helpers/kelasKrsEligibility');
 const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
 
@@ -106,8 +107,8 @@ const list = async (query, user) => {
   });
 };
 
-/** Total peserta dan kuota asal mahasiswa sama-sama dibatasi pada kelas ini. */
-const validateCrossQuota = async ({ kelas, transaction }) => {
+/** Kapasitas kelas lokal dan kuota lintas prodi global mata kuliah. */
+const validateCrossQuota = async ({ kelas, detail, transaction }) => {
   const active = {
     [Op.or]: [
       { is_cross_enrollment: false },
@@ -118,22 +119,10 @@ const validateCrossQuota = async ({ kelas, transaction }) => {
     where: { ...active, kelas_id: kelas.id },
     transaction,
   });
-  if (kelas.jumlah_peserta_max > 0 && totalCount >= kelas.jumlah_peserta_max) {
+  if (kelas.jumlah_peserta_max != null && totalCount >= kelas.jumlah_peserta_max) {
     throw new AppError('Kapasitas total kelas penuh', 409);
   }
-
-  const externalCount = await KrsDetil.count({
-    where: {
-      kelas_id: kelas.id,
-      is_cross_enrollment: true,
-      cross_enrollment_status: ACTIVE_STATUSES,
-    },
-    transaction,
-  });
-  const quota = kelas.jumlah_peserta_lintas_prodi_max;
-  if (quota != null && externalCount >= quota) {
-    throw new AppError('Kuota lintas prodi pada kelas ini penuh', 409);
-  }
+  await assertGlobalOriginQuota({ kelas, detail, origin: 'cross', transaction });
 };
 
 const validateStudentLoad = async ({ krs, kelas, sksMaksimal, transaction }) => {
@@ -247,7 +236,7 @@ const enroll = (userId, payload) =>
     });
     if (duplicate) throw new AppError('Kelas sudah diambil', 409);
 
-    await validateCrossQuota({ kelas, transaction });
+    await validateCrossQuota({ kelas, detail, transaction });
     await validateStudentLoad({
       krs,
       kelas,

@@ -11,7 +11,7 @@ const create = Joi.object({
     penawaran_matakuliah_id: Joi.string().uuid().allow(null),
     nama: Joi.string().max(10).required(),
     jumlah_peserta_min: Joi.number().allow(null),
-    jumlah_peserta_max: Joi.number().allow(null),
+    jumlah_peserta_max: Joi.number().integer().min(0).allow(null),
     jumlah_peserta_internal_max: Joi.number().integer().min(0).allow(null),
     jumlah_peserta_lintas_prodi_max: Joi.number().integer().min(0).allow(null),
 });
@@ -22,7 +22,7 @@ const update = Joi.object({
     penawaran_matakuliah_id: Joi.string().uuid().allow(null),
     nama: Joi.string().max(10).allow(null),
     jumlah_peserta_min: Joi.number().allow(null),
-    jumlah_peserta_max: Joi.number().allow(null),
+    jumlah_peserta_max: Joi.number().integer().min(0).allow(null),
     jumlah_peserta_internal_max: Joi.number().integer().min(0).allow(null),
     jumlah_peserta_lintas_prodi_max: Joi.number().integer().min(0).allow(null),
 });

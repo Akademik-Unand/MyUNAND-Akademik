@@ -26,7 +26,6 @@ const { restoreRecord } = require('../../helpers/softDelete');
 const { kelasFilters, ORG_FILTER_FIELDS } = require('../../helpers/academicFilters');
 const { getUserAcademicIdentity } = require('../../helpers/userAcademicProfile');
 const { assertTeachesClass } = require('../../helpers/dosenScope');
-const { deriveTotalCapacity } = require('../../helpers/kelasCapacity');
 
 const extraAttributes = {
   include: [
@@ -218,19 +217,29 @@ const create = async (payload) => {
   return sequelize.transaction(async (transaction) => {
     const detil = await assertKelasConsistency(payload, transaction);
     await assertNamaKelasUnik(payload, { transaction });
+    const existingClasses = detil
+      ? await Kelas.findAll({
+        where: { penawaran_matakuliah_id: detil.id },
+        attributes: ['jumlah_peserta_max'],
+        transaction,
+      })
+      : [];
+    const remainingCapacity = detil
+      ? Math.max(
+        0,
+        Number(detil.jumlah_peserta_max_default || 0) -
+          existingClasses.reduce((sum, kelas) => sum + Number(kelas.jumlah_peserta_max || 0), 0),
+      )
+      : 40;
     const defaults = {
-      jumlah_peserta_max: detil?.jumlah_peserta_max_default ?? 40,
-      jumlah_peserta_internal_max:
-        detil?.jumlah_peserta_internal_max_default ??
-        detil?.jumlah_peserta_max_default ??
-        40,
-      jumlah_peserta_lintas_prodi_max: detil?.kuota_lintas_prodi ?? 0,
+      jumlah_peserta_max: remainingCapacity,
+      jumlah_peserta_internal_max: null,
+      jumlah_peserta_lintas_prodi_max: null,
     };
     const next = { ...defaults, ...payload };
-    next.jumlah_peserta_max = deriveTotalCapacity(
-      next.jumlah_peserta_internal_max,
-      next.jumlah_peserta_lintas_prodi_max,
-    );
+    next.jumlah_peserta_max = payload.jumlah_peserta_max ?? remainingCapacity;
+    next.jumlah_peserta_internal_max = null;
+    next.jumlah_peserta_lintas_prodi_max = null;
     const item = await Kelas.create(next, { transaction });
     return loadKelas(item.id, transaction);
   });
@@ -239,13 +248,13 @@ const create = async (payload) => {
 const update = async (id, payload) => {
   const item = await getById(id);
   const merged = { ...item.toJSON(), ...payload };
-  merged.jumlah_peserta_max = deriveTotalCapacity(
-    merged.jumlah_peserta_internal_max,
-    merged.jumlah_peserta_lintas_prodi_max,
-  );
   await assertKelasConsistency(merged);
   await assertNamaKelasUnik(merged, { excludeId: item.id });
-  await item.update({ ...payload, jumlah_peserta_max: merged.jumlah_peserta_max });
+  await item.update({
+    ...payload,
+    jumlah_peserta_internal_max: null,
+    jumlah_peserta_lintas_prodi_max: null,
+  });
   return loadKelas(id);
 };
 

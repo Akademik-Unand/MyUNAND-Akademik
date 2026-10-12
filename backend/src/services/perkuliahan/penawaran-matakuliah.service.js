@@ -355,6 +355,18 @@ const transition = (id, status) =>
           issues.push(`${code}: kelas belum tersedia`);
           continue;
         }
+        const classCapacity = classes.reduce((sum, kelas) => {
+          if (kelas.jumlah_peserta_max == null) return sum;
+          return sum + Number(kelas.jumlah_peserta_max);
+        }, 0);
+        if (
+          classes.some((kelas) => kelas.jumlah_peserta_max == null) ||
+          classCapacity !== Number(detail.jumlah_peserta_max_default)
+        ) {
+          issues.push(
+            `${code}: total kuota kelas (${classCapacity}) harus sama dengan kuota global (${detail.jumlah_peserta_max_default})`,
+          );
+        }
         for (const kelas of classes) {
           const label = `${code} kelas ${kelas.nama}`;
           if (!(kelas.jadwalKelas || []).some((item) => item.hari && item.jam_mulai && item.jam_selesai))

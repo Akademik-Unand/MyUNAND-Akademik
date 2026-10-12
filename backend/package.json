@@ -4,6 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
+    "worker:penjadwalan": "node scripts/penjadwalan-worker.js",
+    "benchmark:penjadwalan": "node scripts/penjadwalan-benchmark.js",
     "start": "node src/index.js",
     "start:prod": "node --max-old-space-size=4096 src/index.js",
     "dev": "nodemon src/index.js",
@@ -22,7 +24,9 @@
     "@casl/ability": "^7.0.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
+    "csv-parse": "^6.1.0",
     "dotenv": "^17.4.2",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
     "helmet": "^8.3.0",

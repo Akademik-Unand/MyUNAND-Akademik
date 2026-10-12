@@ -52,6 +52,7 @@ export const NAVIGATION_MENU = [
     type: "group",
     title: "Perkuliahan",
     items: [
+      { label: 'Penjadwalan Global', path: '/perkuliahan/penjadwalan', icon: 'CalendarClock', permission: { action: 'read', subject: 'Penjadwalan' } },
       {
         label: "Penawaran MK Semester",
         path: "/perkuliahan/penawaran-mk",

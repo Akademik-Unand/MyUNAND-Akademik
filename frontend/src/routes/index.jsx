@@ -39,6 +39,7 @@ import { DokumenEvaluasiPage } from "../pages/evaluasi/DokumenEvaluasiPage";
 import { KelasPage } from "../pages/perkuliahan/KelasPage";
 import { KelasKelolaPage } from "../pages/perkuliahan/KelasKelolaPage";
 import { JadwalRuangPage } from "../pages/perkuliahan/JadwalRuangPage";
+import { PenjadwalanPage } from '../pages/perkuliahan/PenjadwalanPage';
 import { UploadNilaiPage } from "../pages/nilai/UploadNilaiPage";
 import { UploadNilaiKelolaPage } from "../pages/nilai/UploadNilaiKelolaPage";
 import { RekapCPPage } from "../pages/evaluasi/RekapCPPage";
@@ -77,6 +78,8 @@ export const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
           { index: true, element: <DashboardPage /> },
+          { path: 'perkuliahan/penjadwalan', element: gate('read','Penjadwalan',<PenjadwalanPage />) },
+          { path: 'perkuliahan/penjadwalan/:id', element: gate('read','Penjadwalan',<PenjadwalanPage />) },
           { path: "mahasiswa/laporan-cpl", element: gate("read", "RekapCp", <LaporanCplMahasiswaPage />) },
           { path: "profil", element: <ProfilePage /> },
 

@@ -30,6 +30,7 @@ module.exports = (sequelize) => {
         primaryKey: true,
       },
       jenis_semester_id: { type: DataTypes.UUID, allowNull: false },
+      active_penjadwalan_publication_id: { type: DataTypes.UUID, allowNull: true },
       tahun: { type: DataTypes.SMALLINT, allowNull: false },
       tanggal_mulai: { type: DataTypes.DATEONLY, allowNull: true },
       tanggal_selesai: { type: DataTypes.DATEONLY, allowNull: true },

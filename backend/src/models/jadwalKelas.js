@@ -59,5 +59,6 @@ module.exports = (sequelize) => {
       timestamps: true,
     },
   );
+  require('../helpers/penjadwalan/publishedGuard').installScheduleGuard(JadwalKelas,sequelize);
   return JadwalKelas;
 };

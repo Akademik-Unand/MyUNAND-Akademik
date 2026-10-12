@@ -10,6 +10,19 @@ export const getOfferingDetailReadiness = (detail) => {
   if (!classes.length) {
     issues.push("Belum ada kelas");
   } else {
+    const allocated = classes.reduce(
+      (sum, kelas) => sum + Number(kelas.jumlah_peserta_max || 0),
+      0,
+    );
+    const globalQuota = Number(detail?.jumlah_peserta_max_default);
+    if (
+      classes.some((kelas) => kelas.jumlah_peserta_max == null) ||
+      allocated !== globalQuota
+    ) {
+      issues.push(
+        `Total kuota kelas ${allocated} harus sama dengan kuota global ${globalQuota}`,
+      );
+    }
     for (const kelas of classes) {
       if (!(kelas.dosenKelas || []).length)
         issues.push(`Kelas ${kelas.nama}: dosen belum diatur`);

@@ -9,14 +9,26 @@ const offeringPublishIssues = (offering) =>
   (offering.matakuliahDitawarkan || []).flatMap((detail) => {
     const code = detail.matakuliah?.kode_matakuliah || detail.matakuliah?.nama_resmi || "Mata kuliah";
     if (!detail.kelas?.length) return [`${code}: kelas belum tersedia.`];
-    return detail.kelas.flatMap((kelas) => {
-      const reasons = [];
-      if (!(kelas.jadwalKelas || []).some((item) => item.hari && item.jam_mulai && item.jam_selesai))
-        reasons.push(`${code}, kelas ${kelas.nama}: jadwal perkuliahan belum dibuat.`);
-      if (!(kelas.dosenKelas || []).length)
-        reasons.push(`${code}, kelas ${kelas.nama}: dosen pengampu belum ditambahkan.`);
-      return reasons;
-    });
+    const allocated = detail.kelas.reduce(
+      (sum, kelas) => sum + Number(kelas.jumlah_peserta_max || 0),
+      0,
+    );
+    const capacityIssue =
+      detail.kelas.some((kelas) => kelas.jumlah_peserta_max == null) ||
+      allocated !== Number(detail.jumlah_peserta_max_default);
+    return [
+      ...(capacityIssue
+        ? [`${code}: total kuota kelas (${allocated}) harus sama dengan kuota global (${detail.jumlah_peserta_max_default}).`]
+        : []),
+      ...detail.kelas.flatMap((kelas) => {
+        const reasons = [];
+        if (!(kelas.jadwalKelas || []).some((item) => item.hari && item.jam_mulai && item.jam_selesai))
+          reasons.push(`${code}, kelas ${kelas.nama}: jadwal perkuliahan belum dibuat.`);
+        if (!(kelas.dosenKelas || []).length)
+          reasons.push(`${code}, kelas ${kelas.nama}: dosen pengampu belum ditambahkan.`);
+        return reasons;
+      }),
+    ];
   });
 
 /**
@@ -52,7 +64,8 @@ export const OpenedOfferingsTable = ({
       kode: detail.matakuliah?.kode_matakuliah || "—",
       kuotaInternal: detail.jumlah_peserta_internal_max_default ?? 40,
       kuotaLintas: offering.akses === "internal" ? null : detail.kuota_lintas_prodi ?? 0,
-      kapasitasTotal: Number(detail.jumlah_peserta_internal_max_default ?? detail.jumlah_peserta_max_default ?? 40) + Number(offering.akses === "internal" ? 0 : detail.kuota_lintas_prodi ?? 0),
+      kapasitasTotal: Number(detail.jumlah_peserta_max_default ?? 40),
+      kapasitasTeralokasi: (detail.kelas || []).reduce((sum, kelas) => sum + Number(kelas.jumlah_peserta_max || 0), 0),
       akses: offering.akses || "internal",
       publishIssues: offeringPublishIssues(offering),
     })),
@@ -69,11 +82,12 @@ export const OpenedOfferingsTable = ({
       columns={[
         { key: "nama", header: "Mata Kuliah" },
         { key: "kode", header: "Kode" },
-        { key: "kapasitasTotal", header: "Total Awal/Kelas" },
-        { key: "kuotaInternal", header: "Internal Awal/Kelas" },
+        { key: "kapasitasTotal", header: "Kuota Total Global" },
+        { key: "kapasitasTeralokasi", header: "Total Kuota Semua Kelas" },
+        { key: "kuotaInternal", header: "Kuota Internal Global" },
         {
           key: "kuotaLintas",
-          header: "Lintas Awal/Kelas",
+          header: "Kuota Lintas Global",
           render: (row) => row.akses === "internal" ? "Tidak dibuka" : row.kuotaLintas ?? "—",
         },
         {

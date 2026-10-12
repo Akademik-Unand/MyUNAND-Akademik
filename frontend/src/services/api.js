@@ -1,6 +1,7 @@
 import { apiRequest } from "./http";
 
 const RESOURCE_PATH = {
+  'penjadwalan-scenarios': '/penjadwalan/scenarios',
   prodi: "/program-studi",
   "setting-semester": "/semester",
   "kurikulum-cp": "/cp",

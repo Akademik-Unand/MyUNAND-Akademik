@@ -39,8 +39,7 @@ const EMPTY_KELAS_FORM = {
   penawaran_matakuliah_id: "",
   nama: "",
   jumlah_peserta_min: "",
-  jumlah_peserta_internal_max: "",
-  jumlah_peserta_lintas_prodi_max: 0,
+  jumlah_peserta_max: "",
 };
 
 export const KelasPage = () => {
@@ -62,8 +61,7 @@ export const KelasPage = () => {
   const [capacityTarget, setCapacityTarget] = useState(null);
   const [capacityValues, setCapacityValues] = useState({
     jumlah_peserta_min: "",
-    jumlah_peserta_internal_max: "",
-    jumlah_peserta_lintas_prodi_max: "",
+    jumlah_peserta_max: "",
   });
   const [formOpen, setFormOpen] = useState(false);
   const [contextPrefilled, setContextPrefilled] = useState("");
@@ -89,10 +87,11 @@ export const KelasPage = () => {
     value: detail.id,
     label: `${detail.matakuliah?.kode_matakuliah || ""} — ${detail.matakuliah?.nama_resmi || "Mata kuliah"}`,
     matakuliahId: detail.matakuliah_id,
-    jumlahPesertaMaxDefault: detail.jumlah_peserta_max_default ?? 40,
-    jumlahPesertaInternalMaxDefault:
-      detail.jumlah_peserta_internal_max_default ?? detail.jumlah_peserta_max_default ?? 40,
-    kuotaLintasDefault: detail.kuota_lintas_prodi ?? 0,
+    jumlahPesertaMaxRemaining: Math.max(
+      0,
+      Number(detail.jumlah_peserta_max_default ?? 40) -
+        (detail.kelas || []).reduce((sum, kelas) => sum + Number(kelas.jumlah_peserta_max || 0), 0),
+    ),
   }));
   const semesterOptions = semesterRows.map((row) => ({
     value: row.id,
@@ -110,11 +109,11 @@ export const KelasPage = () => {
         semester_id: contextSemesterId || offering.semester_id,
         matakuliah_id: detail.matakuliah_id,
         penawaran_matakuliah_id: detail.id,
-        jumlah_peserta_internal_max:
-          detail.jumlah_peserta_internal_max_default ??
-          detail.jumlah_peserta_max_default ??
-          40,
-        jumlah_peserta_lintas_prodi_max: detail.kuota_lintas_prodi ?? 0,
+        jumlah_peserta_max: Math.max(
+          0,
+          Number(detail.jumlah_peserta_max_default ?? 40) -
+            (detail.kelas || []).reduce((sum, kelas) => sum + Number(kelas.jumlah_peserta_max || 0), 0),
+        ),
       });
       setFormOpen(true);
     }
@@ -144,8 +143,7 @@ export const KelasPage = () => {
   const openCapacity = (row) => {
     setCapacityValues({
       jumlah_peserta_min: row.jumlah_peserta_min ?? "",
-      jumlah_peserta_internal_max: row.jumlah_peserta_internal_max ?? "",
-      jumlah_peserta_lintas_prodi_max: row.jumlah_peserta_lintas_prodi_max ?? "",
+      jumlah_peserta_max: row.jumlah_peserta_max ?? "",
     });
     setCapacityTarget(row);
   };
@@ -160,8 +158,7 @@ export const KelasPage = () => {
       id: capacityTarget.id,
       payload: {
         jumlah_peserta_min: toNumberOrNull(capacityValues.jumlah_peserta_min),
-        jumlah_peserta_internal_max: toNumberOrNull(capacityValues.jumlah_peserta_internal_max),
-        jumlah_peserta_lintas_prodi_max: toNumberOrNull(capacityValues.jumlah_peserta_lintas_prodi_max),
+        jumlah_peserta_max: toNumberOrNull(capacityValues.jumlah_peserta_max),
       },
     });
     setCapacityTarget(null);
@@ -183,8 +180,7 @@ export const KelasPage = () => {
       penawaran_matakuliah_id: formValues.penawaran_matakuliah_id || null,
       nama: formValues.nama,
       jumlah_peserta_min: toNumberOrNull(formValues.jumlah_peserta_min),
-      jumlah_peserta_internal_max: toNumberOrNull(formValues.jumlah_peserta_internal_max),
-      jumlah_peserta_lintas_prodi_max: toNumberOrNull(formValues.jumlah_peserta_lintas_prodi_max),
+      jumlah_peserta_max: toNumberOrNull(formValues.jumlah_peserta_max),
     });
     await queryClient.invalidateQueries({ queryKey: ["penawaran-matakuliah"] });
     setFormValues(EMPTY_KELAS_FORM);

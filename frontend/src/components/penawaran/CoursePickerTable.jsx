@@ -74,7 +74,7 @@ export const CoursePickerTable = ({
         },
         {
           key: "jumlah_peserta_max_default",
-          header: "Total Awal (otomatis)",
+          header: "Kuota Total Global",
           render: (row) => {
             const internal = quotas[row.id]?.internal ?? row.jumlah_peserta_internal_max_default ?? row.jumlah_peserta_max_default ?? 40;
             const cross = !showCrossEnrollment || row.has_prasyarat
@@ -85,7 +85,7 @@ export const CoursePickerTable = ({
         },
         {
           key: "jumlah_peserta_internal_max_default",
-          header: "Kuota Internal Awal",
+          header: "Kuota Internal Global",
           render: (row) => (
             <input
               type="number"
@@ -100,7 +100,7 @@ export const CoursePickerTable = ({
         },
         ...(showCrossEnrollment ? [{
           key: "kuota_lintas_prodi",
-          header: "Kuota Lintas Awal",
+          header: "Kuota Lintas Global",
           render: (row) =>
             row.has_prasyarat ? (
               <span className="text-xs font-medium text-base-content/50">

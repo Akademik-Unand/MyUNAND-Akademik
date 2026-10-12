@@ -3,6 +3,7 @@
 const CRUD = ["read", "create", "update", "delete"];
 
 const SUBJECTS = {
+  penjadwalan: { casl: 'Penjadwalan', group: 'perkuliahan', readOnly: true, label: 'Penjadwalan Global' },
   universitas: {
     casl: "Universitas",
     group: "institusi",
@@ -226,6 +227,7 @@ const SUBJECTS = {
 };
 
 const SPECIAL = [
+  ...['create','update','configure','simulate','review','approve','publish'].map(action => ({ key: 'penjadwalan', action, description: `${action} penjadwalan global` })),
   { key: "krs", action: "approve", description: "Menyetujui KRS" },
   {
     key: "penawaran-matakuliah",
@@ -409,11 +411,16 @@ const isOrangTuaAllowed = (item) =>
   item.group === "laporan" && item.action === "read";
 
 const isPimpinanAllowed = (item) => {
+  if (item.key === 'penjadwalan') return false;
   if (item.group === "iam") return false;
   return item.action === "read";
 };
 
+const isPimpinanFakultasAllowed = (item) => item.key === 'penjadwalan'
+  ? ['read','review'].includes(item.action) : isPimpinanAllowed(item);
+
 const isAdminFakultasAllowed = (item) => {
+  if (item.key === 'penjadwalan') return ['read','create','update','simulate','review'].includes(item.action);
   if (IAM_DANGER.has(item.name) || item.name === "role.sync-permissions")
     return false;
   if (item.key === "universitas" && item.action !== "read") return false;
@@ -425,6 +432,7 @@ const isAdminFakultasAllowed = (item) => {
 };
 
 const isAdminDepartemenAllowed = (item) => {
+  if (item.key === 'penjadwalan') return false;
   if (!isAdminFakultasAllowed(item)) return false;
   if (item.key === "fakultas" && item.action !== "read") return false;
   return true;
@@ -451,7 +459,7 @@ const ROLE_GRANT_PREDICATES = {
   "admin-fakultas": isAdminFakultasAllowed,
   "pimpinan-prodi": isPimpinanAllowed,
   "pimpinan-departemen": isPimpinanAllowed,
-  "pimpinan-fakultas": isPimpinanAllowed,
+  "pimpinan-fakultas": isPimpinanFakultasAllowed,
 };
 
 module.exports = {

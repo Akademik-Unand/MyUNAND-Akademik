@@ -2,7 +2,6 @@ import { Select } from "../ui/Select";
 import { Input } from "../ui/Input";
 import { Badge } from "../ui/Badge";
 import { namaKelasBentrok } from "../../helpers/kelasInfo";
-import { totalCapacityLabel } from "../../helpers/kelasCapacity";
 
 const OFFERING_STATUS_LABEL = {
   draft: "Draft — publikasikan agar kelas dapat diambil",
@@ -35,12 +34,7 @@ export const KelasForm = ({
       ...values,
       penawaran_matakuliah_id: detilId,
       matakuliah_id: detail?.matakuliahId || "",
-      jumlah_peserta_internal_max:
-        detail?.jumlahPesertaInternalMaxDefault ??
-        detail?.jumlahPesertaMaxDefault ??
-        40,
-      jumlah_peserta_lintas_prodi_max:
-        detail?.kuotaLintasDefault ?? 0,
+      jumlah_peserta_max: detail?.jumlahPesertaMaxRemaining ?? "",
     });
   };
 
@@ -96,25 +90,13 @@ export const KelasForm = ({
         onChange={set("jumlah_peserta_min")}
       />
 
-      <div className="form-control gap-1">
-        <span className="label-text">Kapasitas total kelas (otomatis)</span>
-        <div className="input input-bordered flex items-center bg-base-200 font-semibold">
-          {totalCapacityLabel(values.jumlah_peserta_internal_max, values.jumlah_peserta_lintas_prodi_max)}
-        </div>
-      </div>
       <Input
-        label="Kuota maksimum mahasiswa prodi sendiri"
+        label="Kuota maksimum kelas"
         type="number"
         min="0"
-        value={values.jumlah_peserta_internal_max ?? ""}
-        onChange={set("jumlah_peserta_internal_max")}
-      />
-      <Input
-        label="Kuota maksimum lintas prodi"
-        type="number"
-        min="0"
-        value={values.jumlah_peserta_lintas_prodi_max ?? ""}
-        onChange={set("jumlah_peserta_lintas_prodi_max")}
+        value={values.jumlah_peserta_max ?? ""}
+        onChange={set("jumlah_peserta_max")}
+        required
       />
 
       <div className="md:col-span-2 space-y-1">

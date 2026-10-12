@@ -64,3 +64,16 @@ Jejak aktivitas tulis-saja: `GET /api/v1/activity-logs` (permission `activity-lo
 ## Unduhan PDF KRS mahasiswa
 
 GET /api/v1/krs/:id/pdf memakai krs.read sebagai representasi berkas dari data KRS. Service tetap mensyaratkan mahasiswa_id pada akun dan membatasi query ke pemilik KRS; izin admin/dosen tidak membuka unduhan milik mahasiswa lain pada endpoint ini. Tidak ada permission atau perubahan database baru.
+
+## Penjadwalan Global
+
+Subject CASL `Penjadwalan`, key `penjadwalan`:
+
+| Permission | Admin universitas | Admin fakultas | Pimpinan fakultas |
+|---|---|---|---|
+| `penjadwalan.read` | Ya | Fakultas sendiri | Fakultas sendiri |
+| `penjadwalan.create` / `update` / `simulate` | Ya | Fakultas sendiri | Tidak |
+| `penjadwalan.review` | Ya | Fakultas sendiri | Fakultas sendiri |
+| `penjadwalan.configure` / `approve` / `publish` | Ya | Tidak | Tidak |
+
+Seeder: `20261012065923-penjadwalan-permissions.js`, idempoten. Admin departemen/prodi tidak mendapat grant modul ini. Scope yang kosong ditolak; grant permission saja tidak memberi akses fakultas lain. Configure/approve/publish juga memeriksa scope universitas pada service. Matriks permission tetap dapat dikelola melalui IAM. Kontrak dan prosedur: [penjadwalan.md](penjadwalan.md).

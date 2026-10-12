@@ -1,6 +1,7 @@
 import { isUniversityAdminRole } from "../constants/roles";
 
 const SUBJECT_BY_KEY = {
+  penjadwalan: 'Penjadwalan',
   universitas: "Universitas",
   fakultas: "Fakultas",
   departemen: "Departemen",

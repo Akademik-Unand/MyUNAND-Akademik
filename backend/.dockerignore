@@ -1,5 +1,8 @@
 # Dependencies - installed inside container via npm ci
 node_modules
+.python-deps
+.venv
+**/__pycache__
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
