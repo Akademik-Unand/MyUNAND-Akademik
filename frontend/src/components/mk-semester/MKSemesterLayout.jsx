@@ -18,8 +18,9 @@ export const MKSemesterLayout = ({
     enabled: !contextualSemester,
   });
   const activeSemester = activeSemestersQuery.data?.find((row) => row.is_aktif);
-  const semesterSuffix = contextualSemester
-    ? `?semester_id=${encodeURIComponent(contextualSemester)}`
+  const effectiveSemesterId = contextualSemester || activeSemester?.id || "";
+  const semesterSuffix = effectiveSemesterId
+    ? `?semester_id=${encodeURIComponent(effectiveSemesterId)}`
     : "";
   const mkQuery = useResourceItem("matakuliah", id);
   const mk = mkQuery.data;

@@ -1,7 +1,73 @@
 import { isLeafCpmk } from "./cpmkBobot";
 
+/**
+ * Standar Katalog Master Sumber Penilaian Tingkat Universitas Andalas
+ * Mengacu pada Pedoman Kurikulum OBE LP3M UNAND & Indikator Kinerja Utama (IKU-7 PDDikti).
+ */
+export const STANDAR_SUMBER_PENILAIAN_UNAND = [
+  {
+    kode: "CASE_METHOD",
+    nama: "Aktivitas Partisipatif (Case Method)",
+    kategori: "IKU-7 / Partisipatif",
+    rekomendasiBobot: 25,
+  },
+  {
+    kode: "TEAM_PROJECT",
+    nama: "Hasil Proyek (Team-Based Project)",
+    kategori: "IKU-7 / Kolaboratif",
+    rekomendasiBobot: 25,
+  },
+  {
+    kode: "TUGAS",
+    nama: "Tugas",
+    kategori: "Formatif",
+    rekomendasiBobot: 15,
+  },
+  {
+    kode: "KUIS",
+    nama: "Kuis",
+    kategori: "Formatif",
+    rekomendasiBobot: 10,
+  },
+  {
+    kode: "PRAKTIKUM",
+    nama: "Praktikum",
+    kategori: "Psikomotorik / Lab",
+    rekomendasiBobot: 15,
+  },
+  {
+    kode: "UTS",
+    nama: "UTS",
+    kategori: "Sumatif Tengah",
+    rekomendasiBobot: 15,
+  },
+  {
+    kode: "UAS",
+    nama: "UAS",
+    kategori: "Sumatif Akhir",
+    rekomendasiBobot: 20,
+  },
+];
+
+export const DEFAULT_OBE_TEMPLATE_NAMES = [
+  "Aktivitas Partisipatif (Case Method)",
+  "Hasil Proyek (Team-Based Project)",
+  "Tugas",
+  "Kuis",
+  "UTS",
+  "UAS",
+];
+
 const sourceKey = (name, id) =>
   String(name || "").trim().toLocaleLowerCase("id-ID") || `source-${id}`;
+
+export const hasAssessmentColumnNamed = (columns = [], nama = "") => {
+  const target = String(nama || "").trim().toLocaleLowerCase("id-ID");
+  if (!target) return false;
+  return columns.some(
+    (col) => String(col.nama || "").trim().toLocaleLowerCase("id-ID") === target,
+  );
+};
 
 export const buildAssessmentMatrix = (items = []) => {
   const columns = [];

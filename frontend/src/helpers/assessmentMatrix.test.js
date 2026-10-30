@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   assessmentSaveOperations,
   buildAssessmentMatrix,
+  DEFAULT_OBE_TEMPLATE_NAMES,
+  hasAssessmentColumnNamed,
+  STANDAR_SUMBER_PENILAIAN_UNAND,
   totalAssessmentWeight,
 } from "./assessmentMatrix";
 
@@ -62,5 +65,14 @@ describe("assessment matrix", () => {
   it("deletes existing mappings when a matrix cell is unchecked", () => {
     const matrix = [{ key: "tugas", nama: "Tugas", cells: { sub: { id: "source-1", selected: false, bobot: 20 } } }];
     expect(assessmentSaveOperations(cpmks, matrix)).toEqual([{ type: "delete", id: "source-1" }]);
+  });
+
+  it("provides UNAND OBE & IKU-7 standard assessment catalog and detects duplicates case-insensitively", () => {
+    expect(STANDAR_SUMBER_PENILAIAN_UNAND.map((item) => item.nama)).toEqual(
+      expect.arrayContaining(DEFAULT_OBE_TEMPLATE_NAMES),
+    );
+    const matrix = [{ key: "uts", nama: "UTS", cells: {} }];
+    expect(hasAssessmentColumnNamed(matrix, "uts")).toBe(true);
+    expect(hasAssessmentColumnNamed(matrix, " UAS ")).toBe(false);
   });
 });

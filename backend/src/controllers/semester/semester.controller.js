@@ -50,4 +50,21 @@ const activate = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { list, getById, create, update, remove, restore, activate };
+const getActiveContext = asyncHandler(async (req, res) => {
+  const data = await semesterService.getActiveContext();
+  return success(res, {
+    message: "Konteks semester aktif berhasil diambil",
+    data,
+  });
+});
+
+module.exports = {
+  list,
+  getById,
+  create,
+  update,
+  remove,
+  restore,
+  activate,
+  getActiveContext,
+};

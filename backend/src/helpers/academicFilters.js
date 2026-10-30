@@ -305,7 +305,7 @@ const evaluasiCpmkFilters = (sequelize) => ({
 
 /** Subquery id krs_detil yang kelasnya memenuhi kondisi scope/filter nilai. */
 const krsDetilIdsByKelasSql = (sequelize, conditionSql) =>
-  `SELECT kd.id FROM krs_detil kd INNER JOIN kelas k ON k.id = kd.kelas_id WHERE kd.deletedAt IS NULL AND k.deletedAt IS NULL AND (${conditionSql})`;
+  `SELECT kd.id FROM krs_detil kd INNER JOIN kelas k ON k.id = kd.kelas_id WHERE k.deletedAt IS NULL AND (${conditionSql})`;
 
 /** Filter untuk daftar nilai mahasiswa lewat kelas pemilik krs_detil. */
 const nilaiFilters = (sequelize) => ({

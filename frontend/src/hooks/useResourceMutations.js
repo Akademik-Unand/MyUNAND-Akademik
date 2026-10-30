@@ -18,6 +18,13 @@ export const useResourceMutations = (resource, labels = {}) => {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ["table", resource] }),
       queryClient.invalidateQueries({ queryKey: [resource] }),
+      ...(resource === "periode"
+        ? [
+            queryClient.invalidateQueries({
+              queryKey: ["setting-semester", "active-context"],
+            }),
+          ]
+        : []),
     ]);
 
   const create = useMutation({

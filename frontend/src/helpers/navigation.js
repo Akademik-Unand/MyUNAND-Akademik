@@ -23,6 +23,7 @@ const STUDENT_NAV_PATHS = new Set([
 const ADMIN_UNIT_HIDDEN_PATHS = new Set([
   "/master/fakultas",
   "/master/jenjang-akademik",
+  "/master/sumber-penilaian",
   "/master/gedung",
   "/master/ruang",
   "/master/semester/jenis",

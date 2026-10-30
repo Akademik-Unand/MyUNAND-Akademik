@@ -61,6 +61,7 @@ export function SessionForm({ setup, scenario, onSave, busy }) {
     control,
     handleSubmit,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(sessionFormSchema),
@@ -217,12 +218,48 @@ export function SessionForm({ setup, scenario, onSave, busy }) {
         <span className="fieldset-legend">Nama skenario</span>
         <input className="input w-full" {...register("nama")} />
       </label>
-      <p className="text-sm">
-        Tentukan kelompok mahasiswa yang wajib bisa mengikuti kelas bersama.
-        Gunakan nama kelompok yang sama untuk sesi yang tidak boleh bentrok;
-        pisahkan beberapa kelompok dengan koma. Periksa durasi teori/praktikum
-        sebelum menyimpan.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <p className="text-sm max-w-3xl">
+          Tentukan kelompok mahasiswa yang wajib bisa mengikuti kelas bersama.
+          Gunakan nama kelompok yang sama untuk sesi yang tidak boleh bentrok;
+          pisahkan beberapa kelompok dengan koma. Periksa durasi teori/praktikum
+          sebelum menyimpan.
+        </p>
+        <button
+          type="button"
+          className="btn btn-xs btn-outline"
+          onClick={() => {
+            const current = getValues("sessions") || [];
+            const defaultFacility =
+              setup.policy?.config?.rooms?.[0]?.facilities?.[0] || "";
+            const defaultType =
+              setup.policy?.config?.rooms?.[0]?.type || "teori";
+            current.forEach((s, idx) => {
+              if (!String(s.groups || "").trim()) {
+                const cls = setup.classes.find((c) => c.id === s.kelas_id);
+                const code = cls?.course_code || `KELAS-${idx + 1}`;
+                const section = cls?.nama || "A";
+                setValue(`sessions.${idx}.groups`, `${code}-${section}`, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+              }
+              if (!String(s.type || "").trim()) {
+                setValue(`sessions.${idx}.type`, defaultType, {
+                  shouldDirty: true,
+                });
+              }
+              if (!String(s.facilities || "").trim() && defaultFacility) {
+                setValue(`sessions.${idx}.facilities`, defaultFacility, {
+                  shouldDirty: true,
+                });
+              }
+            });
+          }}
+        >
+          Isi otomatis kelompok paket kosong
+        </button>
+      </div>
       <p className="text-sm opacity-70">
         Prioritas simulasi: gedung utama, jumlah sesi berubah, perubahan waktu,
         gedung dan ruang, lalu perpindahan, jeda serta keseimbangan beban.

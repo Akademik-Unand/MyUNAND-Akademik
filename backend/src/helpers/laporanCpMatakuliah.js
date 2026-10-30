@@ -200,6 +200,7 @@ const buildNilaiPeserta = (rows = [], cpmkRaw = []) => {
     sub: group.leaves.map((leaf) => ({
       id: leaf.id,
       nama: cplKode(leaf),
+      sub_cpmk_nama: leaf.id !== group.id ? leaf.nama_cpmk : null,
       sumber: leaf.sumber,
     })),
   }));

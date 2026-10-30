@@ -20,6 +20,7 @@ import { DepartemenPage } from "../pages/master/DepartemenPage";
 import { ProdiPage } from "../pages/master/ProdiPage";
 import { ProdiFormPage } from "../pages/master/ProdiFormPage";
 import { JenjangAkademikPage } from "../pages/master/JenjangAkademikPage";
+import { MasterSumberPenilaianPage } from "../pages/master/MasterSumberPenilaianPage";
 import { JenisSemesterPage } from "../pages/semester/JenisSemesterPage";
 import { SettingSemesterPage } from "../pages/semester/SettingSemesterPage";
 import { SettingSemesterFormPage } from "../pages/semester/SettingSemesterFormPage";
@@ -126,6 +127,14 @@ export const router = createBrowserRouter([
           {
             path: "master/jenjang-akademik",
             element: gate("read", "JenjangAkademik", <JenjangAkademikPage />),
+          },
+          {
+            path: "master/sumber-penilaian",
+            element: gate(
+              "read",
+              "SumberPenilaian",
+              <MasterSumberPenilaianPage />,
+            ),
           },
           {
             path: "master/semester/jenis",

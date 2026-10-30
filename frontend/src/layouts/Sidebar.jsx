@@ -88,6 +88,15 @@ export const Sidebar = () => {
     return <IconComponent size={18} className="shrink-0" />;
   };
 
+  const isRouteActive = (targetPath) => {
+    if (!targetPath) return false;
+    if (targetPath === "/") return location.pathname === "/";
+    return (
+      location.pathname === targetPath ||
+      location.pathname.startsWith(`${targetPath}/`)
+    );
+  };
+
   const renderMenu = (expanded) => (
     <div className="flex flex-col h-full bg-base-100 border-r border-base-300 select-none">
       {/* Sidebar Header / Brand */}
@@ -123,7 +132,7 @@ export const Sidebar = () => {
       <nav className="flex-1 overflow-y-auto no-scrollbar px-3 py-4 space-y-4">
         {menu.map((item, idx) => {
           if (item.type === "link") {
-            const isActive = location.pathname === item.path;
+            const isActive = isRouteActive(item.path);
             return (
               <NavLink
                 key={idx}
@@ -144,20 +153,20 @@ export const Sidebar = () => {
 
           if (item.type === "group") {
             return (
-              <div key={idx} className="space-y-1">
+              <div key={idx} className="space-y-1.5">
                 {expanded && (
                   <p className="px-3 text-[10px] font-bold tracking-wider uppercase text-base-content/40">
                     {item.title}
                   </p>
                 )}
 
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   {item.items.map((subItem, sIdx) => {
                     // Has nested children (like Semester -> Jenis, Setting)
                     if (subItem.children) {
                       const isOpen = openSubmenus[subItem.label] ?? false;
-                      const hasActiveChild = subItem.children.some(
-                        (c) => location.pathname === c.path,
+                      const hasActiveChild = subItem.children.some((c) =>
+                        isRouteActive(c.path),
                       );
 
                       return (
@@ -191,8 +200,7 @@ export const Sidebar = () => {
                           {isOpen && expanded && (
                             <div className="ml-5 pl-3 border-l-2 border-base-300 space-y-0.5 mt-1">
                               {subItem.children.map((child, cIdx) => {
-                                const isChildActive =
-                                  location.pathname === child.path;
+                                const isChildActive = isRouteActive(child.path);
                                 return (
                                   <NavLink
                                     key={cIdx}
@@ -214,7 +222,7 @@ export const Sidebar = () => {
                       );
                     }
 
-                    const isActive = location.pathname === subItem.path;
+                    const isActive = isRouteActive(subItem.path);
                     return (
                       <NavLink
                         key={sIdx}

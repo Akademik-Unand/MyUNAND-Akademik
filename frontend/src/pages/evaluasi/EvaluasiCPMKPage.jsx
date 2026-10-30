@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import Chart from "react-apexcharts";
 import { MKSemesterLayout } from "../../components/mk-semester/MKSemesterLayout";
@@ -15,7 +16,14 @@ export const EvaluasiCPMKPage = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const contextualSemester = searchParams.get("semester_id") || "";
-  const semester = contextualSemester;
+  const activeSemestersQuery = useResourceQuery("setting-semester", {
+    enabled: !contextualSemester,
+  });
+  const activeSemesterId =
+    activeSemestersQuery.data?.find((row) => row.is_aktif)?.id ||
+    activeSemestersQuery.data?.[0]?.id ||
+    "";
+  const semester = contextualSemester || activeSemesterId;
   const [tab, setTab] = useState("rangkuman");
   const scoped = Boolean(id && semester);
   const evaluasiFilter = scoped

@@ -365,7 +365,11 @@ const isAdminAllowed = (item) => {
 };
 
 const isDosenAllowed = (item) => {
-  if (item.key === "periode" && item.action === "read") return true;
+  if (
+    ["periode", "semester", "kurikulum", "jenis-semester"].includes(item.key) &&
+    item.action === "read"
+  )
+    return true;
   if (item.group === "krs" && ["read", "approve"].includes(item.action))
     return true;
   // Dosen adalah pembimbing akademik mahasiswanya, jadi ia boleh melihat daftar

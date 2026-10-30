@@ -26,6 +26,24 @@ async function boot() {
   app.listen(appConfig.port, '0.0.0.0', () => {
     logger.info({ port: appConfig.port }, `Server running on http://localhost:${appConfig.port}`);
   });
+
+  if (process.env.PENJADWALAN_INLINE_WORKER !== 'false') {
+    const { tick } = require('./services/penjadwalan/worker.service');
+    const { pollMs } = require('./config/penjadwalan');
+    let runningTick = false;
+    setInterval(async () => {
+      if (runningTick) return;
+      runningTick = true;
+      try {
+        await tick();
+      } catch (err) {
+        logger.error({ err }, 'Antrean penjadwalan gagal');
+      } finally {
+        runningTick = false;
+      }
+    }, pollMs).unref();
+    logger.info('Worker penjadwalan terintegrasi aktif');
+  }
 }
 
 boot();

@@ -127,7 +127,7 @@ export const AturCPMKSemesterPage = () => {
 
       <Card title={`Sumber penilaian untuk ${mkLabel(mk.data)}`}>
         <AturCPMKSemesterForm items={items} columns={columns} onChange={setColumns} disabled={!cpmkOpen || cpmkPeriod.isPending || saving} />
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
           <Button
             variant="ghost"
             size="sm"
@@ -147,6 +147,8 @@ export const AturCPMKSemesterPage = () => {
           {cpmkOpen && (
             <Button
               size="sm"
+              variant="primary"
+              className="btn-success text-white"
               onClick={save}
               isLoading={saving}
               disabled={overMax || hasUnnamedSelectedColumn || missingPermissions.length > 0}

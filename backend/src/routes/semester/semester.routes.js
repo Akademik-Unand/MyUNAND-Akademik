@@ -11,7 +11,14 @@ const semesterController = require("../../controllers/semester/semester.controll
 
 const subject = "Semester";
 
-/semester */;
+/** GET /semester/active-context — diakses semua akun terautentikasi untuk indikator semester aktif di navbar */
+router.get(
+  "/active-context",
+  authenticate,
+  semesterController.getActiveContext,
+);
+
+/** GET /semester */
 router.get(
   "/",
   authenticate,

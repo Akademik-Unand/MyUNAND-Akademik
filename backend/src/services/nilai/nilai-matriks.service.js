@@ -39,15 +39,25 @@ const buildGroups = (cpmkRows) => {
 
     const rootId = cpmk.parent_cpmk_id || cpmk.id;
     const root = byId.get(rootId) || cpmk;
-    if (!groups.has(rootId)) {
-      groups.set(rootId, {
-        id: rootId,
-        nama: root.nama_cpmk,
+    const groupId = cpmk.id;
+    const isSub = Boolean(cpmk.parent_cpmk_id && root && root.id !== cpmk.id);
+    const displayName = isSub
+      ? /cpmk/i.test(String(cpmk.nama_cpmk || ''))
+        ? cpmk.nama_cpmk
+        : `${root.nama_cpmk} — ${cpmk.nama_cpmk}`
+      : cpmk.nama_cpmk;
+
+    if (!groups.has(groupId)) {
+      groups.set(groupId, {
+        id: groupId,
+        nama: displayName,
+        parent_id: isSub ? root.id : null,
+        parent_nama: isSub ? root.nama_cpmk : null,
         scp_label: scpLabel(cpmk) === '—' ? scpLabel(root) : scpLabel(cpmk),
         sumber: [],
       });
     }
-    const group = groups.get(rootId);
+    const group = groups.get(groupId);
     if (group.scp_label === '—' && scpLabel(cpmk) !== '—') {
       group.scp_label = scpLabel(cpmk);
     }

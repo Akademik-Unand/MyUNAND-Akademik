@@ -764,7 +764,7 @@ module.exports = {
           if (krsDetilExisting.has(key)) continue;
           krsDetilExisting.add(key);
           krsDetilRows.push(
-            row(now, { krs_id: krsId, kelas_id: kelasId, approved: "1" }),
+            row(now, { krs_id: krsId, kelas_id: kelasId, approved: "2" }),
           );
         }
       });

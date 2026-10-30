@@ -7,3 +7,6 @@ import { apiRequest } from "./http";
  */
 export const activateSemester = (id) =>
   apiRequest(`/semester/${id}/activate`, { method: "PATCH" });
+
+export const getActiveSemesterContext = () =>
+  apiRequest("/semester/active-context");

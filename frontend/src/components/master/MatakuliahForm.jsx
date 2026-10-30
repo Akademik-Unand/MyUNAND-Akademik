@@ -1,12 +1,32 @@
+import { useEffect } from "react";
 import { Input } from "../ui/Input";
 import { ResourceSelect } from "../common/ResourceSelect";
 import { useAcademicFilter } from "../../hooks/useAcademicFilter";
+import { useResourceQuery } from "../../hooks/useResourceQuery";
 import { Select } from "../ui/Select";
 
 export const MatakuliahForm = ({ values, onChange }) => {
   const academic = useAcademicFilter({
     keys: ["fakultas", "departemen", "prodi"],
   });
+  const prodiId = values.program_studi_id || academic.applied.prodiId || "";
+  const kurikulumQuery = useResourceQuery("kurikulum", {
+    params: prodiId ? { filter: { program_studi_id: prodiId } } : undefined,
+    enabled: Boolean(prodiId),
+  });
+  const kurikulumOptions = (kurikulumQuery.data || []).map((k) => ({
+    value: k.id,
+    label: `${k.nama} (${k.tahun})`,
+  }));
+  const selectedKurikulumId =
+    values.kurikulum_id || values.kurikulum?.[0]?.id || "";
+
+  useEffect(() => {
+    if (!selectedKurikulumId && kurikulumOptions.length === 1) {
+      onChange({ ...values, kurikulum_id: kurikulumOptions[0].value });
+    }
+  }, [selectedKurikulumId, kurikulumOptions]);
+
   const set = (key) => (event) =>
     onChange({ ...values, [key]: event.target.value });
   const setAcademic = (key) => (event) => {
@@ -32,6 +52,21 @@ export const MatakuliahForm = ({ values, onChange }) => {
           required={field.name === "prodi"}
         />
       ))}
+      <Select
+        label="Kurikulum *"
+        options={kurikulumOptions}
+        value={selectedKurikulumId}
+        onChange={(e) => onChange({ ...values, kurikulum_id: e.target.value })}
+        placeholder={
+          prodiId
+            ? kurikulumQuery.isPending
+              ? "Memuat kurikulum..."
+              : "Pilih kurikulum..."
+            : "Pilih prodi terlebih dahulu"
+        }
+        disabled={!prodiId || kurikulumQuery.isPending}
+        required
+      />
       <Input
         label="Kode Mata Kuliah *"
         value={values.kode_matakuliah || ""}

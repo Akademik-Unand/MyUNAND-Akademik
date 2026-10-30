@@ -6,6 +6,7 @@ import { programStudiLabel } from "../../helpers/academicLabel";
 
 const emptyForm = {
   program_studi_id: "",
+  kurikulum_id: "",
   kode_matakuliah: "",
   nama_resmi: "",
   jenis_semester_id: "",
@@ -70,6 +71,7 @@ export const MatakuliahPage = () => {
       ]}
       detailItems={(row) => [
         { label: "Program Studi", value: programStudiLabel(row.programStudi, "") },
+        { label: "Kurikulum", value: row.kurikulum?.[0]?.nama ? `${row.kurikulum[0].nama} (${row.kurikulum[0].tahun})` : "—" },
         { label: "Kode", value: row.kode_matakuliah },
         { label: "Nama", value: row.nama_resmi },
         { label: "SKS", value: row.jumlah_sks_kurikulum },

@@ -55,7 +55,12 @@ export const LaporanCpNilaiPesertaTab = ({ nilai }) => {
                   colSpan={sub.sumber.length}
                   className="bg-base-100 text-center font-normal"
                 >
-                  {sub.nama}
+                  {sub.sub_cpmk_nama && (
+                    <span className="block font-semibold text-base-content/80">
+                      {sub.sub_cpmk_nama}
+                    </span>
+                  )}
+                  <span className="block">{sub.nama}</span>
                 </th>
               )),
             )}

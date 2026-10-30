@@ -17,6 +17,10 @@ import { AccessibilityMenu } from "./AccessibilityMenu";
 import { getInitials } from "../utils/initials";
 import { roleLabel } from "../constants/roles";
 import { OrganizationSelector } from "../components/organization/OrganizationSelector";
+import {
+  ActiveSemesterBadge,
+  ActiveSemesterProfileRow,
+} from "../components/semester/ActiveSemesterBadge";
 import { ProfileAcademicAdvisor } from "../components/profile/ProfileAcademicAdvisor";
 import { accountUnitInfo, isMahasiswaAccount } from "../helpers/accountUnit";
 
@@ -78,8 +82,10 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* Right side: Organization, Kemudahan, User Profile */}
-      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+      {/* Right side: Active Semester, Organization, Kemudahan, User Profile */}
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <ActiveSemesterBadge />
+        <div className="hidden sm:block h-4 w-px bg-base-300" />
         <OrganizationSelector />
 
         {/* Mobile search trigger */}
@@ -119,36 +125,43 @@ export const Navbar = () => {
 
           <ul
             tabIndex={0}
-            className="dropdown-content menu p-2 shadow-xl bg-base-100 rounded-box w-72 max-w-[calc(100vw-1rem)] border border-base-300 z-50 mt-2"
+            className="dropdown-content menu p-2 shadow-xl bg-base-100 rounded-box w-80 max-w-[calc(100vw-1rem)] border border-base-300 z-50 mt-2 overflow-hidden"
           >
-            <li className="group min-w-0 px-3 py-0 border-b border-base-200 mb-1">
-              <div className="flex min-w-0 w-full flex-col items-start rounded-field p-1.5 -mx-2 text-left transition-colors duration-200 hover:bg-base-200 active:bg-neutral active:text-neutral-content">
-                <p className="font-medium text-sm text-base-content truncate group-hover:text-base-content group-active:text-neutral-content">
+            <li className="min-w-0 px-0 py-0 border-b border-base-200 mb-1">
+              <div className="flex min-w-0 w-full flex-col items-start rounded-lg p-2 text-left transition-colors duration-150 hover:bg-base-200/60 select-text cursor-default">
+                <p
+                  className="font-semibold text-sm text-base-content truncate w-full max-w-full block"
+                  title={user?.name}
+                >
                   {user?.name}
                 </p>
-                <p className="text-xs text-base-content/60 truncate group-hover:text-base-content group-active:text-neutral-content">
+                <p
+                  className="text-xs text-base-content/60 truncate w-full max-w-full block mt-0.5 font-mono"
+                  title={user?.email}
+                >
                   {user?.email}
                 </p>
-                <div className="flex min-w-0 items-start gap-1 mt-1 text-[11px] text-primary font-medium group-hover:text-base-content group-active:text-neutral-content">
-                  <ShieldCheck size={13} className="group-hover:text-base-content group-active:text-neutral-content" />
-                  <span>
+                <div className="flex min-w-0 items-center gap-1.5 mt-1.5 text-[11px] text-primary font-medium w-full">
+                  <ShieldCheck size={13} className="shrink-0" />
+                  <span className="truncate">
                     {(user?.roles || [])
                       .map((role) => roleLabel(role.name))
                       .join(", ") || roleLabel(user?.role)}
                   </span>
                 </div>
                 <div
-                  className={`flex min-w-0 items-start gap-1 mt-1 text-[11px] font-medium group-hover:text-base-content group-active:text-neutral-content ${unitInfo.tone === "warning" ? "text-warning" : "text-base-content/70"}`}
+                  className={`flex min-w-0 items-start gap-1.5 mt-1 text-[11px] font-medium w-full ${unitInfo.tone === "warning" ? "text-warning" : "text-base-content/70"}`}
                 >
                   <Building2 size={13} className="mt-0.5 shrink-0" />
-                  <span className="min-w-0 whitespace-normal break-words">
+                  <span className="min-w-0 whitespace-normal break-words leading-tight">
                     {unitInfo.label}: {unitInfo.value}
                   </span>
                 </div>
+                <ActiveSemesterProfileRow />
               </div>
             </li>
             {isMahasiswaAccount(user) && (
-              <li className="menu-title min-w-0 whitespace-normal px-3 py-0 text-left">
+              <li className="min-w-0 px-0 py-0 border-b border-base-200 mb-1">
                 <ProfileAcademicAdvisor compact />
               </li>
             )}

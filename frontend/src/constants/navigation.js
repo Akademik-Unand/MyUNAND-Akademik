@@ -188,6 +188,12 @@ export const NAVIGATION_MENU = [
         permission: { action: "read", subject: "JenjangAkademik" },
       },
       {
+        label: "Sumber Penilaian",
+        path: "/master/sumber-penilaian",
+        icon: "ListChecks",
+        permission: { action: "read", subject: "SumberPenilaian" },
+      },
+      {
         label: "Semester",
         icon: "Calendar",
         children: [

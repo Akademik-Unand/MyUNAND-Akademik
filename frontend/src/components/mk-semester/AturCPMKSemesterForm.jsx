@@ -1,8 +1,13 @@
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { IconButton } from "../common/IconButton";
+import { useResourceQuery } from "../../hooks/useResourceQuery";
 import { isLeafCpmk, MAX_MK_BOBOT } from "../../helpers/cpmkBobot";
-import { totalAssessmentWeight } from "../../helpers/assessmentMatrix";
+import {
+  hasAssessmentColumnNamed,
+  STANDAR_SUMBER_PENILAIAN_UNAND,
+  totalAssessmentWeight,
+} from "../../helpers/assessmentMatrix";
 
 const newKey = () => `new-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -12,6 +17,15 @@ export const AturCPMKSemesterForm = ({
   onChange,
   disabled = false,
 }) => {
+  const masterSumberQuery = useResourceQuery("master-sumber-penilaian");
+  const catalogItems =
+    masterSumberQuery.data && masterSumberQuery.data.length > 0
+      ? masterSumberQuery.data.map((row) => ({
+          kode: row.kode || row.id,
+          nama: row.nama,
+          deskripsi: row.deskripsi || "",
+        }))
+      : STANDAR_SUMBER_PENILAIAN_UNAND;
   const cpmks = items.filter((item) => isLeafCpmk(item, items));
   const total = totalAssessmentWeight(columns);
   const overMax = total > MAX_MK_BOBOT + 0.01;
@@ -28,25 +42,44 @@ export const AturCPMKSemesterForm = ({
       },
     }));
 
-  const addColumn = () => onChange([
-    ...columns,
-    { key: newKey(), nama: "", cells: {} },
-  ]);
+  const addColumn = (nama = "") => {
+    if (nama && hasAssessmentColumnNamed(columns, nama)) return;
+    onChange([
+      ...columns,
+      { key: newKey(), nama, cells: {} },
+    ]);
+  };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-medium">Matriks komponen penilaian × CPMK</p>
           <p className="mt-1 text-sm text-base-content/60">
-            Tambahkan komponen sebagai kolom, lalu centang CPMK yang dinilai dan isi bobotnya.
-            Bobot total seluruh CPMK dalam mata kuliah maksimal 100%.
+            Tambahkan komponen sebagai kolom, lalu centang CPMK yang dinilai dan isi bobotnya. Bobot total seluruh CPMK dalam mata kuliah maksimal 100%.
           </p>
         </div>
-        <Button type="button" variant="outline" size="sm" className="gap-1" disabled={disabled} onClick={addColumn}>
-          <Plus size={14} /> Tambah Komponen
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1"
+            disabled={disabled}
+            onClick={() => addColumn("")}
+          >
+            <Plus size={14} /> Tambah Komponen
+          </Button>
+        </div>
       </div>
+
+      <datalist id="standar-sumber-penilaian-unand">
+        {catalogItems.map((item) => (
+          <option key={item.kode} value={item.nama}>
+            {item.deskripsi || ""}
+          </option>
+        ))}
+      </datalist>
 
       <div className="overflow-x-auto rounded-box border border-base-300">
         <table className="table table-sm min-w-max">
@@ -59,6 +92,7 @@ export const AturCPMKSemesterForm = ({
                     <label className="fieldset min-w-0 flex-1">
                       <span className="label text-xs">Nama Komponen</span>
                       <input
+                        list="standar-sumber-penilaian-unand"
                         className="input input-sm w-full"
                         value={column.nama}
                         disabled={disabled}
@@ -137,8 +171,8 @@ export const AturCPMKSemesterForm = ({
         </table>
       </div>
 
-      <p className={`text-sm ${overMax ? "text-error" : "text-base-content/60"}`}>
-        Total bobot: <strong>{total.toLocaleString("id-ID")}</strong>% / {MAX_MK_BOBOT}%
+      <p className={`text-sm ${overMax ? "text-error font-medium" : "text-base-content/60"}`}>
+        Total bobot: <strong>{total.toLocaleString("id-ID")}%</strong> / {MAX_MK_BOBOT}%
         {overMax ? " — total tidak boleh lebih dari 100%." : ""}
       </p>
     </div>

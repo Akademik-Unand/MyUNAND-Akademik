@@ -118,7 +118,12 @@ export const NilaiPesertaMatrix = ({
                   colSpan={group.sumber.length}
                   className="text-center"
                 >
-                  {group.nama}
+                  {group.parent_nama && group.parent_nama !== group.nama && (
+                    <div className="text-[10px] font-normal text-base-content/50">
+                      {group.parent_nama}
+                    </div>
+                  )}
+                  <div>{group.nama}</div>
                 </th>
               ))}
               <th

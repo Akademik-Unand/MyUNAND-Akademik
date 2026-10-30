@@ -6,6 +6,7 @@ const { idParam, listQuery } = require('../common');
 const list = listQuery(["kode_matakuliah","nama_resmi","createdAt"], ["kode_matakuliah","program_studi_id","jenis_semester_id","tipe_matakuliah_id"]);
 const create = Joi.object({
     program_studi_id: Joi.string().uuid().required(),
+    kurikulum_id: Joi.string().uuid().allow(null, ""),
     jenis_semester_id: Joi.string().uuid().required(),
     tipe_matakuliah_id: Joi.string().uuid().allow(null),
     sifat_matakuliah_id: Joi.string().uuid().allow(null),
@@ -21,6 +22,7 @@ const create = Joi.object({
 });
 const update = Joi.object({
     program_studi_id: Joi.string().uuid(),
+    kurikulum_id: Joi.string().uuid().allow(null, ""),
     jenis_semester_id: Joi.string().uuid().allow(null),
     tipe_matakuliah_id: Joi.string().uuid().allow(null),
     sifat_matakuliah_id: Joi.string().uuid().allow(null),

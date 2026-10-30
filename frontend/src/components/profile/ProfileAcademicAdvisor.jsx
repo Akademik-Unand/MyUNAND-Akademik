@@ -74,11 +74,14 @@ export const ProfileAcademicAdvisor = ({ compact = false }) => {
 
   if (compact) {
     return (
-      <div className="group -mx-2 min-w-0 w-full space-y-1 rounded-field p-1.5 text-left text-xs font-normal wrap-anywhere transition-colors duration-200 hover:bg-base-200 hover:text-base-content active:bg-neutral active:text-neutral-content">
-        <p className="flex items-center gap-1 font-medium text-base-content/60 group-hover:text-base-content group-active:text-neutral-content">
-          <GraduationCap size={14} className="shrink-0 group-hover:text-base-content group-active:text-neutral-content" /> Dosen PA
+      <div className="w-full min-w-0 space-y-0.5 rounded-lg p-2 text-left text-xs font-normal transition-colors duration-150 hover:bg-base-200/60 cursor-default select-text">
+        <p className="flex items-center gap-1.5 font-medium text-base-content/60">
+          <GraduationCap size={13} className="shrink-0 text-primary" />
+          <span>Dosen PA</span>
         </p>
-        {content}
+        <div className="text-base-content font-medium pl-4 text-xs truncate">
+          {content}
+        </div>
       </div>
     );
   }

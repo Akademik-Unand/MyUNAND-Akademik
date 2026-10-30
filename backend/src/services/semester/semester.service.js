@@ -1,7 +1,7 @@
 'use strict';
 
 const { Op } = require('sequelize');
-const { sequelize, Semester, JenisSemester } = require('../../models');
+const { sequelize, Semester, JenisSemester, Periode } = require('../../models');
 const { paginate } = require('../../helpers/listQuery');
 const AppError = require('../../helpers/AppError');
 const { restoreRecord } = require('../../helpers/softDelete');
@@ -75,4 +75,32 @@ const activate = async (id) => {
   return Semester.findByPk(item.id, { include: LIST_OPTIONS.defaultInclude });
 };
 
-module.exports = { list, getById, create, update, remove, restore, activate };
+const getActiveContext = async () => {
+  const semester = await Semester.findOne({
+    where: { is_aktif: true },
+    include: LIST_OPTIONS.defaultInclude,
+    order: [
+      ["tahun", "DESC"],
+      ["createdAt", "DESC"],
+    ],
+  });
+  if (!semester) {
+    return { semester: null, periodes: [] };
+  }
+  const periodes = await Periode.findAll({
+    where: { semester_id: semester.id },
+    order: [["tanggal_mulai", "ASC"]],
+  });
+  return { semester, periodes };
+};
+
+module.exports = {
+  list,
+  getById,
+  create,
+  update,
+  remove,
+  restore,
+  activate,
+  getActiveContext,
+};
